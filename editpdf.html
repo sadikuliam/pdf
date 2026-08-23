@@ -34,7 +34,7 @@ button, input, select { font: inherit; outline: none; border: none; }
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
 
-/* Layout Grid - Removed min-width to allow mobile responsiveness */
+/* Layout Grid */
 .app-container { height: 100%; display: grid; grid-template-rows: 64px 56px 1fr; width: 100%; }
 
 /* Topbar & Toolbar */
@@ -104,6 +104,7 @@ button, input, select { font: inherit; outline: none; border: none; }
   outline: 1.5px solid var(--accent-primary) !important; 
   box-shadow: 0 2px 6px rgba(0,0,0,0.1); 
   z-index: 20; 
+  cursor: move; /* Shows drag capability */
 }
 
 .text-box.is-modified { background: #ffffff !important; z-index: 15; }
@@ -131,18 +132,12 @@ button, input, select { font: inherit; outline: none; border: none; }
 .modal-body { padding: 24px; }
 .modal-footer { padding: 16px 24px; background: rgba(0,0,0,0.2); display: flex; justify-content: flex-end; gap: 12px; }
 
-/* =========================================
-   RESPONSIVE MOBILE & TABLET LAYOUTS
-   ========================================= */
-
 /* Tablet Optimization (Below 1024px) */
 @media (max-width: 1024px) {
   .workspace { 
     grid-template-columns: 1fr; 
     grid-template-rows: auto 1fr auto; 
   }
-  
-  /* Convert Sidebar to horizontal strip above canvas */
   .sidebar { 
     border-right: none; 
     border-bottom: 1px solid var(--glass-border); 
@@ -160,11 +155,7 @@ button, input, select { font: inherit; outline: none; border: none; }
     flex-grow: 1;
   }
   .thumb-card { flex: 0 0 70px; }
-
-  /* Stage Adjustments */
   .stage { padding: 15px; }
-  
-  /* Convert Properties panel to flow at the bottom */
   .properties-panel { 
     border-left: none; 
     border-top: 1px solid var(--glass-border); 
@@ -173,23 +164,18 @@ button, input, select { font: inherit; outline: none; border: none; }
   .prop-section { display: flex; flex-wrap: wrap; gap: 10px; padding: 15px; }
   .control-row { flex: 1 1 calc(50% - 10px); margin-bottom: 0; }
   #btnDeleteElement { width: 100%; margin-top: 5px; }
-  .system-log { display: none; } /* Hide logs on mobile to save space */
+  .system-log { display: none; }
 }
 
 /* Mobile Phone Optimization (Below 600px) */
 @media (max-width: 600px) {
   .app-container { grid-template-rows: auto auto 1fr; }
-  
   .topbar { flex-direction: column; height: auto; padding: 15px 10px; gap: 12px; }
   .brand-text small { display: none; }
   .top-actions { justify-content: center; flex-wrap: wrap; width: 100%; }
-  
   .toolbar { padding: 10px; }
-  
-  .panel-header { display: none; } /* Hide "Pages" text on phone */
-  
-  .control-row { flex: 1 1 100%; } /* Stack inputs on small screens */
-  
+  .panel-header { display: none; }
+  .control-row { flex: 1 1 100%; } 
   .empty-state { padding: 20px; font-size: 14px; }
   .empty-icon { font-size: 32px; }
 }
@@ -247,7 +233,6 @@ button, input, select { font: inherit; outline: none; border: none; }
         <p>Drop a PDF document here. The engine natively reads font styles<br>and spacing for seamless, invisible editing.</p>
         <button class="btn primary" style="padding: 0 24px; height: 44px; margin-top: 20px;" onclick="document.getElementById('hiddenFileInput').click()">Choose File</button>
       </div>
-      <!-- Changed layout centering for better zoom stability -->
       <div id="documentPagesContainer" style="display: flex; flex-direction: column; align-items: flex-start; margin: 0 auto; width: fit-content;"></div>
     </main>
 
@@ -288,12 +273,15 @@ button, input, select { font: inherit; outline: none; border: none; }
           <label>Color</label>
           <input id="propColor" type="color" class="control-input" value="#000000">
         </div>
-        <button class="btn" id="btnDeleteElement" style="background: rgba(239, 68, 68, 0.1); color: var(--danger);">
+        <div class="control-row">
+          <label>Link</label>
+          <input id="propLink" type="url" class="control-input" placeholder="https://...">
+        </div>
+        <button class="btn" id="btnDeleteElement" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); width: 100%; margin-top: 10px;">
           <i class="fa-solid fa-trash-can"></i> Delete Element
         </button>
       </div>
       
-      <!-- System logs hide on mobile screens via CSS to save space -->
       <div class="prop-section" style="flex-grow: 1;">
         <h3>System Logs</h3>
         <div id="systemLogBox" class="system-log">Engine Ready.</div>
@@ -326,18 +314,18 @@ button, input, select { font: inherit; outline: none; border: none; }
 'use strict';
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-// MOBILE FIX: Detect if device is mobile to set initial zoom level out automatically
 const isMobile = window.innerWidth <= 768;
 
 const AppState = { 
   document: null, 
   pages: [], 
   currentPageIndex: 0, 
-  zoomLevel: isMobile ? 0.6 : 1.25, // Start zoomed out on mobile
+  zoomLevel: isMobile ? 0.6 : 1.25, 
   activeTool: 'select', 
   selectedElement: null, 
   history: { past: [], future: [] }, 
-  flags: { isExporting: false } 
+  flags: { isExporting: false },
+  dragState: { isDragging: false, startX: 0, startY: 0 } 
 };
 
 const UI = {
@@ -408,7 +396,7 @@ const DocumentManager = {
                   uuid: crypto.randomUUID(), x: tx[4], y: tx[5] - (fontSize * 0.8),
                   w: (item.width * viewport.scale) + 2, h: fontSize * 1.15, text: item.str, originalText: item.str,
                   fontSize: fontSize, fontFamily: finalFont, fontWeight: finalWeight, fontStyle: finalFontStyle, color: '#000000',
-                  isModified: false, isHidden: false
+                  link: '', isModified: false, isHidden: false
                 });
               }
             }
@@ -463,6 +451,14 @@ const Renderer = {
         box.style.color = el.color; 
       }
 
+      box.addEventListener('mousedown', (e) => {
+        e.stopPropagation(); 
+        Editor.selectElement(box);
+        AppState.dragState.isDragging = true;
+        AppState.dragState.startX = e.clientX;
+        AppState.dragState.startY = e.clientY;
+      });
+
       box.addEventListener('focus', () => { Editor.selectElement(box); box.style.color = el.color; });
       box.addEventListener('blur', () => { if (!el.isModified) box.style.color = 'transparent'; }); 
       box.addEventListener('click', (e) => { e.stopPropagation(); Editor.selectElement(box); });
@@ -504,12 +500,13 @@ const Editor = {
           UI.get('propFontWeight').value = data.fontWeight; 
           if(UI.get('propFontStyle')) UI.get('propFontStyle').value = data.fontStyle || 'normal';
           if(UI.get('propColor')) UI.get('propColor').value = data.color; 
+          if(UI.get('propLink')) UI.get('propLink').value = data.link || ''; 
       }
     }
   },
   createTextBox: (pDef, x, y) => {
     History.save(); const id = crypto.randomUUID();
-    pDef.elements.push({ uuid: id, x, y, w: 100, h: 20, text: 'New Text', originalText: '', fontSize: 16, fontFamily: 'Arial', fontWeight: 400, fontStyle: 'normal', color: '#000000', isModified: true, isHidden: false });
+    pDef.elements.push({ uuid: id, x, y, w: 100, h: 20, text: 'New Text', originalText: '', fontSize: 16, fontFamily: 'Arial', fontWeight: 400, fontStyle: 'normal', color: '#000000', link: '', isModified: true, isHidden: false });
     Renderer.drawLayer(pDef); const node = pDef.interactNode.querySelector(`[data-uuid="${id}"]`);
     Editor.selectElement(node); if(node) { node.focus(); document.execCommand('selectAll', false, null); }
     Navigation.setTool('select');
@@ -530,7 +527,7 @@ const Editor = {
     if(prop === 'fontWeight') AppState.selectedElement.style.fontWeight = val;
     if(prop === 'fontStyle') AppState.selectedElement.style.fontStyle = val;
 
-    if(prop === 'color' || prop === 'fontStyle' || prop === 'fontFamily' || prop === 'fontWeight' || prop === 'fontSize') {
+    if(prop === 'color' || prop === 'fontStyle' || prop === 'fontFamily' || prop === 'fontWeight' || prop === 'fontSize' || prop === 'link') {
        el.isModified = true; 
        AppState.selectedElement.classList.add('is-modified');
        AppState.selectedElement.style.color = el.color; 
@@ -579,14 +576,55 @@ const ExportEngine = {
           ctx.font = `${el.fontStyle || 'normal'} ${el.fontWeight} ${el.fontSize * sc}px "${el.fontFamily}"`;
           ctx.textBaseline = 'top'; ctx.fillText(el.text, el.x * sc, el.y * sc);
         }
+        
         if(i > 0) pdf.addPage([cvs.width, cvs.height]);
         pdf.addImage(cvs.toDataURL('image/jpeg', 0.98), 'JPEG', 0, 0, cvs.width, cvs.height, undefined, 'FAST');
+        
+        // Add hyperlinked zones directly to PDF output
+        for(const el of pDef.elements) {
+          if(el.isHidden || !el.isModified || !el.link) continue;
+          pdf.link(el.x * sc, el.y * sc, el.w * sc, el.h * sc, { url: el.link });
+        }
+        
         UI.get('exportProgressBar').style.width = `${Math.round(((i + 1) / AppState.pages.length) * 100)}%`;
       }
       pdf.save('SHM_Edited_Document.pdf'); UI.get('exportStatusText').textContent = 'Saved!'; setTimeout(() => UI.get('modalExport').classList.remove('show'), 800);
     } catch(err) { UI.toast('Error', 'Export Failed.'); } finally { AppState.flags.isExporting = false; }
   }
 };
+
+// Global Listeners for Drag Events
+document.addEventListener('mousemove', (e) => {
+  if(AppState.dragState.isDragging && AppState.selectedElement) {
+    const ds = AppState.dragState;
+    const dx = (e.clientX - ds.startX) / AppState.zoomLevel;
+    const dy = (e.clientY - ds.startY) / AppState.zoomLevel;
+    
+    // Threshold buffer ensures clicking text doesn't accidentally move it
+    if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+      const p = AppState.pages.find(pg => pg.interactNode.contains(AppState.selectedElement));
+      const el = p.elements.find(ev => ev.uuid === AppState.selectedElement.dataset.uuid);
+      
+      el.x += dx;
+      el.y += dy;
+      el.isModified = true;
+      
+      AppState.selectedElement.style.left = `${el.x}px`;
+      AppState.selectedElement.style.top = `${el.y}px`;
+      AppState.selectedElement.classList.add('is-modified');
+      
+      ds.startX = e.clientX;
+      ds.startY = e.clientY;
+    }
+  }
+});
+
+document.addEventListener('mouseup', () => {
+  if(AppState.dragState.isDragging) {
+    AppState.dragState.isDragging = false;
+    debounceHistory();
+  }
+});
 
 window.onload = () => {
   UI.get('btnOpen').onclick = () => UI.get('hiddenFileInput').click();
@@ -601,6 +639,10 @@ window.onload = () => {
     UI.get(id).addEventListener('input', (e) => {
         Editor.updateProperty(id.replace('prop', '').charAt(0).toLowerCase() + id.replace('prop', '').slice(1), e.target.value);
     });
+  });
+
+  UI.get('propLink').addEventListener('input', (e) => {
+    Editor.updateProperty('link', e.target.value);
   });
 
   UI.get('btnDeleteElement').onclick = () => { if(AppState.selectedElement) Editor.deleteElement(AppState.pages.find(p => p.interactNode.contains(AppState.selectedElement)), AppState.selectedElement.dataset.uuid); };
