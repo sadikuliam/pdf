@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SHM PDF Tools | Ultra Modern Edition</title>
-    
+
     <!-- PWA Meta Tags -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4F46E5">
@@ -14,7 +14,7 @@
     <link rel="apple-touch-icon" href="icon-192.png">
 
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
-    
+
     <style>
         :root {
             --primary: #4F46E5; 
@@ -74,10 +74,10 @@
         .logo:hover { transform: scale(1.05) rotate(-2deg); }
         .title { font-size: 3.5rem; font-weight: 900; background: linear-gradient(135deg, var(--text-main) 0%, var(--primary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem; letter-spacing: -1px; }
         .subtitle { font-size: 1.2rem; color: var(--text-muted); font-weight: 300; }
-        
+
         .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; }
         .tool-card { background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 20px; padding: 2rem 1.5rem; text-decoration: none; color: var(--text-main); display: flex; flex-direction: column; align-items: center; text-align: center; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); opacity: 0; animation: fadeUp 0.6s forwards; }
-        
+
         .icon-box { width: 60px; height: 60px; border-radius: 16px; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; justify-content: center; align-items: center; margin-bottom: 1.2rem; color: white; box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.4); transition: transform 0.3s ease; }
         .icon-box svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
         .tool-card span { font-size: 1.15rem; font-weight: 700; z-index: 2; }
@@ -181,7 +181,7 @@
             cursor: pointer;
             line-height: 1;
         }
-        
+
         .close-install:hover { color: var(--text-main); }
 
         @media (max-width: 768px) {
@@ -190,8 +190,6 @@
             .logo { height: 110px; } 
             .tools-grid { grid-template-columns: repeat(2, 1fr); }
             .footer { flex-direction: column; gap: 8px; }
-            
-            /* Make banner stack on smaller screens */
             .install-banner { flex-direction: column; text-align: center; gap: 16px; }
             .install-info { flex-direction: column; }
         }
@@ -269,7 +267,6 @@
     <!-- PWA Install Banner UI -->
     <div id="pwa-install-banner" class="install-banner">
         <div class="install-info">
-            <!-- Uses your existing logo file as the icon -->
             <img src="shmpdf.png" alt="App Icon" class="install-icon">
             <div class="install-text">
                 <h4>Install SHM PDF</h4>
@@ -299,38 +296,29 @@
         const installBtn = document.getElementById('pwa-install-btn');
         const closeBtn = document.getElementById('pwa-close-btn');
 
-        // Listen for the event that tells us the app can be installed
         window.addEventListener('beforeinstallprompt', (e) => {
             // Prevent the mini-infobar from appearing on mobile
             e.preventDefault();
             // Stash the event so it can be triggered later
             deferredPrompt = e;
             // Show our custom glassmorphism install banner
-            // We use 'flex' instead of 'block' to keep the styling correct
             installBanner.style.display = 'flex'; 
         });
 
-        // When the user clicks the "Install App" button
         installBtn.addEventListener('click', async () => {
-            // Hide the custom banner
             installBanner.style.display = 'none';
             if (deferredPrompt) {
-                // Show the browser's native install prompt
                 deferredPrompt.prompt();
-                // Wait for the user to respond
                 const { outcome } = await deferredPrompt.userChoice;
                 console.log(`User response to install prompt: ${outcome}`);
-                // Clear the saved prompt since it can't be used again
                 deferredPrompt = null;
             }
         });
 
-        // When the user clicks the "X" to close the banner
         closeBtn.addEventListener('click', () => {
             installBanner.style.display = 'none';
         });
 
-        // Listen for successful installation to hide the banner completely
         window.addEventListener('appinstalled', () => {
             installBanner.style.display = 'none';
             deferredPrompt = null;
