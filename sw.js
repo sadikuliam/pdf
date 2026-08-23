@@ -6,9 +6,9 @@ const urlsToCache = [
   './',
   './index.html',
   './manifest.json',
-  './shmpdf.png',
-  './icon-192.png',
-  './icon-512.png'
+  './123pdf.png',
+  './123pdf.png',
+  './123pdf.png'
 ];
 
 // Install Service Worker and Cache Files
