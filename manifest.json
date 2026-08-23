@@ -2,7 +2,7 @@
   "name": "SHM PDF Tools",
   "short_name": "SHM PDF",
   "description": "Next-generation document processing tools at your fingertips.",
-  "start_url": "./index.html",
+  "start_url": ".",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#4F46E5",
