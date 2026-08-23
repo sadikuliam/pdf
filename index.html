@@ -68,9 +68,9 @@
             margin-bottom: 3.5rem;
         }
 
-        /* UPDATED LOGO STYLES (Larger size) */
+        /* LOGO STYLES (Larger size) */
         .logo {
-            height: 140px; /* Increased from 90px to make it much larger */
+            height: 140px; 
             max-width: 100%;
             width: auto;
             margin-bottom: 1.5rem;
@@ -253,7 +253,7 @@
         @media (max-width: 768px) {
             .app-container { padding: 2rem 1.5rem; }
             .title { font-size: 2.5rem; }
-            .logo { height: 110px; } /* Scales down slightly for mobile but remains large */
+            .logo { height: 110px; } 
             .tools-grid { grid-template-columns: repeat(2, 1fr); }
             .footer { flex-direction: column; gap: 8px; }
         }
@@ -276,49 +276,50 @@
 
         <div class="tools-grid">
             
-            <a href="editpdf.html" class="tool-card">
+            <!-- Added target="_blank" and rel="noopener noreferrer" to all links below -->
+            <a href="editpdf.html" target="_blank" rel="noopener noreferrer" class="tool-card">
                 <div class="icon-box">
                     <svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
                 </div>
                 <span>Edit PDF</span>
             </a>
 
-            <a href="comp.html" class="tool-card">
+            <a href="comp.html" target="_blank" rel="noopener noreferrer" class="tool-card">
                 <div class="icon-box">
                     <svg viewBox="0 0 24 24"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242M12 12v9m-4-4 4 4 4-4"/></svg>
                 </div>
                 <span>Compress PDF</span>
             </a>
 
-            <a href="pdf2png.html" class="tool-card">
+            <a href="pdf2png.html" target="_blank" rel="noopener noreferrer" class="tool-card">
                 <div class="icon-box">
                     <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                 </div>
                 <span>PDF to Image (HD)</span>
             </a>
 
-            <a href="marge.html" class="tool-card">
+            <a href="marge.html" target="_blank" rel="noopener noreferrer" class="tool-card">
                 <div class="icon-box">
                     <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
                 </div>
                 <span>Merge PDF</span>
             </a>
 
-            <a href="split.html" class="tool-card">
+            <a href="split.html" target="_blank" rel="noopener noreferrer" class="tool-card">
                 <div class="icon-box">
                     <svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
                 </div>
                 <span>Split PDF 180 kb/page</span>
             </a>
 
-            <a href="split2by2.html" class="tool-card">
+            <a href="split2by2.html" target="_blank" rel="noopener noreferrer" class="tool-card">
                 <div class="icon-box">
                     <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/></svg>
                 </div>
                 <span>Split 2 by 2 page</span>
             </a>
 
-            <a href="2in1pdf.html" class="tool-card">
+            <a href="2in1pdf.html" target="_blank" rel="noopener noreferrer" class="tool-card">
                 <div class="icon-box">
                     <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                 </div>
