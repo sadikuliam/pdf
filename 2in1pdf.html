@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF N-Up Converter</title>
+    <!-- pdf-lib CDN Library -->
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+        }
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        input[type="file"], select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        button {
+            width: 100%;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        #status {
+            margin-top: 15px;
+            font-weight: bold;
+            color: #27ae60;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>PDF Multiple Pages per A4 Sheet</h2>
+    
+    <div class="form-group">
+        <label for="pdfFile">১. PDF ফাইল সিলেক্ট করুন:</label>
+        <input type="file" id="pdfFile" accept="application/pdf">
+    </div>
+
+    <div class="form-group">
+        <label for="layoutSelect">২. প্রতি A4 পৃষ্ঠায় কয়টি পেজ চান?</label>
+        <select id="layoutSelect">
+            <option value="2">2 Pages in 1 A4 Page</option>
+            <option value="4">4 Pages in 1 A4 Page</option>
+        </select>
+    </div>
+
+    <button onclick="processPDF()">Convert & Download PDF</button>
+
+    <div id="status"></div>
+</div>
+
+<script>
+    async function processPDF() {
+        const fileInput = document.getElementById('pdfFile');
+        const layoutSelect = document.getElementById('layoutSelect').value;
+        const status = document.getElementById('status');
+
+        if (fileInput.files.length === 0) {
+            alert('অনুগ্রহ করে একটি PDF ফাইল সিলেক্ট করুন।');
+            return;
+        }
+
+        status.style.color = "#333";
+        status.innerText = "কাজ চলছে, অনুগ্রহ করে অপেক্ষা করুন...";
+
+        try {
+            const file = fileInput.files[0];
+            const arrayBuffer = await file.arrayBuffer();
+
+            // Load existing PDF
+            const { PDFDocument, PageSizes } = PDFLib;
+            const srcDoc = await PDFDocument.load(arrayBuffer);
+            const newDoc = await PDFDocument.create();
+
+            const totalPages = srcDoc.getPageCount();
+            const pagesPerSheet = parseInt(layoutSelect);
+
+            // A4 dimensions in points (595.28 x 841.89)
+            const a4Width = PageSizes.A4[0];
+            const a4Height = PageSizes.A4[1];
+
+            for (let i = 0; i < totalPages; i += pagesPerSheet) {
+                // Add a new landscape A4 page for side-by-side printing
+                let newPage;
+                if (pagesPerSheet === 2) {
+                    // Landscape A4 for 2-in-1
+                    newPage = newDoc.addPage([a4Height, a4Width]); 
+                } else {
+                    // Portrait A4 for 4-in-1
+                    newPage = newDoc.addPage([a4Width, a4Height]); 
+                }
+
+                const { width: sheetWidth, height: sheetHeight } = newPage.getSize();
+
+                for (let j = 0; j < pagesPerSheet; j++) {
+                    if (i + j >= totalPages) break;
+
+                    const [embeddedPage] = await newDoc.embedPdf(srcDoc, [i + j]);
+                    
+                    let targetWidth, targetHeight, x, y;
+
+                    if (pagesPerSheet === 2) {
+                        // 2 pages side-by-side
+                        targetWidth = sheetWidth / 2;
+                        targetHeight = sheetHeight;
+                        
+                        const scale = Math.min(targetWidth / embeddedPage.width, targetHeight / embeddedPage.height);
+                        const scaledWidth = embeddedPage.width * scale;
+                        const scaledHeight = embeddedPage.height * scale;
+
+                        x = (j % 2) * targetWidth + (targetWidth - scaledWidth) / 2;
+                        y = (targetHeight - scaledHeight) / 2;
+
+                        newPage.drawPage(embeddedPage, {
+                            x: x,
+                            y: y,
+                            width: scaledWidth,
+                            height: scaledHeight
+                        });
+                    } else if (pagesPerSheet === 4) {
+                        // 4 pages (2x2 grid)
+                        targetWidth = sheetWidth / 2;
+                        targetHeight = sheetHeight / 2;
+
+                        const scale = Math.min(targetWidth / embeddedPage.width, targetHeight / embeddedPage.height);
+                        const scaledWidth = embeddedPage.width * scale;
+                        const scaledHeight = embeddedPage.height * scale;
+
+                        const col = j % 2;
+                        const row = Math.floor(j / 2); // 0 top, 1 bottom
+
+                        x = col * targetWidth + (targetWidth - scaledWidth) / 2;
+                        // PDF coordinate system (0,0 is bottom-left)
+                        y = (1 - row) * targetHeight + (targetHeight - scaledHeight) / 2;
+
+                        newPage.drawPage(embeddedPage, {
+                            x: x,
+                            y: y,
+                            width: scaledWidth,
+                            height: scaledHeight
+                        });
+                    }
+                }
+            }
+
+            // Save and download converted PDF
+            const pdfBytes = await newDoc.save();
+            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'Converted_A4_Layout.pdf';
+            link.click();
+
+            status.style.color = "#27ae60";
+            status.innerText = "সফলভাবে পরিবর্তন করা হয়েছে!";
+        } catch (error) {
+            console.error(error);
+            status.style.color = "#e74c3c";
+            status.innerText = "প্রসেসিং ব্যর্থ হয়েছে। ফাইলটি ঠিক আছে কিনা পরীক্ষা করুন।";
+        }
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern PDF to HD Image Converter</title>
+    <!-- PDF.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --primary-hover: #4338CA;
+            --bg: #F3F4F6;
+            --card-bg: #FFFFFF;
+            --text-main: #1F2937;
+            --text-muted: #6B7280;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 800px;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 26px;
+            margin-bottom: 10px;
+            color: var(--text-main);
+        }
+
+        p {
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .upload-area {
+            border: 2px dashed #D1D5DB;
+            border-radius: 12px;
+            padding: 40px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: #F9FAFB;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover, .upload-area.dragover {
+            border-color: var(--primary);
+            background-color: #EEF2FF;
+        }
+
+        .upload-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn:disabled {
+            background-color: #9CA3AF;
+            cursor: not-allowed;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        select {
+            padding: 10px 15px;
+            border: 1px solid #D1D5DB;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+            background-color: white;
+        }
+
+        #preview-container {
+            margin-top: 30px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #image-preview {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            border: 1px solid #E5E7EB;
+        }
+
+        .loading {
+            display: none;
+            color: var(--primary);
+            font-weight: 600;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>PDF to HD Image Converter</h1>
+    <p>Upload your PDF document to instantly convert any page into a high-resolution, downloadable image securely within your browser.</p>
+
+    <!-- Upload Section -->
+    <div class="upload-area" id="drop-zone" onclick="document.getElementById('pdf-input').click()">
+        <div class="upload-icon">📄</div>
+        <h3>Click or Drag & Drop PDF Here</h3>
+        <p style="margin-top: 5px; font-size: 14px; margin-bottom: 0;">Only PDF files are supported</p>
+    </div>
+    <input type="file" id="pdf-input" accept="application/pdf">
+
+    <!-- Controls Section -->
+    <div class="controls" style="display: none;" id="controls-area">
+        <div>
+            <label for="page-select" style="font-size: 14px; font-weight: 600; margin-right: 5px;">Page:</label>
+            <select id="page-select"></select>
+        </div>
+        
+        <div>
+            <label for="quality-select" style="font-size: 14px; font-weight: 600; margin-right: 5px;">Quality:</label>
+            <select id="quality-select">
+                <option value="1">Standard (1x)</option>
+                <option value="2" selected>HD (2x)</option>
+                <option value="3">Ultra HD (3x)</option>
+                <option value="4">4K Quality (4x)</option>
+            </select>
+        </div>
+        
+        <button class="btn" id="convert-btn">Generate Image</button>
+    </div>
+
+    <div class="loading" id="loading-text">Rendering HD Image, please wait... ⏳</div>
+
+    <!-- Preview & Download Section -->
+    <div id="preview-container">
+        <img id="image-preview" src="" alt="PDF Preview">
+        <button class="btn" id="download-btn">⬇ Download HD Image</button>
+    </div>
+</div>
+
+<script>
+    // Setup PDF.js worker (Required for rendering)
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    let pdfDoc = null;
+    const pdfInput = document.getElementById('pdf-input');
+    const dropZone = document.getElementById('drop-zone');
+    const controlsArea = document.getElementById('controls-area');
+    const pageSelect = document.getElementById('page-select');
+    const qualitySelect = document.getElementById('quality-select');
+    const convertBtn = document.getElementById('convert-btn');
+    const previewContainer = document.getElementById('preview-container');
+    const imagePreview = document.getElementById('image-preview');
+    const downloadBtn = document.getElementById('download-btn');
+    const loadingText = document.getElementById('loading-text');
+
+    // Handle Drag & Drop UI effects
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('dragover');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length) {
+            pdfInput.files = e.dataTransfer.files;
+            handleFile(pdfInput.files[0]);
+        }
+    });
+
+    // Trigger file reading on selection
+    pdfInput.addEventListener('change', (e) => {
+        if (e.target.files.length) {
+            handleFile(e.target.files[0]);
+        }
+    });
+
+    // Read and parse the PDF
+    function handleFile(file) {
+        if (file.type !== 'application/pdf') {
+            alert('Please select a valid PDF file.');
+            return;
+        }
+
+        const fileReader = new FileReader();
+        fileReader.onload = function() {
+            const typedarray = new Uint8Array(this.result);
+            
+            // Load PDF document using PDF.js
+            pdfjsLib.getDocument(typedarray).promise.then(pdf => {
+                pdfDoc = pdf;
+                
+                // Populate the page selection dropdown based on total pages
+                pageSelect.innerHTML = '';
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const option = document.createElement('option');
+                    option.value = i;
+                    option.textContent = `Page ${i}`;
+                    pageSelect.appendChild(option);
+                }
+                
+                // Update UI visibility
+                dropZone.style.display = 'none';
+                controlsArea.style.display = 'flex';
+                previewContainer.style.display = 'none';
+            }).catch(error => {
+                alert('Error loading PDF: ' + error.message);
+            });
+        };
+        fileReader.readAsArrayBuffer(file); // Load file into memory
+    }
+
+    // Convert selected page to image
+    convertBtn.addEventListener('click', () => {
+        if (!pdfDoc) return;
+        
+        // Update UI for loading state
+        convertBtn.disabled = true;
+        loadingText.style.display = 'block';
+        previewContainer.style.display = 'none';
+
+        const pageNum = parseInt(pageSelect.value);
+        const scale = parseFloat(qualitySelect.value);
+
+        pdfDoc.getPage(pageNum).then(page => {
+            const viewport = page.getViewport({ scale: scale });
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            const renderContext = {
+                canvasContext: ctx,
+                viewport: viewport
+            };
+
+            // Render PDF page into canvas context
+            page.render(renderContext).promise.then(() => {
+                // Convert canvas to base64 image data URL
+                const imgData = canvas.toDataURL('image/png');
+                
+                // Display the image
+                imagePreview.src = imgData;
+                previewContainer.style.display = 'flex';
+                loadingText.style.display = 'none';
+                convertBtn.disabled = false;
+
+                // Setup Download action
+                downloadBtn.onclick = () => {
+                    const link = document.createElement('a');
+                    link.href = imgData;
+                    link.download = `pdf-page-${pageNum}-HD.png`;
+                    link.click();
+                };
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

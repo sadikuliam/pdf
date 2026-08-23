@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Splitter (Manual Download)</title>
+    <!-- pdf-lib লাইব্রেরি -->
+    <script src="https://unpkg.com/pdf-lib@1.17.1"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        button { margin-top: 10px; padding: 10px 15px; cursor: pointer; background-color: #007BFF; color: white; border: none; border-radius: 5px; }
+        button:hover { background-color: #0056b3; }
+        #status { margin-top: 15px; color: green; font-weight: bold; }
+        .download-btn { display: inline-block; margin: 10px 10px 0 0; padding: 10px 15px; background-color: #28a745; color: white; text-decoration: none; border-radius: 5px; }
+        .download-btn:hover { background-color: #218838; }
+        #downloadArea { margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <h2>PDF ২ পৃষ্ঠা করে ভাগ করুন</h2>
+    <p>আপনার PDF এখানে আপলোড করুন। ভাগ হওয়ার পর নিচে ডাউনলোড বাটন আসবে।</p>
+    
+    <input type="file" id="pdfInput" accept="application/pdf" />
+    <br>
+    <button onclick="splitPDF()">PDF ভাগ করুন</button>
+    <p id="status"></p>
+    
+    <!-- এখানেই ডাউনলোড বাটনগুলো আসবে -->
+    <div id="downloadArea"></div>
+
+    <script>
+        async function splitPDF() {
+            const fileInput = document.getElementById('pdfInput');
+            const statusText = document.getElementById('status');
+            const downloadArea = document.getElementById('downloadArea');
+
+            if (fileInput.files.length === 0) {
+                alert("দয়া করে আগে একটি PDF ফাইল নির্বাচন করুন।");
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const arrayBuffer = await file.arrayBuffer();
+            statusText.innerText = "প্রসেস হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন...";
+            
+            // আগের ডাউনলোড বাটনগুলো মুছে ফেলা
+            downloadArea.innerHTML = "";
+
+            try {
+                const { PDFDocument } = PDFLib;
+                const originalPdf = await PDFDocument.load(arrayBuffer);
+                const totalPages = originalPdf.getPageCount();
+
+                for (let i = 0; i < totalPages; i += 2) {
+                    const newPdf = await PDFDocument.create();
+
+                    // প্রথম পৃষ্ঠা
+                    const [page1] = await newPdf.copyPages(originalPdf, [i]);
+                    newPdf.addPage(page1);
+
+                    // দ্বিতীয় পৃষ্ঠা (যদি থাকে)
+                    if (i + 1 < totalPages) {
+                        const [page2] = await newPdf.copyPages(originalPdf, [i + 1]);
+                        newPdf.addPage(page2);
+                    }
+
+                    // PDF তৈরি এবং ডাউনলোড লিঙ্ক (বাটন) জেনারেট করা
+                    const pdfBytes = await newPdf.save();
+                    const blob = new Blob([pdfBytes], { type: "application/pdf" });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const partNumber = (i / 2) + 1;
+                    
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `Split_Part_${partNumber}.pdf`;
+                    link.innerText = `Part ${partNumber} ডাউনলোড করুন`;
+                    link.className = 'download-btn'; // CSS ক্লাস যোগ করা হলো ডিজাইনের জন্য
+                    
+                    // পেজে বাটনটি দেখানো
+                    downloadArea.appendChild(link);
+                }
+
+                statusText.innerText = "ফাইলগুলো ভাগ করা সম্পন্ন হয়েছে! নিচের বাটনগুলো থেকে ডাউনলোড করুন।";
+            } catch (error) {
+                console.error(error);
+                statusText.innerText = "দুঃখিত, একটি সমস্যা হয়েছে।";
+            }
+        }
+    </script>
+</body>
+</html>
