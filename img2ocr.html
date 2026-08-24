@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI OCR PDF Converter</title>
+    <title>High Quality Image to PDF Converter</title>
+
+    <!-- CDN for jsPDF (handles direct image-to-PDF conversion client-side) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
     <style>
         * {
@@ -19,6 +22,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: 20px;
         }
 
         .container {
@@ -35,7 +39,7 @@
             color: #fff;
         }
 
-        h1 { font-size: 28px; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+        h1 { font-size: 26px; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
         p { font-size: 14px; margin-bottom: 30px; color: rgba(255, 255, 255, 0.9); }
 
         .upload-area {
@@ -56,7 +60,7 @@
             background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
             color: #333;
             border: none;
-            padding: 12px 30px;
+            padding: 14px 30px;
             font-size: 16px;
             font-weight: bold;
             border-radius: 50px;
@@ -67,30 +71,7 @@
         }
 
         .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
-        .btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
-
-        .progress-container { display: none; margin-top: 20px; }
-        
-        .progress-bar {
-            height: 10px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            overflow: hidden;
-            margin-top: 10px;
-        }
-
-        .progress {
-            height: 100%;
-            width: 50%; /* Fake progress while server processes */
-            background: #00f2fe;
-            border-radius: 10px;
-            animation: loading 2s infinite alternate;
-        }
-
-        @keyframes loading {
-            0% { width: 30%; }
-            100% { width: 80%; }
-        }
+        .btn:disabled { background: #ccc; cursor: not-allowed; transform: none; opacity: 0.6; }
 
         .success-message {
             display: none;
@@ -106,45 +87,34 @@
 <body>
 
     <div class="container">
-        <h1>PDF/Image to Searchable PDF</h1>
-        <p>যেকোনো ছবি বা PDF আপলোড করে Searchable PDF এ কনভার্ট করুন। হুবহু অরিজিনাল ডিজাইন ঠিক থাকবে!</p>
+        <h1>High-Quality Image to PDF</h1>
+        <p>ছবি নির্বাচন করুন এবং ক্রিস্টাল ক্লিয়ার ফুল-রেজোলিউশন PDF ডাউনলোড করুন।</p>
 
         <label for="fileInput">
             <div class="upload-area" id="uploadArea">
-                <div class="upload-icon">📄</div>
-                <h3 id="uploadText">ফাইল নির্বাচন করতে ক্লিক করুন</h3>
+                <div class="upload-icon">🖼️</div>
+                <h3 id="uploadText">ছবি নির্বাচন করতে ক্লিক করুন</h3>
                 <div id="fileName"></div>
             </div>
         </label>
-        <input type="file" id="fileInput" accept=".pdf, image/*">
+        <input type="file" id="fileInput" accept="image/png, image/jpeg, image/webp">
 
         <button class="btn" id="convertBtn" disabled>Convert & Download PDF</button>
 
-        <div class="progress-container" id="progressContainer">
-            <p id="statusText">সার্ভারে আপলোড ও প্রসেসিং হচ্ছে, দয়া করে অপেক্ষা করুন...</p>
-            <div class="progress-bar">
-                <div class="progress" id="progress"></div>
-            </div>
-        </div>
-
         <div class="success-message" id="successMessage">
-            ✅ Conversion Successful! File Downloaded.
+            ✅ PDF Successfully Generated & Downloaded!
         </div>
     </div>
 
     <script>
+        const { jsPDF } = window.jspdf;
+
         const fileInput = document.getElementById('fileInput');
         const fileNameDisplay = document.getElementById('fileName');
         const convertBtn = document.getElementById('convertBtn');
-        const progressContainer = document.getElementById('progressContainer');
-        const statusText = document.getElementById('statusText');
         const successMessage = document.getElementById('successMessage');
         const uploadText = document.getElementById('uploadText');
 
-        // আপনার Google Cloud API লিংক
-        const API_URL = "https://pdf-682870017945.asia-south1.run.app/convert";
-
-        // ফাইল সিলেক্ট ইভেন্ট
         fileInput.addEventListener('change', function() {
             if (this.files && this.files[0]) {
                 fileNameDisplay.textContent = "Selected: " + this.files[0].name;
@@ -154,66 +124,39 @@
             }
         });
 
-        // কনভার্ট বাটনে ক্লিক ইভেন্ট
-        convertBtn.addEventListener('click', async function() {
+        convertBtn.addEventListener('click', function() {
             const file = fileInput.files[0];
             if (!file) return;
 
-            // UI পরিবর্তন
-            convertBtn.style.display = 'none';
-            progressContainer.style.display = 'block';
-            statusText.textContent = "সার্ভারে আপলোড ও প্রসেসিং হচ্ছে (১-২ মিনিট লাগতে পারে)...";
+            const reader = new FileReader();
 
-            // ফাইল ডাটা তৈরি
-            const formData = new FormData();
-            formData.append('file', file);
+            reader.onload = function(e) {
+                const img = new Image();
+                img.src = e.target.result;
 
-            try {
-                // ব্যাকএন্ড API-তে ফাইল পাঠানো (গোপন চাবিসহ)
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'X-API-KEY': 'shm_super_secret_key_2026' // 🔑 এই চাবিটি দিয়ে সার্ভারকে আনলক করা হচ্ছে
-                    },
-                    body: formData
-                });
+                img.onload = function() {
+                    // Create PDF matching exact pixel dimensions of the image to preserve 100% sharp quality
+                    const orientation = img.width > img.height ? 'l' : 'p';
+                    const pdf = new jsPDF({
+                        orientation: orientation,
+                        unit: 'px',
+                        format: [img.width, img.height],
+                        compress: false // Disables compression for crystal-clear resolution
+                    });
 
-                if (!response.ok) {
-                    throw new Error("সার্ভার এরর বা ফাইল প্রসেস করা যায়নি।");
-                }
+                    // Render original raw image into PDF container
+                    pdf.addImage(img, 'JPEG', 0, 0, img.width, img.height, undefined, 'NONE');
 
-                statusText.textContent = "ফাইল তৈরি হচ্ছে...";
-                
-                // সার্ভার থেকে Searchable PDF ফেরত নেওয়া
-                const blob = await response.blob();
-                
-                // ডাউনলোড করার জন্য টেম্পোরারি লিংক তৈরি
-                const downloadUrl = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = downloadUrl;
-                
-                // ফাইলের নাম সেট করা
-                const originalName = file.name.split('.').slice(0, -1).join('.');
-                a.download = "Searchable_" + originalName + ".pdf";
-                
-                // স্বয়ংক্রিয়ভাবে ডাউনলোড শুরু করা
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                window.URL.revokeObjectURL(downloadUrl);
+                    // Trigger PDF download
+                    const originalName = file.name.split('.').slice(0, -1).join('.');
+                    pdf.save(originalName + ".pdf");
 
-                // সফল মেসেজ দেখানো
-                progressContainer.style.display = 'none';
-                successMessage.style.display = 'block';
-                convertBtn.style.display = 'inline-block';
-                convertBtn.disabled = true;
+                    // Update UI state
+                    successMessage.style.display = 'block';
+                };
+            };
 
-            } catch (error) {
-                console.error(error);
-                alert("দুঃখিত, কোনো একটি সমস্যা হয়েছে! দয়া করে আবার চেষ্টা করুন।");
-                progressContainer.style.display = 'none';
-                convertBtn.style.display = 'inline-block';
-            }
+            reader.readAsDataURL(file);
         });
     </script>
 </body>
