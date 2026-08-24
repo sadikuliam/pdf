@@ -3,9 +3,20 @@ import tempfile
 from flask import Flask, request, send_file, jsonify
 from flask_cors import CORS
 import ocrmypdf
+from PIL import Image
 
 app = Flask(__name__)
 CORS(app)
+
+def compress_image(image_path):
+    """মেমরি বাঁচানোর জন্য বড় ছবিকে ছোট করবে"""
+    try:
+        with Image.open(image_path) as img:
+            # যদি ছবি অনেক বড় হয়, তবে ছোট করবে (Max 1500px)
+            img.thumbnail((1500, 1500))
+            img.save(image_path, optimize=True, quality=85)
+    except Exception as e:
+        print("Image compression error:", e)
 
 @app.route('/convert', methods=['POST'])
 def convert_to_searchable_pdf():
@@ -30,11 +41,11 @@ def convert_to_searchable_pdf():
     try:
         file.save(temp_in)
         
-        # 🚀 মেমরি (RAM) বাঁচানোর জন্য স্পেশাল সেটিংস:
-        # jobs=1 (যাতে একবারে বেশি প্রসেস রান করে র‍্যাম ফুল না করে)
-        # optimize=0 (অতিরিক্ত অপ্টিমাইজেশন বন্ধ করা হয়েছে র‍্যাম বাঁচাতে)
-        # output_type='pdf' (ফাস্ট প্রসেসিংয়ের জন্য)
+        # ফাইলটি ছবি হলে আগে সাইজ কমিয়ে নেবে
+        if ext in ['.png', '.jpg', '.jpeg']:
+            compress_image(temp_in)
         
+        # Render-এর 512MB RAM এর জন্য সবচেয়ে অপ্টিমাইজড সেটিংস
         ocrmypdf.ocr(
             temp_in, 
             temp_out, 
@@ -43,7 +54,8 @@ def convert_to_searchable_pdf():
             language='eng+ben',
             jobs=1,
             optimize=0,
-            output_type='pdf'
+            output_type='pdfa',
+            fast_web_view=0
         ) 
         
         return send_file(
