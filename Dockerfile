@@ -1,5 +1,5 @@
-# বেস ইমেজ
-FROM python:3.10-slim
+# বেস ইমেজ (এখানে 3.10 এর বদলে 3.11 করা হয়েছে)
+FROM python:3.11-slim
 
 # সিস্টেম সফটওয়্যার (Tesseract, Ghostscript) ইনস্টল করা
 RUN apt-get update && apt-get install -y \
