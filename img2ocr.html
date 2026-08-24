@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern OCR Converter</title>
+    <title>Real OCR Converter with Download</title>
+    
+    <!-- Tesseract.js (OCR-এর জন্য) -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <!-- jsPDF (PDF তৈরি ও ডাউনলোডের জন্য) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
     <style>
         * {
             margin: 0;
@@ -13,7 +19,6 @@
         }
 
         body {
-            /* একটি সুন্দর রঙিন গ্রেডিয়েন্ট ব্যাকগ্রাউন্ড */
             background: linear-gradient(135deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%);
             min-height: 100vh;
             display: flex;
@@ -22,7 +27,6 @@
         }
 
         .container {
-            /* Glassmorphism এফেক্ট */
             background: rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
@@ -36,17 +40,8 @@
             color: #fff;
         }
 
-        h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }
-
-        p {
-            font-size: 14px;
-            margin-bottom: 30px;
-            color: rgba(255, 255, 255, 0.9);
-        }
+        h1 { font-size: 28px; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+        p { font-size: 14px; margin-bottom: 30px; color: rgba(255, 255, 255, 0.9); }
 
         .upload-area {
             border: 2px dashed rgba(255, 255, 255, 0.6);
@@ -58,19 +53,9 @@
             margin-bottom: 25px;
         }
 
-        .upload-area:hover {
-            background: rgba(255, 255, 255, 0.2);
-            border-color: #fff;
-        }
-
-        .upload-icon {
-            font-size: 40px;
-            margin-bottom: 15px;
-        }
-
-        input[type="file"] {
-            display: none;
-        }
+        .upload-area:hover { background: rgba(255, 255, 255, 0.2); border-color: #fff; }
+        .upload-icon { font-size: 40px; margin-bottom: 15px; }
+        input[type="file"] { display: none; }
 
         .btn {
             background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
@@ -86,22 +71,11 @@
             width: 100%;
         }
 
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+        .btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
 
-        .btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .progress-container {
-            display: none;
-            margin-top: 20px;
-        }
-
+        .progress-container { display: none; margin-top: 20px; }
+        
         .progress-bar {
             height: 10px;
             background: rgba(255, 255, 255, 0.2);
@@ -126,30 +100,25 @@
             text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
         }
 
-        #fileName {
-            margin-top: 15px;
-            font-size: 13px;
-            color: #fff;
-            font-weight: bold;
-        }
+        #fileName { margin-top: 15px; font-size: 13px; color: #fff; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <h1>AI OCR Converter</h1>
-        <p>Image বা PDF আপলোড করুন এবং Searchable PDF এ রূপান্তর করুন</p>
+        <p>যেকোনো ছবি (JPG, PNG) আপলোড করে PDF এ কনভার্ট করুন</p>
 
         <label for="fileInput">
             <div class="upload-area" id="uploadArea">
-                <div class="upload-icon">📄</div>
-                <h3 id="uploadText">ফাইল বেছে নিতে এখানে ক্লিক করুন</h3>
+                <div class="upload-icon">📸</div>
+                <h3 id="uploadText">ছবি নির্বাচন করতে ক্লিক করুন</h3>
                 <div id="fileName"></div>
             </div>
         </label>
-        <input type="file" id="fileInput" accept=".pdf, image/*">
+        <input type="file" id="fileInput" accept="image/*">
 
-        <button class="btn" id="convertBtn" disabled>Convert to OCR PDF</button>
+        <button class="btn" id="convertBtn" disabled>Convert & Download PDF</button>
 
         <div class="progress-container" id="progressContainer">
             <p id="statusText">Processing document...</p>
@@ -159,7 +128,7 @@
         </div>
 
         <div class="success-message" id="successMessage">
-            ✅ Conversion Successful! Downloading...
+            ✅ Conversion Successful! File Downloaded.
         </div>
     </div>
 
@@ -173,41 +142,78 @@
         const successMessage = document.getElementById('successMessage');
         const uploadText = document.getElementById('uploadText');
 
-        // ফাইল সিলেক্ট করলে ফাইলের নাম দেখাবে
+        // ফাইল সিলেক্ট ইভেন্ট
         fileInput.addEventListener('change', function() {
             if (this.files && this.files[0]) {
                 fileNameDisplay.textContent = "Selected: " + this.files[0].name;
                 uploadText.style.display = 'none';
                 convertBtn.disabled = false;
-            } else {
-                fileNameDisplay.textContent = "";
-                uploadText.style.display = 'block';
-                convertBtn.disabled = true;
+                successMessage.style.display = 'none';
+                progress.style.width = '0%';
             }
         });
 
-        // কনভার্ট বাটনে ক্লিক করলে প্রসেসিং অ্যানিমেশন শুরু হবে
-        convertBtn.addEventListener('click', function() {
+        // কনভার্ট বাটনে ক্লিক ইভেন্ট
+        convertBtn.addEventListener('click', async function() {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            // UI পরিবর্তন
             convertBtn.style.display = 'none';
             progressContainer.style.display = 'block';
-            
-            let width = 0;
-            // এটি একটি ডেমো অ্যানিমেশন (আসল OCR ব্যাকএন্ডে করতে হবে)
-            let interval = setInterval(function() {
-                if (width >= 100) {
-                    clearInterval(interval);
-                    statusText.textContent = "Complete!";
-                    setTimeout(() => {
-                        progressContainer.style.display = 'none';
-                        successMessage.style.display = 'block';
-                    }, 500);
-                } else {
-                    width += 2; // স্পিড কন্ট্রোল
-                    progress.style.width = width + '%';
-                    statusText.textContent = `Extracting Text... ${width}%`;
+            statusText.textContent = "Starting OCR Engine...";
+
+            try {
+                // Tesseract দিয়ে ছবি থেকে লেখা পড়া
+                const worker = await Tesseract.createWorker("eng", 1, {
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                            const progressVal = Math.round(m.progress * 100);
+                            progress.style.width = progressVal + '%';
+                            statusText.textContent = `Extracting Text... ${progressVal}%`;
+                        }
+                    }
+                });
+
+                const ret = await worker.recognize(file);
+                const extractedText = ret.data.text;
+                await worker.terminate();
+
+                if (!extractedText.trim()) {
+                    alert("ছবিতে কোনো লেখা পাওয়া যায়নি!");
+                    resetUI();
+                    return;
                 }
-            }, 50); // প্রতি ৫০ মিলি-সেকেন্ডে আপডেট হবে
+
+                // jsPDF দিয়ে PDF তৈরি করা
+                statusText.textContent = "Creating PDF File...";
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                // টেক্সট যাতে পৃষ্ঠার বাইরে না যায় তাই মার্জিন সেট করা
+                const splitText = doc.splitTextToSize(extractedText, 180);
+                doc.text(splitText, 15, 15);
+                
+                // PDF ফাইল ডাউনলোড করা
+                doc.save("OCR_Result.pdf");
+
+                // সফল মেসেজ দেখানো
+                progressContainer.style.display = 'none';
+                successMessage.style.display = 'block';
+                convertBtn.style.display = 'inline-block';
+                convertBtn.disabled = true;
+
+            } catch (error) {
+                console.error(error);
+                statusText.textContent = "Error occurred during conversion!";
+                setTimeout(resetUI, 3000);
+            }
         });
+
+        function resetUI() {
+            progressContainer.style.display = 'none';
+            convertBtn.style.display = 'inline-block';
+        }
     </script>
 </body>
 </html>
