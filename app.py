@@ -6,13 +6,21 @@ import ocrmypdf
 
 app = Flask(__name__)
 
-# 🔒 সিকিউরিটি আপডেট: শুধুমাত্র আপনার ওয়েবসাইট (pdf.shmwb.in) থেকে রিকোয়েস্ট গ্রহণ করবে।
-# অন্য কেউ API লিংক চুরি করে ব্যবহার করতে চাইলে সার্ভার সেটি ব্লক করে দেবে।
+# 🔒 CORS সিকিউরিটি (শুধুমাত্র আপনার ওয়েবসাইট থেকে রিকোয়েস্ট নেবে)
 ALLOWED_ORIGINS = ["https://pdf.shmwb.in", "http://pdf.shmwb.in"]
 CORS(app, resources={r"/*": {"origins": ALLOWED_ORIGINS}})
 
+# 🔑 আপনার গোপন API Key (এটি হ্যাকারদের থেকে সার্ভারকে বাঁচাবে)
+MY_SECRET_API_KEY = "shm_super_secret_key_2026"
+
 @app.route('/convert', methods=['POST'])
 def convert_to_searchable_pdf():
+    # 🛡️ API Key চেকিং শুরু
+    provided_key = request.headers.get('X-API-KEY')
+    if provided_key != MY_SECRET_API_KEY:
+        return jsonify({"error": "Unauthorized Access! Invalid API Key."}), 401
+    # 🛡️ API Key চেকিং শেষ
+    
     if 'file' not in request.files:
         return jsonify({"error": "কোনো ফাইল পাওয়া যায়নি!"}), 400
         
@@ -34,12 +42,10 @@ def convert_to_searchable_pdf():
     try:
         file.save(temp_in)
         
-        # 🚀 Cloud Run (4GB RAM)-এর জন্য শক্তিশালী সেটিংস
+        # 🚀 Cloud Run সেটিংস
         if ext in ['.png', '.jpg', '.jpeg']:
-            # ছবির ক্ষেত্রে image_dpi=300 দেওয়া বাধ্যতামূলক
             ocrmypdf.ocr(temp_in, temp_out, deskew=True, force_ocr=True, language='eng+ben', image_dpi=300)
         else:
-            # PDF-এর ক্ষেত্রে নরমাল স্ক্যান
             ocrmypdf.ocr(temp_in, temp_out, deskew=True, force_ocr=True, language='eng+ben') 
         
         return send_file(
@@ -54,13 +60,11 @@ def convert_to_searchable_pdf():
         return jsonify({"error": f"সার্ভার এরর: {str(e)}"}), 500
         
     finally:
-        # কাজ শেষ হলে সার্ভার থেকে টেম্পোরারি ফাইল মুছে ফেলা
         if os.path.exists(temp_in):
             os.remove(temp_in)
         if os.path.exists(temp_out):
             os.remove(temp_out)
 
 if __name__ == '__main__':
-    # Google Cloud Run-এর ডিফল্ট পোর্ট 8080
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port)
