@@ -27,7 +27,6 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-/* Prevent native mobile pull-to-refresh & bouncy scrolling */
 html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; background: var(--bg-main); color: var(--text-main); overscroll-behavior: none; }
 button, input, select { font: inherit; outline: none; border: none; }
 .hidden { display: none !important; }
@@ -73,6 +72,11 @@ button, input, select { font: inherit; outline: none; border: none; }
 .empty-icon { font-size: 48px; color: #d32f2f; margin-bottom: 16px; }
 .empty-state h2 { font-size: 22px; margin-bottom: 12px; font-weight: 600; }
 
+/* ⚡ OCR Checkbox Styling */
+.ocr-toggle-container { margin-top: 20px; background: rgba(10, 89, 163, 0.1); padding: 12px; border-radius: 8px; border: 1px solid rgba(10, 89, 163, 0.3); display: inline-block;}
+.ocr-toggle-label { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #0a59a3; cursor: pointer;}
+.ocr-toggle-label input { width: 16px; height: 16px; cursor: pointer; accent-color: #0a59a3;}
+
 .page-container { position: relative; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 40px; transform-origin: top left; border: 1px solid #d1d5db; }
 .page-canvas { display: block; }
 .interaction-layer { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
@@ -104,7 +108,7 @@ button, input, select { font: inherit; outline: none; border: none; }
   outline: 1.5px solid var(--accent-primary) !important; 
   box-shadow: 0 2px 6px rgba(0,0,0,0.1); 
   z-index: 20; 
-  cursor: move; /* Shows drag capability */
+  cursor: move; 
 }
 
 .text-box.is-modified { background: #ffffff !important; z-index: 15; }
@@ -120,54 +124,38 @@ button, input, select { font: inherit; outline: none; border: none; }
 .progress-fill { position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: #d32f2f; transition: width 0.3s ease; }
 .system-log { max-height: 200px; overflow-y: auto; font-family: ui-monospace, monospace; font-size: 11px; line-height: 1.6; color: #a1a1aa; padding: 12px; border-radius: 8px; background: #000; }
 
-/* Modals */
+/* Modals & OCR Loader */
 .toast { position: fixed; bottom: 24px; right: 24px; padding: 16px 20px; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; display: flex; gap: 14px; z-index: 9999; transform: translateY(100px); opacity: 0; transition: all 0.3s; }
 .toast.show { transform: translateY(0); opacity: 1; }
 .toast-icon { font-size: 20px; color: var(--success); }
 
-.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: grid; place-items: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s; backdrop-filter: blur(4px); }
 .modal-backdrop.show { opacity: 1; pointer-events: auto; }
 .modal-content { width: 90%; max-width: 420px; background: var(--panel); border-radius: 12px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.4); }
 .modal-header { padding: 20px; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; }
 .modal-body { padding: 24px; }
 .modal-footer { padding: 16px 24px; background: rgba(0,0,0,0.2); display: flex; justify-content: flex-end; gap: 12px; }
 
-/* Tablet Optimization (Below 1024px) */
+/* Spinner for Cloud OCR */
+.spinner { width: 50px; height: 50px; border: 5px solid rgba(255, 255, 255, 0.2); border-top-color: #60a5fa; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;}
+@keyframes spin { to { transform: rotate(360deg); } }
+.ocr-loader-text { color: #fff; font-size: 16px; font-weight: 600; text-align: center; line-height: 1.5; }
+.ocr-loader-subtext { color: #94a3b8; font-size: 13px; margin-top: 8px; }
+
+/* Responsive adjustments */
 @media (max-width: 1024px) {
-  .workspace { 
-    grid-template-columns: 1fr; 
-    grid-template-rows: auto 1fr auto; 
-  }
-  .sidebar { 
-    border-right: none; 
-    border-bottom: 1px solid var(--glass-border); 
-    flex-direction: row; 
-    align-items: center; 
-    padding: 0;
-  }
+  .workspace { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
+  .sidebar { border-right: none; border-bottom: 1px solid var(--glass-border); flex-direction: row; align-items: center; padding: 0; }
   .panel-header { width: auto; border-bottom: none; border-right: 1px solid var(--glass-border); }
-  .thumb-grid { 
-    display: flex; 
-    flex-direction: row; 
-    overflow-x: auto; 
-    padding: 10px; 
-    gap: 10px; 
-    flex-grow: 1;
-  }
+  .thumb-grid { display: flex; flex-direction: row; overflow-x: auto; padding: 10px; gap: 10px; flex-grow: 1; }
   .thumb-card { flex: 0 0 70px; }
   .stage { padding: 15px; }
-  .properties-panel { 
-    border-left: none; 
-    border-top: 1px solid var(--glass-border); 
-    max-height: 250px; 
-  }
+  .properties-panel { border-left: none; border-top: 1px solid var(--glass-border); max-height: 250px; }
   .prop-section { display: flex; flex-wrap: wrap; gap: 10px; padding: 15px; }
   .control-row { flex: 1 1 calc(50% - 10px); margin-bottom: 0; }
   #btnDeleteElement { width: 100%; margin-top: 5px; }
   .system-log { display: none; }
 }
-
-/* Mobile Phone Optimization (Below 600px) */
 @media (max-width: 600px) {
   .app-container { grid-template-rows: auto auto 1fr; }
   .topbar { flex-direction: column; height: auto; padding: 15px 10px; gap: 12px; }
@@ -193,9 +181,10 @@ button, input, select { font: inherit; outline: none; border: none; }
     </div>
     <div class="top-actions">
       <span id="statusIndicator" class="status-chip"><i class="fa-solid fa-check-circle" style="color:var(--success)"></i> Ready</span>
-      <button class="btn" id="btnOpen"><i class="fa-solid fa-folder-open"></i> Open PDF</button>
+      <button class="btn" id="btnOpen"><i class="fa-solid fa-folder-open"></i> Open Document</button>
       <button class="btn primary" id="btnExportTop" disabled><i class="fa-solid fa-floppy-disk"></i> Save & Export</button>
-      <input type="file" id="hiddenFileInput" accept="application/pdf" class="hidden">
+      <!-- ⚠️ Accept changed to allow images as well -->
+      <input type="file" id="hiddenFileInput" accept="application/pdf, image/png, image/jpeg, image/jpg" class="hidden">
     </div>
   </header>
 
@@ -230,15 +219,24 @@ button, input, select { font: inherit; outline: none; border: none; }
       <div id="emptyStateContainer" class="empty-state">
         <i class="fa-solid fa-file-pdf empty-icon"></i>
         <h2>SHM PDF Editing Engine</h2>
-        <p>Drop a PDF document here. The engine natively reads font styles<br>and spacing for seamless, invisible editing.</p>
-        <button class="btn primary" style="padding: 0 24px; height: 44px; margin-top: 20px;" onclick="document.getElementById('hiddenFileInput').click()">Choose File</button>
+        <p>Drop a PDF or Image Document here. The engine natively reads font styles<br>and spacing for seamless, invisible editing.</p>
+        
+        <!-- ⚡ OCR Mode Toggle -->
+        <div class="ocr-toggle-container">
+            <label class="ocr-toggle-label">
+                <input type="checkbox" id="ocrModeCheck">
+                ⚡ Use Cloud OCR (Enable for Scanned PDFs)
+            </label>
+        </div>
+        
+        <br>
+        <button class="btn primary" style="padding: 0 24px; height: 44px; margin-top: 15px;" onclick="document.getElementById('hiddenFileInput').click()">Choose File</button>
       </div>
       <div id="documentPagesContainer" style="display: flex; flex-direction: column; align-items: flex-start; margin: 0 auto; width: fit-content;"></div>
     </main>
 
     <aside class="properties-panel">
       <div class="panel-header"><span>Text Format</span></div>
-
       <div class="prop-section">
         <div class="control-row">
           <label>Font</label>
@@ -310,9 +308,20 @@ button, input, select { font: inherit; outline: none; border: none; }
   </div>
 </div>
 
+<!-- ⚡ Cloud OCR Loading Screen -->
+<div id="modalOcrLoading" class="modal-backdrop">
+    <div class="spinner"></div>
+    <div class="ocr-loader-text">AI Cloud OCR Engine Processing...</div>
+    <div class="ocr-loader-subtext">Extracting invisible text layers. This may take 1-2 minutes.</div>
+</div>
+
 <script>
 'use strict';
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// 🚀 GOOGLE CLOUD OCR API SETTINGS
+const API_URL = "https://pdf-682870017945.asia-south1.run.app/convert";
+const API_KEY = "shm_super_secret_key_2026";
 
 const isMobile = window.innerWidth <= 768;
 
@@ -332,7 +341,8 @@ const UI = {
   get: (id) => document.getElementById(id),
   log: (msg) => { const b = UI.get('systemLogBox'); b.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}<br>${b.innerHTML}`.slice(0, 3000); },
   toast: (title, desc = '') => { UI.get('toastTitle').textContent = title; UI.get('toastDesc').textContent = desc; const el = UI.get('toastNotification'); el.classList.add('show'); clearTimeout(window.__t); window.__t = setTimeout(() => el.classList.remove('show'), 3500); },
-  hideModal: (id) => { if(!AppState.flags.isExporting) UI.get(id).classList.remove('show'); }
+  hideModal: (id) => { if(!AppState.flags.isExporting) UI.get(id).classList.remove('show'); },
+  showModal: (id) => { UI.get(id).classList.add('show'); }
 };
 
 const History = {
@@ -344,14 +354,66 @@ const History = {
 };
 let debounceTimer; const debounceHistory = () => { clearTimeout(debounceTimer); debounceTimer = setTimeout(History.save, 500); };
 
+// ⚡ Cloud OCR Processing Function
+const CloudOCR = {
+    processFile: async (file) => {
+        try {
+            UI.showModal('modalOcrLoading');
+            UI.log("Connecting to Cloud OCR Engine...");
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'X-API-KEY': API_KEY },
+                body: formData
+            });
+
+            if (!response.ok) throw new Error("Server processing failed.");
+            
+            UI.log("Cloud OCR Engine returned Searchable PDF.");
+            const blob = await response.blob();
+            UI.hideModal('modalOcrLoading');
+            return blob;
+        } catch (error) {
+            UI.hideModal('modalOcrLoading');
+            UI.log(`<span style="color:var(--danger)">OCR Error: ${error.message}</span>`);
+            UI.toast('OCR Error', 'Could not convert scanned document.');
+            throw error;
+        }
+    }
+};
+
 const DocumentManager = {
   handleFile: async (file) => {
-    if(!file) return; UI.get('editorStage').classList.remove('empty'); UI.get('emptyStateContainer').classList.add('hidden');
-    UI.get('documentPagesContainer').innerHTML = ''; UI.get('thumbnailContainer').innerHTML = '';
-    AppState.pages = []; AppState.currentPageIndex = 0; UI.log('Parsing Document Data...');
+    if(!file) return; 
+    UI.get('editorStage').classList.remove('empty'); 
+    UI.get('emptyStateContainer').classList.add('hidden');
+    UI.get('documentPagesContainer').innerHTML = ''; 
+    UI.get('thumbnailContainer').innerHTML = '';
+    AppState.pages = []; AppState.currentPageIndex = 0; 
+    
+    let processableFile = file;
+    const isImage = file.type.startsWith('image/');
+    const useOCR = UI.get('ocrModeCheck').checked || isImage;
+
+    // ⚡ If file is Image or OCR mode is ON, send to Google Cloud First
+    if (useOCR) {
+        try {
+            UI.toast('Processing', 'Uploading to Cloud Engine...');
+            processableFile = await CloudOCR.processFile(file);
+        } catch (e) {
+            UI.get('editorStage').classList.add('empty'); 
+            UI.get('emptyStateContainer').classList.remove('hidden');
+            return; // Stop if OCR fails
+        }
+    }
+
+    UI.log('Parsing Document Data...');
 
     try {
-      const buffer = await file.arrayBuffer(); 
+      const buffer = await processableFile.arrayBuffer(); 
       AppState.document = await pdfjsLib.getDocument({ data: buffer }).promise;
 
       const renderScale = AppState.document.numPages > 5 ? 1.5 : 2.0;
