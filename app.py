@@ -5,7 +5,11 @@ from flask_cors import CORS
 import ocrmypdf
 
 app = Flask(__name__)
-CORS(app)
+
+# 🔒 সিকিউরিটি আপডেট: শুধুমাত্র আপনার ওয়েবসাইট (pdf.shmwb.in) থেকে রিকোয়েস্ট গ্রহণ করবে।
+# অন্য কেউ API লিংক চুরি করে ব্যবহার করতে চাইলে সার্ভার সেটি ব্লক করে দেবে।
+ALLOWED_ORIGINS = ["https://pdf.shmwb.in", "http://pdf.shmwb.in"]
+CORS(app, resources={r"/*": {"origins": ALLOWED_ORIGINS}})
 
 @app.route('/convert', methods=['POST'])
 def convert_to_searchable_pdf():
@@ -50,11 +54,13 @@ def convert_to_searchable_pdf():
         return jsonify({"error": f"সার্ভার এরর: {str(e)}"}), 500
         
     finally:
+        # কাজ শেষ হলে সার্ভার থেকে টেম্পোরারি ফাইল মুছে ফেলা
         if os.path.exists(temp_in):
             os.remove(temp_in)
         if os.path.exists(temp_out):
             os.remove(temp_out)
 
 if __name__ == '__main__':
+    # Google Cloud Run-এর ডিফল্ট পোর্ট 8080
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port)
