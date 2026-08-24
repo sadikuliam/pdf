@@ -121,7 +121,7 @@
         <button class="btn" id="convertBtn" disabled>Convert & Download PDF</button>
 
         <div class="progress-container" id="progressContainer">
-            <p id="statusText">সার্ভারে আপলোড ও প্রসেসিং হচ্ছে, দয়া করে অপেক্ষা করুন...</p>
+            <p id="statusText">সার্ভারে আপলোড ও প্রসেসিং হচ্ছে, দয়া করে অপেক্ষা করুন...</p>
             <div class="progress-bar">
                 <div class="progress" id="progress"></div>
             </div>
@@ -141,7 +141,7 @@
         const successMessage = document.getElementById('successMessage');
         const uploadText = document.getElementById('uploadText');
 
-        // আপনার Render API লিংকটি এখানে দেওয়া হলো
+        // আপনার Google Cloud API লিংক
         const API_URL = "https://pdf-682870017945.asia-south1.run.app/convert";
 
         // ফাইল সিলেক্ট ইভেন্ট
@@ -169,19 +169,22 @@
             formData.append('file', file);
 
             try {
-                // ব্যাকএন্ড API-তে ফাইল পাঠানো
+                // ব্যাকএন্ড API-তে ফাইল পাঠানো (গোপন চাবিসহ)
                 const response = await fetch(API_URL, {
                     method: 'POST',
+                    headers: {
+                        'X-API-KEY': 'shm_super_secret_key_2026' // 🔑 এই চাবিটি দিয়ে সার্ভারকে আনলক করা হচ্ছে
+                    },
                     body: formData
                 });
 
                 if (!response.ok) {
-                    throw new Error("সার্ভার এরর বা ফাইল প্রসেস করা যায়নি।");
+                    throw new Error("সার্ভার এরর বা ফাইল প্রসেস করা যায়নি।");
                 }
 
                 statusText.textContent = "ফাইল তৈরি হচ্ছে...";
                 
-                // সার্ভার থেকে Searchable PDF ফেরত নেওয়া
+                // সার্ভার থেকে Searchable PDF ফেরত নেওয়া
                 const blob = await response.blob();
                 
                 // ডাউনলোড করার জন্য টেম্পোরারি লিংক তৈরি
@@ -193,7 +196,7 @@
                 const originalName = file.name.split('.').slice(0, -1).join('.');
                 a.download = "Searchable_" + originalName + ".pdf";
                 
-                // স্বয়ংক্রিয়ভাবে ডাউনলোড শুরু করা
+                // স্বয়ংক্রিয়ভাবে ডাউনলোড শুরু করা
                 document.body.appendChild(a);
                 a.click();
                 a.remove();
@@ -207,7 +210,7 @@
 
             } catch (error) {
                 console.error(error);
-                alert("দুঃখিত, কোনো একটি সমস্যা হয়েছে! দয়া করে আবার চেষ্টা করুন।");
+                alert("দুঃখিত, কোনো একটি সমস্যা হয়েছে! দয়া করে আবার চেষ্টা করুন।");
                 progressContainer.style.display = 'none';
                 convertBtn.style.display = 'inline-block';
             }
