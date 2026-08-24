@@ -125,7 +125,7 @@
         .tool-card:nth-child(6) { animation-delay: 0.6s; } 
         .tool-card:nth-child(7) { animation-delay: 0.7s; }
 
-        /* --- Footer & Counter Styles --- */
+        /* --- Footer Styles --- */
         .footer { 
             margin-top: 3.5rem; 
             padding-top: 1.5rem; 
@@ -148,43 +148,13 @@
         .footer-link::after { content: ''; position: absolute; width: 100%; transform: scaleX(0); height: 2px; bottom: -2px; left: 0; background-color: var(--primary); transform-origin: bottom right; transition: transform 0.3s ease-out; }
         .footer-link:hover::after { transform: scaleX(1); transform-origin: bottom left; }
 
-        /* Modern Visitor Counter */
-        .visitor-counter {
-            background: rgba(255, 255, 255, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.9);
-            padding: 8px 16px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
+        .badge-img {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
-        .visitor-counter:hover {
-            background: rgba(255, 255, 255, 0.9);
+        .badge-img:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 15px rgba(79, 70, 229, 0.15);
-        }
-        .live-dot {
-            width: 8px;
-            height: 8px;
-            background-color: #10B981; 
-            border-radius: 50%;
-            box-shadow: 0 0 8px #10B981;
-            animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-        }
-        .visitor-counter span {
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: var(--text-main);
-            background: linear-gradient(135deg, var(--text-main), var(--primary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
         }
 
         /* --- Custom PWA Install Banner Styles --- */
@@ -325,10 +295,13 @@
                 <span class="footer-text">Powered by <a href="https://shmwb.in" target="_blank" rel="noopener noreferrer" class="footer-link">shmwb.in</a></span>
             </div>
 
-            <!-- Modern Visitor Counter -->
-            <div class="visitor-counter" title="Total Global Page Views">
-                <div class="live-dot"></div>
-                <span id="visitCountText">... Loading</span>
+            <!-- Image Based Visitor Counter (visitorbadge.io) -->
+            <div>
+                <img src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fwww.shmwb.in&label=SITE%20VISITORS&labelColor=%23374151&countColor=%232563eb" 
+                     alt="Visitor Counter for shmwb.in" 
+                     style="vertical-align:middle; border-radius: 4px;" 
+                     class="badge-img"
+                     border="0">
             </div>
         </div>
     </div>
@@ -348,7 +321,7 @@
         </div>
     </div>
 
-    <!-- Script to Register Service Worker & Handle Install Banner & API Counter -->
+    <!-- Script to Register Service Worker & Handle Install Banner -->
     <script>
         // 1. Service Worker Registration
         if ('serviceWorker' in navigator) {
@@ -389,41 +362,6 @@
             installBanner.style.display = 'none';
             deferredPrompt = null;
             console.log('PWA was installed successfully');
-        });
-
-        // 3. Real Global Visitor Counter Logic (With Fallback)
-        document.addEventListener("DOMContentLoaded", () => {
-            const counterElement = document.getElementById('visitCountText');
-            
-            // Simplified names so the API server doesn't reject the request
-            const namespace = 'shmpdftools';
-            const key = 'pageviews';
-            
-            fetch(`https://api.counterapi.dev/v1/${namespace}/${key}/up`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('API blocked or unavailable');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    // Success: Show Real Count
-                    const actualCount = data.count || 1;
-                    counterElement.innerText = actualCount.toLocaleString() + " Views";
-                })
-                .catch(error => {
-                    console.warn("Live API failed (Maybe running on file:// or blocked by AdBlock). Using local fallback.");
-                    
-                    // Smart Fallback: So it never gets stuck on "Live Views"
-                    let fallbackCount = localStorage.getItem('shm_local_views');
-                    if (!fallbackCount) {
-                        fallbackCount = 0;
-                    }
-                    fallbackCount = parseInt(fallbackCount) + 1;
-                    localStorage.setItem('shm_local_views', fallbackCount);
-                    
-                    counterElement.innerText = fallbackCount.toLocaleString() + " Views";
-                });
         });
     </script>
 </body>
