@@ -140,12 +140,7 @@
             gap: 1rem;
         }
         
-        .footer-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
+        .footer-left { display: flex; align-items: center; gap: 12px; }
         .footer-logo { height: 26px; width: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05)); transition: transform 0.3s ease; }
         .footer-logo:hover { transform: scale(1.1); }
         .footer-text { color: var(--text-muted); font-size: 1rem; font-weight: 500; }
@@ -173,7 +168,7 @@
         .live-dot {
             width: 8px;
             height: 8px;
-            background-color: #10B981;
+            background-color: #10B981; 
             border-radius: 50%;
             box-shadow: 0 0 8px #10B981;
             animation: pulse 1.5s infinite;
@@ -396,26 +391,38 @@
             console.log('PWA was installed successfully');
         });
 
-        // 3. Real Global Visitor Counter Logic (Using Free CounterAPI)
+        // 3. Real Global Visitor Counter Logic (With Fallback)
         document.addEventListener("DOMContentLoaded", () => {
             const counterElement = document.getElementById('visitCountText');
             
-            // This API will automatically increase the count by 1 each time the page loads
-            // and return the total count starting from 0.
-            const namespace = 'shmpdf_ultra_modern_app';
-            const key = 'total_page_views';
+            // Simplified names so the API server doesn't reject the request
+            const namespace = 'shmpdftools';
+            const key = 'pageviews';
             
             fetch(`https://api.counterapi.dev/v1/${namespace}/${key}/up`)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('API blocked or unavailable');
+                    }
+                    return response.json();
+                })
                 .then(data => {
-                    // data.count contains the actual global visitor count
-                    const actualCount = data.count || 0;
+                    // Success: Show Real Count
+                    const actualCount = data.count || 1;
                     counterElement.innerText = actualCount.toLocaleString() + " Views";
                 })
                 .catch(error => {
-                    console.error('Error fetching visitor count:', error);
-                    // Fallback Text if API fails
-                    counterElement.innerText = "Live Views";
+                    console.warn("Live API failed (Maybe running on file:// or blocked by AdBlock). Using local fallback.");
+                    
+                    // Smart Fallback: So it never gets stuck on "Live Views"
+                    let fallbackCount = localStorage.getItem('shm_local_views');
+                    if (!fallbackCount) {
+                        fallbackCount = 0;
+                    }
+                    fallbackCount = parseInt(fallbackCount) + 1;
+                    localStorage.setItem('shm_local_views', fallbackCount);
+                    
+                    counterElement.innerText = fallbackCount.toLocaleString() + " Views";
                 });
         });
     </script>
