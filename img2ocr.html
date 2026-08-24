@@ -3,13 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real OCR Converter with Download</title>
+    <title>AI OCR PDF Converter</title>
     
-    <!-- Tesseract.js (OCR-এর জন্য) -->
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-    <!-- jsPDF (PDF তৈরি ও ডাউনলোডের জন্য) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
     <style>
         * {
             margin: 0;
@@ -86,10 +81,15 @@
 
         .progress {
             height: 100%;
-            width: 0%;
+            width: 50%; /* Fake progress while server processes */
             background: #00f2fe;
             border-radius: 10px;
-            transition: width 0.3s ease;
+            animation: loading 2s infinite alternate;
+        }
+
+        @keyframes loading {
+            0% { width: 30%; }
+            100% { width: 80%; }
         }
 
         .success-message {
@@ -106,22 +106,22 @@
 <body>
 
     <div class="container">
-        <h1>AI OCR Converter</h1>
-        <p>যেকোনো ছবি (JPG, PNG) আপলোড করে PDF এ কনভার্ট করুন</p>
+        <h1>PDF/Image to Searchable PDF</h1>
+        <p>যেকোনো ছবি বা PDF আপলোড করে Searchable PDF এ কনভার্ট করুন। হুবহু অরিজিনাল ডিজাইন ঠিক থাকবে!</p>
 
         <label for="fileInput">
             <div class="upload-area" id="uploadArea">
-                <div class="upload-icon">📸</div>
-                <h3 id="uploadText">ছবি নির্বাচন করতে ক্লিক করুন</h3>
+                <div class="upload-icon">📄</div>
+                <h3 id="uploadText">ফাইল নির্বাচন করতে ক্লিক করুন</h3>
                 <div id="fileName"></div>
             </div>
         </label>
-        <input type="file" id="fileInput" accept="image/*">
+        <input type="file" id="fileInput" accept=".pdf, image/*">
 
         <button class="btn" id="convertBtn" disabled>Convert & Download PDF</button>
 
         <div class="progress-container" id="progressContainer">
-            <p id="statusText">Processing document...</p>
+            <p id="statusText">সার্ভারে আপলোড ও প্রসেসিং হচ্ছে, দয়া করে অপেক্ষা করুন...</p>
             <div class="progress-bar">
                 <div class="progress" id="progress"></div>
             </div>
@@ -137,10 +137,12 @@
         const fileNameDisplay = document.getElementById('fileName');
         const convertBtn = document.getElementById('convertBtn');
         const progressContainer = document.getElementById('progressContainer');
-        const progress = document.getElementById('progress');
         const statusText = document.getElementById('statusText');
         const successMessage = document.getElementById('successMessage');
         const uploadText = document.getElementById('uploadText');
+
+        // আপনার Render API লিংকটি এখানে দেওয়া হলো
+        const API_URL = "https://pdf-tibd.onrender.com/convert";
 
         // ফাইল সিলেক্ট ইভেন্ট
         fileInput.addEventListener('change', function() {
@@ -149,7 +151,6 @@
                 uploadText.style.display = 'none';
                 convertBtn.disabled = false;
                 successMessage.style.display = 'none';
-                progress.style.width = '0%';
             }
         });
 
@@ -161,41 +162,42 @@
             // UI পরিবর্তন
             convertBtn.style.display = 'none';
             progressContainer.style.display = 'block';
-            statusText.textContent = "Starting OCR Engine...";
+            statusText.textContent = "সার্ভারে আপলোড ও প্রসেসিং হচ্ছে (১-২ মিনিট লাগতে পারে)...";
+
+            // ফাইল ডাটা তৈরি
+            const formData = new FormData();
+            formData.append('file', file);
 
             try {
-                // Tesseract দিয়ে ছবি থেকে লেখা পড়া
-                const worker = await Tesseract.createWorker("eng", 1, {
-                    logger: m => {
-                        if (m.status === 'recognizing text') {
-                            const progressVal = Math.round(m.progress * 100);
-                            progress.style.width = progressVal + '%';
-                            statusText.textContent = `Extracting Text... ${progressVal}%`;
-                        }
-                    }
+                // ব্যাকএন্ড API-তে ফাইল পাঠানো
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: formData
                 });
 
-                const ret = await worker.recognize(file);
-                const extractedText = ret.data.text;
-                await worker.terminate();
-
-                if (!extractedText.trim()) {
-                    alert("ছবিতে কোনো লেখা পাওয়া যায়নি!");
-                    resetUI();
-                    return;
+                if (!response.ok) {
+                    throw new Error("সার্ভার এরর বা ফাইল প্রসেস করা যায়নি।");
                 }
 
-                // jsPDF দিয়ে PDF তৈরি করা
-                statusText.textContent = "Creating PDF File...";
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
+                statusText.textContent = "ফাইল তৈরি হচ্ছে...";
                 
-                // টেক্সট যাতে পৃষ্ঠার বাইরে না যায় তাই মার্জিন সেট করা
-                const splitText = doc.splitTextToSize(extractedText, 180);
-                doc.text(splitText, 15, 15);
+                // সার্ভার থেকে Searchable PDF ফেরত নেওয়া
+                const blob = await response.blob();
                 
-                // PDF ফাইল ডাউনলোড করা
-                doc.save("OCR_Result.pdf");
+                // ডাউনলোড করার জন্য টেম্পোরারি লিংক তৈরি
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                
+                // ফাইলের নাম সেট করা
+                const originalName = file.name.split('.').slice(0, -1).join('.');
+                a.download = "Searchable_" + originalName + ".pdf";
+                
+                // স্বয়ংক্রিয়ভাবে ডাউনলোড শুরু করা
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(downloadUrl);
 
                 // সফল মেসেজ দেখানো
                 progressContainer.style.display = 'none';
@@ -205,15 +207,11 @@
 
             } catch (error) {
                 console.error(error);
-                statusText.textContent = "Error occurred during conversion!";
-                setTimeout(resetUI, 3000);
+                alert("দুঃখিত, কোনো একটি সমস্যা হয়েছে! দয়া করে আবার চেষ্টা করুন।");
+                progressContainer.style.display = 'none';
+                convertBtn.style.display = 'inline-block';
             }
         });
-
-        function resetUI() {
-            progressContainer.style.display = 'none';
-            convertBtn.style.display = 'inline-block';
-        }
     </script>
 </body>
 </html>
