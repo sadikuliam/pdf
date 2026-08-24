@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern OCR Converter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            /* একটি সুন্দর রঙিন গ্রেডিয়েন্ট ব্যাকগ্রাউন্ড */
+            background: linear-gradient(135deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            /* Glassmorphism এফেক্ট */
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            color: #fff;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        p {
+            font-size: 14px;
+            margin-bottom: 30px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.6);
+            border-radius: 15px;
+            padding: 40px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 25px;
+        }
+
+        .upload-area:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #fff;
+        }
+
+        .upload-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+            color: #333;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-container {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress {
+            height: 100%;
+            width: 0%;
+            background: #00f2fe;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .success-message {
+            display: none;
+            margin-top: 20px;
+            color: #d4edda;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        #fileName {
+            margin-top: 15px;
+            font-size: 13px;
+            color: #fff;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>AI OCR Converter</h1>
+        <p>Image বা PDF আপলোড করুন এবং Searchable PDF এ রূপান্তর করুন</p>
+
+        <label for="fileInput">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📄</div>
+                <h3 id="uploadText">ফাইল বেছে নিতে এখানে ক্লিক করুন</h3>
+                <div id="fileName"></div>
+            </div>
+        </label>
+        <input type="file" id="fileInput" accept=".pdf, image/*">
+
+        <button class="btn" id="convertBtn" disabled>Convert to OCR PDF</button>
+
+        <div class="progress-container" id="progressContainer">
+            <p id="statusText">Processing document...</p>
+            <div class="progress-bar">
+                <div class="progress" id="progress"></div>
+            </div>
+        </div>
+
+        <div class="success-message" id="successMessage">
+            ✅ Conversion Successful! Downloading...
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const fileNameDisplay = document.getElementById('fileName');
+        const convertBtn = document.getElementById('convertBtn');
+        const progressContainer = document.getElementById('progressContainer');
+        const progress = document.getElementById('progress');
+        const statusText = document.getElementById('statusText');
+        const successMessage = document.getElementById('successMessage');
+        const uploadText = document.getElementById('uploadText');
+
+        // ফাইল সিলেক্ট করলে ফাইলের নাম দেখাবে
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                fileNameDisplay.textContent = "Selected: " + this.files[0].name;
+                uploadText.style.display = 'none';
+                convertBtn.disabled = false;
+            } else {
+                fileNameDisplay.textContent = "";
+                uploadText.style.display = 'block';
+                convertBtn.disabled = true;
+            }
+        });
+
+        // কনভার্ট বাটনে ক্লিক করলে প্রসেসিং অ্যানিমেশন শুরু হবে
+        convertBtn.addEventListener('click', function() {
+            convertBtn.style.display = 'none';
+            progressContainer.style.display = 'block';
+            
+            let width = 0;
+            // এটি একটি ডেমো অ্যানিমেশন (আসল OCR ব্যাকএন্ডে করতে হবে)
+            let interval = setInterval(function() {
+                if (width >= 100) {
+                    clearInterval(interval);
+                    statusText.textContent = "Complete!";
+                    setTimeout(() => {
+                        progressContainer.style.display = 'none';
+                        successMessage.style.display = 'block';
+                    }, 500);
+                } else {
+                    width += 2; // স্পিড কন্ট্রোল
+                    progress.style.width = width + '%';
+                    statusText.textContent = `Extracting Text... ${width}%`;
+                }
+            }, 50); // প্রতি ৫০ মিলি-সেকেন্ডে আপডেট হবে
+        });
+    </script>
+</body>
+</html>
