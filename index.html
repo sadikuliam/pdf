@@ -131,7 +131,7 @@
             padding-top: 1.5rem; 
             border-top: 1px solid var(--glass-border); 
             display: flex; 
-            justify-content: space-between; /* Creates space between copyright and counter */
+            justify-content: space-between; 
             align-items: center; 
             opacity: 0; 
             animation: fadeUp 0.6s forwards; 
@@ -173,7 +173,7 @@
         .live-dot {
             width: 8px;
             height: 8px;
-            background-color: #10B981; /* Emerald Green */
+            background-color: #10B981;
             border-radius: 50%;
             box-shadow: 0 0 8px #10B981;
             animation: pulse 1.5s infinite;
@@ -272,7 +272,6 @@
         </div>
 
         <div class="tools-grid">
-            <!-- PWA Fix: Removed target="_blank" so apps open in the same window, enabling the back button -->
             <a href="editpdf.html" class="tool-card">
                 <div class="icon-box">
                     <svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
@@ -332,9 +331,9 @@
             </div>
 
             <!-- Modern Visitor Counter -->
-            <div class="visitor-counter" title="Total App Views">
+            <div class="visitor-counter" title="Total Global Page Views">
                 <div class="live-dot"></div>
-                <span id="visitCountText">12,450 Views</span>
+                <span id="visitCountText">... Loading</span>
             </div>
         </div>
     </div>
@@ -354,7 +353,7 @@
         </div>
     </div>
 
-    <!-- Script to Register Service Worker & Handle Install Banner -->
+    <!-- Script to Register Service Worker & Handle Install Banner & API Counter -->
     <script>
         // 1. Service Worker Registration
         if ('serviceWorker' in navigator) {
@@ -397,24 +396,27 @@
             console.log('PWA was installed successfully');
         });
 
-        // 3. Visitor Counter Logic (Demo Simulation using LocalStorage)
+        // 3. Real Global Visitor Counter Logic (Using Free CounterAPI)
         document.addEventListener("DOMContentLoaded", () => {
-            // Base starting number for the counter
-            let baseCount = 12450; 
+            const counterElement = document.getElementById('visitCountText');
             
-            // Increment logic
-            let currentVisits = localStorage.getItem('shm_pdf_visits');
-            if (!currentVisits) {
-                currentVisits = Math.floor(Math.random() * 5) + 1;
-            } else {
-                currentVisits = parseInt(currentVisits) + Math.floor(Math.random() * 3) + 1;
-            }
+            // This API will automatically increase the count by 1 each time the page loads
+            // and return the total count starting from 0.
+            const namespace = 'shmpdf_ultra_modern_app';
+            const key = 'total_page_views';
             
-            localStorage.setItem('shm_pdf_visits', currentVisits);
-            
-            // Format number with commas (e.g., 12,453)
-            let total = baseCount + parseInt(currentVisits);
-            document.getElementById('visitCountText').innerText = total.toLocaleString() + " Views";
+            fetch(`https://api.counterapi.dev/v1/${namespace}/${key}/up`)
+                .then(response => response.json())
+                .then(data => {
+                    // data.count contains the actual global visitor count
+                    const actualCount = data.count || 0;
+                    counterElement.innerText = actualCount.toLocaleString() + " Views";
+                })
+                .catch(error => {
+                    console.error('Error fetching visitor count:', error);
+                    // Fallback Text if API fails
+                    counterElement.innerText = "Live Views";
+                });
         });
     </script>
 </body>
