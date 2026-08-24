@@ -17,13 +17,11 @@ def convert_to_searchable_pdf():
     if file.filename == '':
         return jsonify({"error": "ফাইল নির্বাচন করা হয়নি!"}), 400
 
-    # ফাইলের আসল এক্সটেনশন বের করা (যেমন: .pdf, .jpg, .png)
     ext = os.path.splitext(file.filename)[1].lower()
     
     if ext not in ['.pdf', '.png', '.jpg', '.jpeg']:
         return jsonify({"error": "শুধুমাত্র PDF, JPG বা PNG সাপোর্ট করে!"}), 400
 
-    # অরিজিনাল এক্সটেনশন অনুযায়ী টেম্পোরারি ফাইল তৈরি
     fd_in, temp_in = tempfile.mkstemp(suffix=ext)
     fd_out, temp_out = tempfile.mkstemp(suffix=".pdf")
     os.close(fd_in)
@@ -32,12 +30,21 @@ def convert_to_searchable_pdf():
     try:
         file.save(temp_in)
         
-        # 🚀 ম্যাজিক: যদি ফাইলটি ছবি হয়, তবে image_dpi=300 যুক্ত করতে হবে। 
-        # এখানে language='eng+ben' দেওয়া হয়েছে যাতে ইংরেজি ও বাংলা দুটোই সাপোর্ট করে!
-        if ext in ['.png', '.jpg', '.jpeg']:
-            ocrmypdf.ocr(temp_in, temp_out, deskew=True, force_ocr=True, language='eng+ben', image_dpi=300)
-        else:
-            ocrmypdf.ocr(temp_in, temp_out, deskew=True, force_ocr=True, language='eng+ben') 
+        # 🚀 মেমরি (RAM) বাঁচানোর জন্য স্পেশাল সেটিংস:
+        # jobs=1 (যাতে একবারে বেশি প্রসেস রান করে র‍্যাম ফুল না করে)
+        # optimize=0 (অতিরিক্ত অপ্টিমাইজেশন বন্ধ করা হয়েছে র‍্যাম বাঁচাতে)
+        # output_type='pdf' (ফাস্ট প্রসেসিংয়ের জন্য)
+        
+        ocrmypdf.ocr(
+            temp_in, 
+            temp_out, 
+            deskew=True, 
+            force_ocr=True, 
+            language='eng+ben',
+            jobs=1,
+            optimize=0,
+            output_type='pdf'
+        ) 
         
         return send_file(
             temp_out, 
@@ -51,7 +58,6 @@ def convert_to_searchable_pdf():
         return jsonify({"error": f"সার্ভার এরর: {str(e)}"}), 500
         
     finally:
-        # কাজ শেষ হলে সার্ভার থেকে টেম্পোরারি ফাইল মুছে ফেলা (যাতে সার্ভার ক্র্যাশ না করে)
         if os.path.exists(temp_in):
             os.remove(temp_in)
         if os.path.exists(temp_out):
