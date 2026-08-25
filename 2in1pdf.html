@@ -6,86 +6,226 @@
     <title>PDF N-Up Converter</title>
     <!-- pdf-lib CDN Library -->
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary: #4F46E5;
+            --primary-hover: #4338CA;
+            --violet: #7c3aed;
+            --violet-hover: #6d28d9;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --border: rgba(255, 255, 255, 0.4);
+        }
+
         * {
             box-sizing: border-box;
-            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            font-family: 'Hind Siliguri', 'Segoe UI', sans-serif;
         }
+
         body {
-            background-color: #f4f7f6;
+            background: linear-gradient(135deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%);
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            margin: 0;
+            padding: 20px;
         }
+
         .container {
-            background: #ffffff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            max-width: 450px;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            padding: 35px 30px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        /* Header Layout & Home Button */
+        .header {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 25px;
+            gap: 15px;
+        }
+
+        .home-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border: 1px solid var(--violet);
+            border-radius: 10px;
+            background: #f5f3ff;
+            color: var(--violet);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(124, 58, 237, 0.15);
+        }
+
+        .home-btn:hover {
+            border-color: var(--violet-hover);
+            color: #ffffff;
+            background: var(--violet);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .header-text {
             width: 100%;
             text-align: center;
         }
+
         h2 {
-            color: #2c3e50;
-            margin-bottom: 20px;
+            font-size: 24px;
+            color: #1E293B;
+            margin-bottom: 6px;
+            font-weight: 700;
         }
+
+        p.subtitle {
+            font-size: 14px;
+            color: #64748B;
+            line-height: 1.5;
+        }
+
         .form-group {
             margin-bottom: 20px;
             text-align: left;
         }
+
         label {
-            font-weight: bold;
+            font-weight: 600;
             display: block;
             margin-bottom: 8px;
-            color: #333;
-        }
-        input[type="file"], select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
+            color: #334155;
             font-size: 14px;
         }
+
+        /* Custom Drag & Drop File Upload Box */
+        .upload-area {
+            border: 2px dashed #CBD5E1;
+            border-radius: 14px;
+            padding: 25px 15px;
+            background: #F8FAFC;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: #EEF2FF;
+        }
+
+        .upload-icon {
+            font-size: 38px;
+            margin-bottom: 8px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-name {
+            margin-top: 8px;
+            font-size: 13px;
+            color: var(--primary);
+            font-weight: 600;
+            word-break: break-all;
+        }
+
+        /* Form Select Field */
+        select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #CBD5E1;
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            background-color: #ffffff;
+            color: #334155;
+            transition: border-color 0.3s;
+            cursor: pointer;
+        }
+
+        select:focus {
+            border-color: var(--primary);
+        }
+
+        /* Main Action Button */
         button {
             width: 100%;
-            background-color: #3498db;
+            background: linear-gradient(135deg, var(--primary), var(--violet));
             color: white;
             border: none;
-            padding: 12px;
+            padding: 14px;
             font-size: 16px;
-            font-weight: bold;
-            border-radius: 6px;
+            font-weight: 700;
+            border-radius: 12px;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+            margin-top: 10px;
         }
+
         button:hover {
-            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
         }
+
         #status {
-            margin-top: 15px;
-            font-weight: bold;
-            color: #27ae60;
+            margin-top: 18px;
+            font-weight: 600;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>PDF Multiple Pages per A4 Sheet</h2>
-    
+    <!-- Header Section with Violet Home Button -->
+    <div class="header">
+        <a href="https://pdf.shmwb.in/" class="home-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            Home
+        </a>
+        <div class="header-text">
+            <h2>PDF N-Up Layout Generator</h2>
+            <p class="subtitle">একটি A4 পৃষ্ঠায় একাধিক পেজ বসিয়ে প্রিন্ট লেআউট তৈরি করুন।</p>
+        </div>
+    </div>
+
+    <!-- Custom File Selection -->
     <div class="form-group">
-        <label for="pdfFile">১. PDF ফাইল সিলেক্ট করুন:</label>
+        <label>১. PDF ফাইল সিলেক্ট করুন:</label>
+        <label for="pdfFile">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📄</div>
+                <div id="uploadText" style="font-size: 14px; color: #475569;">PDF আপলোড করতে ক্লিক করুন</div>
+                <div class="file-name" id="fileName"></div>
+            </div>
+        </label>
         <input type="file" id="pdfFile" accept="application/pdf">
     </div>
 
+    <!-- Layout Dropdown -->
     <div class="form-group">
         <label for="layoutSelect">২. প্রতি A4 পৃষ্ঠায় কয়টি পেজ চান?</label>
         <select id="layoutSelect">
-            <option value="2">2 Pages in 1 A4 Page</option>
-            <option value="4">4 Pages in 1 A4 Page</option>
+            <option value="2">2 Pages in 1 A4 Page (Side-by-Side)</option>
+            <option value="4">4 Pages in 1 A4 Page (2x2 Grid)</option>
         </select>
     </div>
 
@@ -95,6 +235,18 @@
 </div>
 
 <script>
+    const pdfFileInput = document.getElementById('pdfFile');
+    const fileNameDisplay = document.getElementById('fileName');
+    const uploadText = document.getElementById('uploadText');
+
+    // UI File Selector listener
+    pdfFileInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            fileNameDisplay.textContent = "Selected: " + this.files[0].name;
+            uploadText.style.display = 'none';
+        }
+    });
+
     async function processPDF() {
         const fileInput = document.getElementById('pdfFile');
         const layoutSelect = document.getElementById('layoutSelect').value;
@@ -105,8 +257,8 @@
             return;
         }
 
-        status.style.color = "#333";
-        status.innerText = "কাজ চলছে, অনুগ্রহ করে অপেক্ষা করুন...";
+        status.style.color = "#475569";
+        status.innerText = "কাজ চলছে, অনুগ্রহ করে অপেক্ষা করুন... ⏳";
 
         try {
             const file = fileInput.files[0];
@@ -125,13 +277,11 @@
             const a4Height = PageSizes.A4[1];
 
             for (let i = 0; i < totalPages; i += pagesPerSheet) {
-                // Add a new landscape A4 page for side-by-side printing
+                // Add a new landscape/portrait A4 page
                 let newPage;
                 if (pagesPerSheet === 2) {
-                    // Landscape A4 for 2-in-1
                     newPage = newDoc.addPage([a4Height, a4Width]); 
                 } else {
-                    // Portrait A4 for 4-in-1
                     newPage = newDoc.addPage([a4Width, a4Height]); 
                 }
 
@@ -145,7 +295,6 @@
                     let targetWidth, targetHeight, x, y;
 
                     if (pagesPerSheet === 2) {
-                        // 2 pages side-by-side
                         targetWidth = sheetWidth / 2;
                         targetHeight = sheetHeight;
                         
@@ -163,7 +312,6 @@
                             height: scaledHeight
                         });
                     } else if (pagesPerSheet === 4) {
-                        // 4 pages (2x2 grid)
                         targetWidth = sheetWidth / 2;
                         targetHeight = sheetHeight / 2;
 
@@ -172,10 +320,9 @@
                         const scaledHeight = embeddedPage.height * scale;
 
                         const col = j % 2;
-                        const row = Math.floor(j / 2); // 0 top, 1 bottom
+                        const row = Math.floor(j / 2);
 
                         x = col * targetWidth + (targetWidth - scaledWidth) / 2;
-                        // PDF coordinate system (0,0 is bottom-left)
                         y = (1 - row) * targetHeight + (targetHeight - scaledHeight) / 2;
 
                         newPage.drawPage(embeddedPage, {
@@ -196,12 +343,12 @@
             link.download = 'Converted_A4_Layout.pdf';
             link.click();
 
-            status.style.color = "#27ae60";
-            status.innerText = "সফলভাবে পরিবর্তন করা হয়েছে!";
+            status.style.color = "#10B981";
+            status.innerText = "✅ সফলভাবে পরিবর্তন করা হয়েছে!";
         } catch (error) {
             console.error(error);
-            status.style.color = "#e74c3c";
-            status.innerText = "প্রসেসিং ব্যর্থ হয়েছে। ফাইলটি ঠিক আছে কিনা পরীক্ষা করুন।";
+            status.style.color = "#EF4444";
+            status.innerText = "❌ প্রসেসিং ব্যর্থ হয়েছে। ফাইলটি পরীক্ষা করে আবার চেষ্টা করুন।";
         }
     }
 </script>
