@@ -214,8 +214,10 @@
       return;
     }
     
-    let textMessage = `Hello, I have contributed for "SHM Golden Membership".\n\nName: ${encodeURIComponent(name)}\nPhone: 9064373386\n\nPlease add my name to the Valued Members list.`;
-    let whatsappUrl = `https://wa.me/919064373386?text=${textMessage}`;
+    // Exact requested message format
+    let rawText = `Hello, I have Contributed for "SHM Golden Membership"\n\nName: ${name}\n\nPlease add my name to the Valued Members List`;
+    
+    let whatsappUrl = `https://wa.me/919064373386?text=${encodeURIComponent(rawText)}`;
     
     window.open(whatsappUrl, '_blank');
   }
@@ -267,9 +269,14 @@
         
         <!-- Member 1 -->
         <li class="member-item">
-          <span>FIRDOUSI PERVIN</span>
+          <span>ANIRUDDHA BOSE</span>
           <span class="badge">⭐ Golden Member</span>
         </li>
+<li class="member-item">
+          <span>SUBHANKAR PAUL</span>
+          <span class="badge">⭐ Golden Member</span>
+        </li>
+
 
       </ul>
     </div>
