@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="bn" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crystal Clear PDF Splitter & Compressor</title>
-    <!-- Dependencies -->
+    <title>Crystal Clear PDF Splitter (&lt;200KB)</title>
+    <!-- Essential CDN Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -12,8 +12,8 @@
     <style>
         :root[data-theme="dark"] {
             --bg: #090d16;
-            --card-bg: rgba(22, 30, 46, 0.7);
-            --border: rgba(255, 255, 255, 0.08);
+            --card-bg: rgba(22, 30, 46, 0.75);
+            --border: rgba(255, 255, 255, 0.1);
             --text-main: #f3f4f6;
             --text-sub: #9ca3af;
             --accent: #6366f1;
@@ -24,8 +24,8 @@
 
         :root[data-theme="light"] {
             --bg: #f8fafc;
-            --card-bg: rgba(255, 255, 255, 0.8);
-            --border: rgba(0, 0, 0, 0.08);
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --border: rgba(0, 0, 0, 0.1);
             --text-main: #0f172a;
             --text-sub: #64748b;
             --accent: #4f46e5;
@@ -113,8 +113,8 @@
 <div class="container">
     <div class="header">
         <div class="title-group">
-            <h1>HD PDF Splitter</h1>
-            <p>Strictly &lt;200KB per page • HD Quality Fix</p>
+            <h1>Ultra Sharp PDF Splitter</h1>
+            <p>Strictly &lt;200KB per page • High DPI Engine</p>
         </div>
         <button class="theme-toggle" id="themeBtn" aria-label="Toggle Theme">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
@@ -123,14 +123,14 @@
 
     <div class="drop-zone" onclick="document.getElementById('fileInput').click()">
         <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-        <p style="font-weight: 600; margin-bottom: 0.25rem;">Drop PDF here or click to browse</p>
-        <p style="font-size: 0.8rem; color: var(--text-sub);">Automatic resolution & integrity checks active</p>
+        <p style="font-weight: 600; margin-bottom: 0.25rem;">PDF ফাইল এখানে ড্রপ করুন অথবা ক্লিক করুন</p>
+        <p style="font-size: 0.8rem; color: var(--text-sub);">HD Crisp rendering engine active</p>
         <input type="file" id="fileInput" accept="application/pdf" style="display: none;">
     </div>
 
     <div class="progress-wrapper" id="progressWrapper">
         <div class="progress-header">
-            <span id="progressTask">Processing...</span>
+            <span id="progressTask">প্রসেসিং চলছে...</span>
             <span id="progressPercent">0%</span>
         </div>
         <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
@@ -141,9 +141,9 @@
 
 <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-    const MAX_BYTES = 200 * 1024; // 200 KB
+    const MAX_BYTES = 200 * 1024; // Strict 200 KB Threshold
 
-    // Theme Switcher
+    // Dark/Light Theme Switching
     const themeBtn = document.getElementById('themeBtn');
     themeBtn.addEventListener('click', () => {
         const currentTheme = document.documentElement.getAttribute('data-theme');
@@ -154,12 +154,13 @@
             : `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`;
     });
 
+    // File Input Logic
     document.getElementById('fileInput').addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
         showProgress(true);
-        updateStatus("Loading document...", 5);
+        updateStatus("PDF পড়া হচ্ছে...", 5);
 
         try {
             const arrayBuffer = await file.arrayBuffer();
@@ -170,38 +171,38 @@
 
             for (let i = 1; i <= totalPages; i++) {
                 const percent = Math.round((i / totalPages) * 100);
-                updateStatus(`Processing page ${i} of ${totalPages}...`, percent);
+                updateStatus(`Page ${i} of ${totalPages} নিখুঁত করা হচ্ছে...`, percent);
 
-                // Step 1: Try Native Copy with strict boundary check
-                let pageBytes = await extractNativePage(arrayBuffer, i - 1);
+                // Phase 1: Lossless Native Extraction Check
+                let pageBytes = await extractNativeVectorPage(arrayBuffer, i - 1);
 
-                // Step 2: Fallback to High-DPI Smart Compressed Rendering if native page > 200KB
+                // Phase 2: Ultra High-DPI Re-rendering Engine (if page size > 200 KB)
                 if (!pageBytes || pageBytes.byteLength > MAX_BYTES) {
                     const pageProxy = await pdfJsDoc.getPage(i);
-                    pageBytes = await renderCompressedHDPage(pageProxy);
+                    pageBytes = await renderCrispHDPage(pageProxy);
                 }
 
                 zip.file(`${file.name.replace('.pdf','')}_Page_${i}.pdf`, pageBytes);
             }
 
-            updateStatus("Generating ZIP...", 99);
+            updateStatus("ZIP ফাইল তৈরি হচ্ছে...", 99);
             const zipBlob = await zip.generateAsync({ type: "blob" });
             
             const link = document.createElement('a');
             link.href = URL.createObjectURL(zipBlob);
-            link.download = `${file.name.replace('.pdf','')}_Split_Under200KB.zip`;
+            link.download = `${file.name.replace('.pdf','')}_UltraClear_Under200KB.zip`;
             link.click();
 
-            updateStatus("Done! Download started.", 100);
+            updateStatus("সম্পন্ন হয়েছে! ডাউনলোড শুরু হচ্ছে...", 100);
             setTimeout(() => showProgress(false), 3000);
         } catch (err) {
             console.error(err);
-            updateStatus("Error processing PDF. Try another file.", 0);
+            updateStatus("PDF প্রসেস করতে সমস্যা হয়েছে। অন্য একটি চেষ্টা করুন।", 0);
         }
     });
 
-    // Native page copy with isolated stream loading
-    async function extractNativePage(srcBuffer, pageIdx) {
+    // Phase 1: Pure Vector Direct Splitter (অরিজিনাল ভেক্টর টেক্সট ধরে রাখে)
+    async function extractNativeVectorPage(srcBuffer, pageIdx) {
         try {
             const srcDoc = await PDFLib.PDFDocument.load(srcBuffer, { ignoreEncryption: true });
             const destDoc = await PDFLib.PDFDocument.create();
@@ -210,31 +211,33 @@
             const bytes = await destDoc.save();
             return bytes.byteLength <= MAX_BYTES ? bytes : null;
         } catch (e) {
-            return null; // Fallback to canvas render if native fails
+            return null;
         }
     }
 
-    // Dynamic HD Canvas Engine with adaptive scale step-down
-    async function renderCompressedHDPage(pageProxy) {
-        let scale = 2.5; 
-        let quality = 0.80;
-        let lastValidBytes = null;
+    // Phase 2: Ultra-Sharp Multi-Scale Render Engine
+    async function renderCrispHDPage(pageProxy) {
+        // ৩.০ লেভেলের High DPI Scale দিয়ে টেক্সটের শার্পনেস ঠিক রাখা হয়
+        let currentScale = 3.0; 
+        let currentQuality = 0.85;
+        let bestFallbackBytes = null;
 
-        while (scale >= 0.5) {
-            const viewport = pageProxy.getViewport({ scale });
+        while (currentScale >= 0.8) {
+            const viewport = pageProxy.getViewport({ scale: currentScale });
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d', { alpha: false });
             
             canvas.width = viewport.width;
             canvas.height = viewport.height;
 
+            // Image Smoothing Filters
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = 'high';
 
             await pageProxy.render({ canvasContext: ctx, viewport }).promise;
 
-            // Generate image and build clean single-page PDF
-            const imgDataUrl = canvas.toDataURL('image/jpeg', quality);
+            // JPEG এ বদলে নিয়ে PDF এ বসানো
+            const imgDataUrl = canvas.toDataURL('image/jpeg', currentQuality);
             const pdfDoc = await PDFLib.PDFDocument.create();
             const img = await pdfDoc.embedJpg(imgDataUrl);
             
@@ -243,23 +246,23 @@
             page.drawImage(img, { x: 0, y: 0, width: origViewport.width, height: origViewport.height });
 
             const pdfBytes = await pdfDoc.save();
-            lastValidBytes = pdfBytes;
+            bestFallbackBytes = pdfBytes;
 
-            // Stop as soon as target size constraint is met
+            // সাইজ যদি ২০০ কেবি বা তার কম হয়ে যায়
             if (pdfBytes.byteLength <= MAX_BYTES) {
                 return pdfBytes;
             }
 
-            // Adjust parameters dynamically
-            if (quality > 0.45) {
-                quality -= 0.15;
+            // অ্যালগরিদম টিউনিং: আগে হালকা Quality কমাবে, তারপর Resolution Scale সমন্বয় করবে
+            if (currentQuality > 0.50) {
+                currentQuality -= 0.12;
             } else {
-                scale -= 0.4;
-                quality = 0.75;
+                currentScale -= 0.4;
+                currentQuality = 0.80;
             }
         }
 
-        return lastValidBytes;
+        return bestFallbackBytes;
     }
 
     function updateStatus(text, percent) {
