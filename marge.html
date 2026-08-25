@@ -61,7 +61,6 @@
         .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1rem; }
         .page-card { background: var(--card-bg); padding: 0.75rem; border-radius: 12px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; position: relative; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2); }
         
-        /* Updated Image Preview Styles for A4 */
         .page-card img { 
             width: 100%; 
             height: auto; 
@@ -72,14 +71,12 @@
             border: 1px solid var(--border); 
         }
         
-        /* Updated Action Buttons Container */
         .page-card-actions { 
             display: flex; 
             gap: 5px; 
             justify-content: space-between;
         }
         
-        /* Styled buttons inside the card */
         .page-card-actions .btn {
             padding: 6px 8px;
             font-size: 0.8rem;
@@ -109,7 +106,6 @@
     </div>
 </a>
     <div class="header-actions">
-        <button id="install-btn" class="btn btn-danger" style="padding: 0.35rem 0.7rem; font-size: 0.75rem; display:none;">Install App</button>
         <button class="btn btn-outline" style="padding: 0.35rem 0.7rem; font-size: 0.75rem;" onclick="resetScanner()"><i class="fa-solid fa-rotate-right"></i> Reset</button>
     </div>
 </header>
@@ -149,7 +145,6 @@
             <i class="fa-solid fa-camera fa-2x"></i> Capture Document Page
             <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="handleFile(event)">
         </label>
-        <!-- Changed the label text and accept attribute below to include PDFs -->
         <label class="btn btn-outline" style="padding: 1.25rem; font-size: 1rem;">
             <i class="fa-solid fa-images"></i> Import Images / PDFs
             <input type="file" accept="image/*,application/pdf" multiple style="display:none;" onchange="handleMultipleFiles(event)">
@@ -195,24 +190,6 @@
 <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-    // --- PWA Logic ---
-    let deferredPrompt;
-    const installBtn = document.getElementById('install-btn');
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        installBtn.style.display = 'block';
-    });
-
-    installBtn.addEventListener('click', async () => {
-        if (deferredPrompt) {
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            if (outcome === 'accepted') deferredPrompt = null;
-        }
-    });
-
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed', err));
     }
@@ -244,7 +221,6 @@
         loadImageToEditor(file);
     }
 
-    // Updated handleMultipleFiles to process both PDFs and Images dynamically
     async function handleMultipleFiles(e) {
         const files = Array.from(e.target.files);
         if(files.length === 0) return;
@@ -254,7 +230,6 @@
 
         for(let file of files) {
             if (file.type === 'application/pdf') {
-                // If it's a PDF, extract all pages and add them to the array
                 try {
                     const arrayBuffer = await file.arrayBuffer();
                     const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
@@ -275,7 +250,6 @@
                     console.error("Error importing PDF file:", error);
                 }
             } else if (file.type.startsWith('image/')) {
-                // If it's an image, draw onto canvas normally
                 await new Promise((resolve) => {
                     const reader = new FileReader();
                     reader.onload = (ev) => {
@@ -297,7 +271,7 @@
         }
         
         document.getElementById('loader-overlay').style.display = 'none';
-        goToStep(3); // Go straight to the grid view of imported pages
+        goToStep(3);
     }
 
     function loadImageToEditor(file) {
@@ -354,7 +328,6 @@
         }
     }
 
-    // Updated renderGrid function with Move buttons
     function renderGrid() {
         const grid = document.getElementById('pages-grid');
         document.getElementById('page-count-title').innerText = `Scanned Pages (${pages.length})`;
@@ -380,15 +353,12 @@
         if(pages.length === 0) goToStep(1);
     }
 
-    // New Function to Move Pages Before/After
     function movePage(index, direction) {
         if (direction === -1 && index > 0) {
-            // Move backwards (left/up)
             let temp = pages[index];
             pages[index] = pages[index - 1];
             pages[index - 1] = temp;
         } else if (direction === 1 && index < pages.length - 1) {
-            // Move forwards (right/down)
             let temp = pages[index];
             pages[index] = pages[index + 1];
             pages[index + 1] = temp;
@@ -430,7 +400,6 @@
         }
     }
 
-    // --- Multi-Merge Feature Implementation ---
     function openMergeModal() {
         selectedMergeFiles = [];
         document.getElementById('selected-file-label').innerText = "Choose PDF Files";
