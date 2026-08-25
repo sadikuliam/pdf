@@ -1,147 +1,293 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Under 200KB PDF Splitter</title>
-    <!-- Load required libraries via CDN -->
+    <title>Crystal Clear PDF Splitter & Compressor</title>
+    <!-- Dependencies -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: system-ui, -apple-system, sans-serif; background: #f4f4f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .container { background: #fff; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center; max-width: 500px; width: 100%; }
-        .upload-area { border: 2px dashed #4f46e5; border-radius: 8px; padding: 2rem; cursor: pointer; transition: background 0.3s; }
-        .upload-area:hover { background: #eef2ff; }
-        #status { margin-top: 1rem; font-weight: 500; color: #4f46e5; }
-        #progress-bar { width: 100%; background: #e5e7eb; border-radius: 4px; overflow: hidden; margin-top: 1rem; display: none; }
-        #progress-fill { height: 8px; background: #4f46e5; width: 0%; transition: width 0.2s; }
+        :root[data-theme="dark"] {
+            --bg: #090d16;
+            --card-bg: rgba(22, 30, 46, 0.7);
+            --border: rgba(255, 255, 255, 0.08);
+            --text-main: #f3f4f6;
+            --text-sub: #9ca3af;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --accent-glow: rgba(99, 102, 241, 0.25);
+            --dropzone-bg: rgba(15, 23, 42, 0.6);
+            --progress-track: rgba(255, 255, 255, 0.1);
+        }
+
+        :root[data-theme="light"] {
+            --bg: #f8fafc;
+            --card-bg: rgba(255, 255, 255, 0.8);
+            --border: rgba(0, 0, 0, 0.08);
+            --text-main: #0f172a;
+            --text-sub: #64748b;
+            --accent: #4f46e5;
+            --accent-hover: #4338ca;
+            --accent-glow: rgba(79, 70, 229, 0.15);
+            --dropzone-bg: rgba(241, 245, 249, 0.8);
+            --progress-track: rgba(0, 0, 0, 0.08);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; transition: background 0.3s, border-color 0.3s, color 0.3s; }
+        
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem;
+            background-image: radial-gradient(circle at 50% 0%, var(--accent-glow) 0%, transparent 50%);
+        }
+
+        .container {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            max-width: 540px;
+            width: 100%;
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .title-group h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+        .title-group p { font-size: 0.875rem; color: var(--text-sub); margin-top: 0.25rem; }
+
+        .theme-toggle {
+            background: var(--dropzone-bg);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .theme-toggle:hover { border-color: var(--accent); }
+
+        .drop-zone {
+            border: 2px dashed var(--border);
+            background: var(--dropzone-bg);
+            border-radius: 16px;
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+        }
+        .drop-zone:hover { border-color: var(--accent); box-shadow: 0 0 20px var(--accent-glow); }
+        .drop-zone svg { width: 48px; height: 48px; fill: none; stroke: var(--accent); stroke-width: 2; margin-bottom: 1rem; }
+        
+        .progress-wrapper { margin-top: 1.5rem; display: none; }
+        .progress-header { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-sub); margin-bottom: 0.5rem; }
+        .progress-bar { height: 8px; background: var(--progress-track); border-radius: 99px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s ease; }
+
+        .status-badge {
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--accent);
+            text-align: center;
+            min-height: 1.25rem;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Strict <200KB PDF Splitter</h2>
-    <p>Upload a PDF. We will split it and compress any page over 200KB.</p>
-    
-    <div class="upload-area" onclick="document.getElementById('pdfInput').click()">
-        Click to Upload PDF
-        <input type="file" id="pdfInput" accept="application/pdf" style="display: none;">
+    <div class="header">
+        <div class="title-group">
+            <h1>HD PDF Splitter</h1>
+            <p>Strictly &lt;200KB per page • Crystal Clear Output</p>
+        </div>
+        <button class="theme-toggle" id="themeBtn" aria-label="Toggle Theme">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
     </div>
-    
-    <div id="progress-bar"><div id="progress-fill"></div></div>
-    <div id="status"></div>
+
+    <div class="drop-zone" onclick="document.getElementById('fileInput').click()">
+        <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+        <p style="font-weight: 600; margin-bottom: 0.25rem;">Drop PDF here or click to browse</p>
+        <p style="font-size: 0.8rem; color: var(--text-sub);">Automatic resolution optimization algorithms active</p>
+        <input type="file" id="fileInput" accept="application/pdf" style="display: none;">
+    </div>
+
+    <div class="progress-wrapper" id="progressWrapper">
+        <div class="progress-header">
+            <span id="progressTask">Processing...</span>
+            <span id="progressPercent">0%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+
+    <div class="status-badge" id="statusText"></div>
 </div>
 
 <script>
-    // Initialize PDF.js worker
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    const MAX_BYTES = 200 * 1024; // 200 KB Strict Boundary
 
-    const MAX_SIZE_BYTES = 200 * 1024; // 200 KB
-    const inputElement = document.getElementById('pdfInput');
-    const statusElement = document.getElementById('status');
-    const progressFill = document.getElementById('progress-fill');
-    const progressBar = document.getElementById('progress-bar');
+    // Theme Switcher Logic
+    const themeBtn = document.getElementById('themeBtn');
+    themeBtn.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', nextTheme);
+        themeBtn.innerHTML = nextTheme === 'dark' 
+            ? `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`
+            : `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`;
+    });
 
-    inputElement.addEventListener('change', async (e) => {
+    // Main Engine Processing
+    document.getElementById('fileInput').addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        statusElement.innerText = "Processing started...";
-        progressBar.style.display = "block";
-        progressFill.style.width = "0%";
+        showProgress(true);
+        updateStatus("Reading PDF stream...", 5);
 
         const arrayBuffer = await file.arrayBuffer();
-        await processPDF(arrayBuffer, file.name.replace('.pdf', ''));
-    });
-
-    async function processPDF(originalPdfBytes, baseFilename) {
         const zip = new JSZip();
         
-        // Load with PDF.js to get pages for rendering
-        const loadingTask = pdfjsLib.getDocument({ data: originalPdfBytes });
-        const pdfJsDoc = await loadingTask.promise;
+        const pdfJsDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
         const totalPages = pdfJsDoc.numPages;
 
         for (let i = 1; i <= totalPages; i++) {
-            statusElement.innerText = `Processing page ${i} of ${totalPages}...`;
-            progressFill.style.width = `${(i / totalPages) * 100}%`;
+            const overallProgress = Math.round((i / totalPages) * 100);
+            updateStatus(`Optimizing page ${i} of ${totalPages}...`, overallProgress);
 
-            let finalPageBytes = await tryNativeSplit(originalPdfBytes, i - 1);
+            // Level 1: Native Stream Extraction (Lossless Vector Copy)
+            let pageBytes = await extractNativePage(arrayBuffer, i - 1);
 
-            // If the native split exceeds 200KB, aggressively compress it
-            if (finalPageBytes.byteLength > MAX_SIZE_BYTES) {
-                statusElement.innerText = `Page ${i} is too large. Compressing...`;
+            // Level 2: High-DPI Smart Re-rendering engine (if size > 200KB)
+            if (pageBytes.byteLength > MAX_BYTES) {
                 const pageProxy = await pdfJsDoc.getPage(i);
-                finalPageBytes = await compressPageToTarget(pageProxy);
+                pageBytes = await renderCrystalClearPage(pageProxy);
             }
 
-            zip.file(`${baseFilename}_page_${i}.pdf`, finalPageBytes);
+            zip.file(`${file.name.replace('.pdf','')}_Page_${i}.pdf`, pageBytes);
         }
 
-        statusElement.innerText = "Zipping files...";
-        const zipContent = await zip.generateAsync({ type: "blob" });
+        updateStatus("Packaging HD Zip file...", 99);
+        const zipBlob = await zip.generateAsync({ type: "blob" });
         
-        // Download Zip
         const link = document.createElement('a');
-        link.href = URL.createObjectURL(zipContent);
-        link.download = `${baseFilename}_split_compressed.zip`;
+        link.href = URL.createObjectURL(zipBlob);
+        link.download = `${file.name.replace('.pdf','')}_CrystalClear_Split.zip`;
         link.click();
 
-        statusElement.innerText = "Done! Download started.";
-        setTimeout(() => { progressBar.style.display = "none"; statusElement.innerText = ""; }, 3000);
+        updateStatus("Complete! Download started.", 100);
+        setTimeout(() => showProgress(false), 3000);
+    });
+
+    // Native Vector Extraction
+    async function extractNativePage(srcBuffer, pageIdx) {
+        const destDoc = await PDFLib.PDFDocument.create();
+        const srcDoc = await PDFLib.PDFDocument.load(srcBuffer);
+        const [page] = await destDoc.copyPages(srcDoc, [pageIdx]);
+        destDoc.addPage(page);
+        return await destDoc.save();
     }
 
-    // Attempt 1: Fast, native split (preserves original vector quality)
-    async function tryNativeSplit(pdfBytes, pageIndex) {
-        const pdfDoc = await PDFLib.PDFDocument.create();
-        const srcDoc = await PDFLib.PDFDocument.load(pdfBytes);
-        const [copiedPage] = await pdfDoc.copyPages(srcDoc, [pageIndex]);
-        pdfDoc.addPage(copiedPage);
-        return await pdfDoc.save();
-    }
+    // High-DPI Crisp Rendering & Binary Search Optimizer
+    async function renderCrystalClearPage(pageProxy) {
+        // High device pixel scale rendering for ultra-sharp text capture
+        const targetScale = 3.0; 
+        const viewport = pageProxy.getViewport({ scale: targetScale });
+        
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d', { alpha: false, willReadFrequently: false });
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
 
-    // Attempt 2: Rasterize to Image & Compress until it fits < 200KB
-    async function compressPageToTarget(pageProxy) {
-        let scale = 2.0; // Start with high resolution
-        let quality = 0.8; // JPEG compression quality
+        // Turn on image smoothing algorithms
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
 
-        while (true) {
-            const viewport = pageProxy.getViewport({ scale });
+        await pageProxy.render({ canvasContext: ctx, viewport: viewport }).promise;
+
+        // Binary Search Optimization for highest clear quality under 200KB limit
+        let minQ = 0.35, maxQ = 0.95;
+        let bestBytes = null;
+        let bestScale = targetScale;
+        
+        // Dynamic Downscaling Engine Loop
+        for (let attempt = 0; attempt < 6; attempt++) {
+            let midQ = (minQ + maxQ) / 2;
             
-            // Create off-screen canvas
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            canvas.height = viewport.height;
-            canvas.width = viewport.width;
+            // Generate canvas scaled instance
+            const workingCanvas = (bestScale === targetScale) ? canvas : scaleCanvas(canvas, bestScale / targetScale);
+            const imgDataUrl = workingCanvas.toDataURL('image/jpeg', midQ);
+            
+            // Build temporary PDF container
+            const pdfDoc = await PDFLib.PDFDocument.create();
+            const img = await pdfDoc.embedJpg(imgDataUrl);
+            const origViewport = pageProxy.getViewport({ scale: 1.0 });
+            const page = pdfDoc.addPage([origViewport.width, origViewport.height]);
+            page.drawImage(img, { x: 0, y: 0, width: origViewport.width, height: origViewport.height });
 
-            await pageProxy.render({ canvasContext: context, viewport }).promise;
-            const imgDataUrl = canvas.toDataURL('image/jpeg', quality);
+            const pdfBytes = await pdfDoc.save();
 
-            // Create new PDF with the flattened image
-            const newPdf = await PDFLib.PDFDocument.create();
-            const img = await newPdf.embedJpg(imgDataUrl);
-            const page = newPdf.addPage([viewport.width, viewport.height]);
-            page.drawImage(img, { x: 0, y: 0, width: viewport.width, height: viewport.height });
-
-            const newPdfBytes = await newPdf.save();
-
-            // Check constraint
-            if (newPdfBytes.byteLength <= MAX_SIZE_BYTES) {
-                return newPdfBytes; 
+            if (pdfBytes.byteLength <= MAX_BYTES) {
+                bestBytes = pdfBytes;
+                minQ = midQ; // Try finding even higher quality
+            } else {
+                maxQ = midQ; // Needs stronger compression
             }
 
-            // Adjust compression matrix
-            if (quality > 0.4) {
-                quality -= 0.15; // Lower image quality first
-            } else if (scale > 0.8) {
-                scale -= 0.3; // If quality is low, lower resolution
-                quality = 0.6; // Reset quality slightly for the lower resolution
-            } else {
-                // Failsafe break to avoid infinite loops on mathematically impossible pages
-                return newPdfBytes; 
+            // If quality floor hit, decrease dimensions slightly while keeping crisp high-DPI
+            if (maxQ - minQ < 0.05 && !bestBytes) {
+                bestScale *= 0.82;
+                minQ = 0.40; 
+                maxQ = 0.90;
             }
         }
+
+        return bestBytes;
+    }
+
+    // Downsampling canvas helper using smooth scaling
+    function scaleCanvas(sourceCanvas, scaleRatio) {
+        const scaled = document.createElement('canvas');
+        scaled.width = Math.floor(sourceCanvas.width * scaleRatio);
+        scaled.height = Math.floor(sourceCanvas.height * scaleRatio);
+        const ctx = scaled.getContext('2d');
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(sourceCanvas, 0, 0, scaled.width, scaled.height);
+        return scaled;
+    }
+
+    function updateStatus(text, percent) {
+        document.getElementById('statusText').innerText = text;
+        document.getElementById('progressTask').innerText = text;
+        document.getElementById('progressPercent').innerText = `${percent}%`;
+        document.getElementById('progressFill').style.width = `${percent}%`;
+    }
+
+    function showProgress(show) {
+        document.getElementById('progressWrapper').style.display = show ? 'block' : 'none';
     }
 </script>
 </body>
