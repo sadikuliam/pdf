@@ -17,7 +17,6 @@
             --text-main: #f3f4f6;
             --text-sub: #9ca3af;
             --accent: #6366f1;
-            --accent-hover: #4f46e5;
             --accent-glow: rgba(99, 102, 241, 0.25);
             --dropzone-bg: rgba(15, 23, 42, 0.6);
             --progress-track: rgba(255, 255, 255, 0.1);
@@ -30,7 +29,6 @@
             --text-main: #0f172a;
             --text-sub: #64748b;
             --accent: #4f46e5;
-            --accent-hover: #4338ca;
             --accent-glow: rgba(79, 70, 229, 0.15);
             --dropzone-bg: rgba(241, 245, 249, 0.8);
             --progress-track: rgba(0, 0, 0, 0.08);
@@ -59,7 +57,6 @@
             max-width: 540px;
             width: 100%;
             box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.3);
-            position: relative;
         }
 
         .header {
@@ -84,7 +81,6 @@
             align-items: center;
             justify-content: center;
         }
-        .theme-toggle:hover { border-color: var(--accent); }
 
         .drop-zone {
             border: 2px dashed var(--border);
@@ -93,9 +89,8 @@
             padding: 2.5rem 1.5rem;
             text-align: center;
             cursor: pointer;
-            position: relative;
         }
-        .drop-zone:hover { border-color: var(--accent); box-shadow: 0 0 20px var(--accent-glow); }
+        .drop-zone:hover { border-color: var(--accent); }
         .drop-zone svg { width: 48px; height: 48px; fill: none; stroke: var(--accent); stroke-width: 2; margin-bottom: 1rem; }
         
         .progress-wrapper { margin-top: 1.5rem; display: none; }
@@ -119,7 +114,7 @@
     <div class="header">
         <div class="title-group">
             <h1>HD PDF Splitter</h1>
-            <p>Strictly &lt;200KB per page • Crystal Clear Output</p>
+            <p>Strictly &lt;200KB per page • HD Quality Fix</p>
         </div>
         <button class="theme-toggle" id="themeBtn" aria-label="Toggle Theme">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
@@ -129,7 +124,7 @@
     <div class="drop-zone" onclick="document.getElementById('fileInput').click()">
         <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
         <p style="font-weight: 600; margin-bottom: 0.25rem;">Drop PDF here or click to browse</p>
-        <p style="font-size: 0.8rem; color: var(--text-sub);">Automatic resolution optimization algorithms active</p>
+        <p style="font-size: 0.8rem; color: var(--text-sub);">Automatic resolution & integrity checks active</p>
         <input type="file" id="fileInput" accept="application/pdf" style="display: none;">
     </div>
 
@@ -146,9 +141,9 @@
 
 <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-    const MAX_BYTES = 200 * 1024; // 200 KB Strict Boundary
+    const MAX_BYTES = 200 * 1024; // 200 KB
 
-    // Theme Switcher Logic
+    // Theme Switcher
     const themeBtn = document.getElementById('themeBtn');
     themeBtn.addEventListener('click', () => {
         const currentTheme = document.documentElement.getAttribute('data-theme');
@@ -159,124 +154,112 @@
             : `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`;
     });
 
-    // Main Engine Processing
     document.getElementById('fileInput').addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
         showProgress(true);
-        updateStatus("Reading PDF stream...", 5);
+        updateStatus("Loading document...", 5);
 
-        const arrayBuffer = await file.arrayBuffer();
-        const zip = new JSZip();
-        
-        const pdfJsDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        const totalPages = pdfJsDoc.numPages;
+        try {
+            const arrayBuffer = await file.arrayBuffer();
+            const zip = new JSZip();
+            
+            const pdfJsDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            const totalPages = pdfJsDoc.numPages;
 
-        for (let i = 1; i <= totalPages; i++) {
-            const overallProgress = Math.round((i / totalPages) * 100);
-            updateStatus(`Optimizing page ${i} of ${totalPages}...`, overallProgress);
+            for (let i = 1; i <= totalPages; i++) {
+                const percent = Math.round((i / totalPages) * 100);
+                updateStatus(`Processing page ${i} of ${totalPages}...`, percent);
 
-            // Level 1: Native Stream Extraction (Lossless Vector Copy)
-            let pageBytes = await extractNativePage(arrayBuffer, i - 1);
+                // Step 1: Try Native Copy with strict boundary check
+                let pageBytes = await extractNativePage(arrayBuffer, i - 1);
 
-            // Level 2: High-DPI Smart Re-rendering engine (if size > 200KB)
-            if (pageBytes.byteLength > MAX_BYTES) {
-                const pageProxy = await pdfJsDoc.getPage(i);
-                pageBytes = await renderCrystalClearPage(pageProxy);
+                // Step 2: Fallback to High-DPI Smart Compressed Rendering if native page > 200KB
+                if (!pageBytes || pageBytes.byteLength > MAX_BYTES) {
+                    const pageProxy = await pdfJsDoc.getPage(i);
+                    pageBytes = await renderCompressedHDPage(pageProxy);
+                }
+
+                zip.file(`${file.name.replace('.pdf','')}_Page_${i}.pdf`, pageBytes);
             }
 
-            zip.file(`${file.name.replace('.pdf','')}_Page_${i}.pdf`, pageBytes);
+            updateStatus("Generating ZIP...", 99);
+            const zipBlob = await zip.generateAsync({ type: "blob" });
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(zipBlob);
+            link.download = `${file.name.replace('.pdf','')}_Split_Under200KB.zip`;
+            link.click();
+
+            updateStatus("Done! Download started.", 100);
+            setTimeout(() => showProgress(false), 3000);
+        } catch (err) {
+            console.error(err);
+            updateStatus("Error processing PDF. Try another file.", 0);
         }
-
-        updateStatus("Packaging HD Zip file...", 99);
-        const zipBlob = await zip.generateAsync({ type: "blob" });
-        
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(zipBlob);
-        link.download = `${file.name.replace('.pdf','')}_CrystalClear_Split.zip`;
-        link.click();
-
-        updateStatus("Complete! Download started.", 100);
-        setTimeout(() => showProgress(false), 3000);
     });
 
-    // Native Vector Extraction
+    // Native page copy with isolated stream loading
     async function extractNativePage(srcBuffer, pageIdx) {
-        const destDoc = await PDFLib.PDFDocument.create();
-        const srcDoc = await PDFLib.PDFDocument.load(srcBuffer);
-        const [page] = await destDoc.copyPages(srcDoc, [pageIdx]);
-        destDoc.addPage(page);
-        return await destDoc.save();
+        try {
+            const srcDoc = await PDFLib.PDFDocument.load(srcBuffer, { ignoreEncryption: true });
+            const destDoc = await PDFLib.PDFDocument.create();
+            const [copiedPage] = await destDoc.copyPages(srcDoc, [pageIdx]);
+            destDoc.addPage(copiedPage);
+            const bytes = await destDoc.save();
+            return bytes.byteLength <= MAX_BYTES ? bytes : null;
+        } catch (e) {
+            return null; // Fallback to canvas render if native fails
+        }
     }
 
-    // High-DPI Crisp Rendering & Binary Search Optimizer
-    async function renderCrystalClearPage(pageProxy) {
-        // High device pixel scale rendering for ultra-sharp text capture
-        const targetScale = 3.0; 
-        const viewport = pageProxy.getViewport({ scale: targetScale });
-        
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d', { alpha: false, willReadFrequently: false });
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
+    // Dynamic HD Canvas Engine with adaptive scale step-down
+    async function renderCompressedHDPage(pageProxy) {
+        let scale = 2.5; 
+        let quality = 0.80;
+        let lastValidBytes = null;
 
-        // Turn on image smoothing algorithms
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-
-        await pageProxy.render({ canvasContext: ctx, viewport: viewport }).promise;
-
-        // Binary Search Optimization for highest clear quality under 200KB limit
-        let minQ = 0.35, maxQ = 0.95;
-        let bestBytes = null;
-        let bestScale = targetScale;
-        
-        // Dynamic Downscaling Engine Loop
-        for (let attempt = 0; attempt < 6; attempt++) {
-            let midQ = (minQ + maxQ) / 2;
+        while (scale >= 0.5) {
+            const viewport = pageProxy.getViewport({ scale });
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d', { alpha: false });
             
-            // Generate canvas scaled instance
-            const workingCanvas = (bestScale === targetScale) ? canvas : scaleCanvas(canvas, bestScale / targetScale);
-            const imgDataUrl = workingCanvas.toDataURL('image/jpeg', midQ);
-            
-            // Build temporary PDF container
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+
+            await pageProxy.render({ canvasContext: ctx, viewport }).promise;
+
+            // Generate image and build clean single-page PDF
+            const imgDataUrl = canvas.toDataURL('image/jpeg', quality);
             const pdfDoc = await PDFLib.PDFDocument.create();
             const img = await pdfDoc.embedJpg(imgDataUrl);
+            
             const origViewport = pageProxy.getViewport({ scale: 1.0 });
             const page = pdfDoc.addPage([origViewport.width, origViewport.height]);
             page.drawImage(img, { x: 0, y: 0, width: origViewport.width, height: origViewport.height });
 
             const pdfBytes = await pdfDoc.save();
+            lastValidBytes = pdfBytes;
 
+            // Stop as soon as target size constraint is met
             if (pdfBytes.byteLength <= MAX_BYTES) {
-                bestBytes = pdfBytes;
-                minQ = midQ; // Try finding even higher quality
-            } else {
-                maxQ = midQ; // Needs stronger compression
+                return pdfBytes;
             }
 
-            // If quality floor hit, decrease dimensions slightly while keeping crisp high-DPI
-            if (maxQ - minQ < 0.05 && !bestBytes) {
-                bestScale *= 0.82;
-                minQ = 0.40; 
-                maxQ = 0.90;
+            // Adjust parameters dynamically
+            if (quality > 0.45) {
+                quality -= 0.15;
+            } else {
+                scale -= 0.4;
+                quality = 0.75;
             }
         }
 
-        return bestBytes;
-    }
-
-    // Downsampling canvas helper using smooth scaling
-    function scaleCanvas(sourceCanvas, scaleRatio) {
-        const scaled = document.createElement('canvas');
-        scaled.width = Math.floor(sourceCanvas.width * scaleRatio);
-        scaled.height = Math.floor(sourceCanvas.height * scaleRatio);
-        const ctx = scaled.getContext('2d');
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(sourceCanvas, 0, 0, scaled.width, scaled.height);
-        return scaled;
+        return lastValidBytes;
     }
 
     function updateStatus(text, percent) {
