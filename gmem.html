@@ -72,7 +72,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 160px;
+    width: 170px;
     height: 110px;
     margin: 10px auto;
     padding: 10px;
@@ -109,18 +109,31 @@
   .copy-upi-btn {
     display: block;
     margin: 8px auto 15px auto;
-    padding: 8px 16px;
-    background: #f1f5f9;
-    border: 1px dashed #94a3b8;
+    padding: 10px 18px;
+    background: #e2e8f0;
+    border: 1px solid #cbd5e1;
     border-radius: 20px;
-    color: #334155;
+    color: #1e293b;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: bold;
     cursor: pointer;
     transition: 0.2s;
   }
   .copy-upi-btn:hover {
-    background: #e2e8f0;
+    background: #cbd5e1;
+  }
+
+  /* Help Notice Box */
+  .help-box {
+    background: #fff3cd;
+    border: 1px solid #ffeeba;
+    color: #856404;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin: 15px auto;
+    max-width: 400px;
+    text-align: left;
   }
 
   /* Stylish & Compact WhatsApp Button */
@@ -149,11 +162,6 @@
     background: linear-gradient(135deg, #20ba5a, #0e7264);
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(37, 211, 102, 0.45);
-  }
-
-  .whatsapp-stylish-btn:active {
-    transform: translateY(1px);
-    box-shadow: 0 2px 8px rgba(37, 211, 102, 0.25);
   }
 
   input {
@@ -241,7 +249,7 @@
   function copyUPI() {
     const upiID = "9064373386@superyes";
     navigator.clipboard.writeText(upiID).then(() => {
-      alert("UPI ID (9064373386@superyes) কপি হয়েছে! যেকোনো UPI অ্যাপে পেস্ট করে পেমেন্ট করতে পারেন।");
+      alert("UPI ID (9064373386@superyes) কপি হয়েছে! PhonePe/GPay/Paytm অ্যাপটি খুলে 'To UPI ID'-তে পেস্ট করে পেমেন্ট করুন।");
     }).catch(err => {
       alert("UPI ID: " + upiID);
     });
@@ -268,17 +276,22 @@
     <!-- Payment QR Code -->
     <img class="qr-code" alt="Payment QR Code" src="https://res.cloudinary.com/ewu5hckc/image/upload/v1787671251/rs_100.png" />
     
-    <p style="font-weight: bold; margin-top: 15px; margin-bottom: 5px;">অথবা ডাইরেক্ট পেমেন্ট করতে নিচে ক্লিক করুন</p>
+    <p style="font-weight: bold; margin-top: 15px; margin-bottom: 5px;">অথবা পেমেন্ট করতে নিচে ক্লিক করুন</p>
     
-    <!-- Optimized Standardized UPI Link -->
-    <a class="pay-3d-square" href="upi://pay?pa=9064373386@superyes&pn=SHM%20Membership&am=100.00&cu=INR">
+    <!-- Updated Direct UPI Button with Full Parameters -->
+    <a class="pay-3d-square" href="upi://pay?pa=9064373386@superyes&pn=SAMIUL%20HAQUE%20MOLLA&am=100.00&cu=INR">
       <span class="pay-icon">💳</span>
       <span>Direct UPI<br>Payment (₹100)</span>
     </a>
 
-    <!-- Easy Copy Option if Direct Link Fails on Some Browsers -->
+    <!-- Easy Copy Option -->
     <div>
       <button class="copy-upi-btn" onclick="copyUPI()">📋 Copy UPI ID (9064373386@superyes)</button>
+    </div>
+
+    <!-- Help Notice for PhonePe Error -->
+    <div class="help-box">
+      💡 <b>পেমেন্ট সমস্যা হলে:</b> 'Copy UPI ID' বাটনে ক্লিক করে UPI ID কপি করুন। এরপর যেকোনো পেমেন্ট অ্যাপে (PhonePe / GPay) গিয়ে <i>To UPI ID</i> অপশনে পেস্ট করে সহজে পেমেন্ট করুন।
     </div>
 
     <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 25px 0;">
@@ -298,12 +311,8 @@
       <ul class="member-list">
         
         <!-- Member 1 -->
-         <li class="member-item">
-          <span>ANIRUDDHA BOSE</span>
-          <span class="badge">⭐ Golden Member</span>
-        </li>
-<li class="member-item">
-          <span>SUBHANKAR PAUL</span>
+        <li class="member-item">
+          <span>FIRDOUSI PERVIN</span>
           <span class="badge">⭐ Golden Member</span>
         </li>
 
