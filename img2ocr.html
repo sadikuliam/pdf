@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>High Quality Image to PDF Converter</title>
 
-    <!-- CDN for jsPDF (handles direct image-to-PDF conversion client-side) -->
+    <!-- CDN for jsPDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
     <style>
@@ -36,26 +36,24 @@
             -webkit-backdrop-filter: blur(15px);
             border-radius: 20px;
             border: 1px solid rgba(255, 255, 255, 0.3);
-            padding: 40px;
+            padding: 30px;
             width: 100%;
             max-width: 500px;
             text-align: center;
             box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
             color: #fff;
-            position: relative;
         }
 
-        /* Header Section & Violet Home Button Style */
+        /* Fixed Header Layout using Flexbox */
         .header {
-            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
             margin-bottom: 25px;
-            padding-top: 10px;
+            gap: 15px;
         }
 
         .home-btn {
-            position: absolute;
-            left: 0;
-            top: 0;
             display: inline-flex;
             align-items: center;
             gap: 0.35rem;
@@ -77,12 +75,12 @@
             box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);
         }
 
-        /* Mobile Layout Adjustment */
-        @media (max-width: 480px) {
-            .header { padding-top: 45px; }
+        .header-text {
+            width: 100%;
+            text-align: center;
         }
 
-        h1 { font-size: 26px; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+        h1 { font-size: 26px; margin-bottom: 8px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
         p { font-size: 14px; color: rgba(255, 255, 255, 0.9); }
 
         .upload-area {
@@ -130,7 +128,7 @@
 <body>
 
     <div class="container">
-        <!-- Header Section with Home Button -->
+        <!-- Clean Separate Header Block -->
         <div class="header">
             <a href="https://pdf.shmwb.in/" class="home-btn">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -139,8 +137,10 @@
                 </svg>
                 Home
             </a>
-            <h1>High-Quality Image to PDF</h1>
-            <p>ছবি নির্বাচন করুন এবং ক্রিস্টাল ক্লিয়ার ফুল-রেজোলিউশন PDF ডাউনলোড করুন।</p>
+            <div class="header-text">
+                <h1>High-Quality Image to PDF</h1>
+                <p>ছবি নির্বাচন করুন এবং ক্রিস্টাল ক্লিয়ার ফুল-রেজোলিউশন PDF ডাউনলোড করুন।</p>
+            </div>
         </div>
 
         <label for="fileInput">
@@ -188,23 +188,19 @@
                 img.src = e.target.result;
 
                 img.onload = function() {
-                    // Create PDF matching exact pixel dimensions of the image to preserve 100% sharp quality
                     const orientation = img.width > img.height ? 'l' : 'p';
                     const pdf = new jsPDF({
                         orientation: orientation,
                         unit: 'px',
                         format: [img.width, img.height],
-                        compress: false // Disables compression for crystal-clear resolution
+                        compress: false
                     });
 
-                    // Render original raw image into PDF container
                     pdf.addImage(img, 'JPEG', 0, 0, img.width, img.height, undefined, 'NONE');
 
-                    // Trigger PDF download
                     const originalName = file.name.split('.').slice(0, -1).join('.');
                     pdf.save(originalName + ".pdf");
 
-                    // Update UI state
                     successMessage.style.display = 'block';
                 };
             };
