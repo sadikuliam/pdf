@@ -14,6 +14,8 @@
             --primary: #2563eb;
             --primary-hover: #1d4ed8;
             --success: #16a34a;
+            --violet: #7c3aed;
+            --violet-hover: #6d28d9;
             --bg: #f8fafc;
             --surface: #ffffff;
             --border: #e2e8f0;
@@ -53,7 +55,7 @@
             position: relative;
         }
 
-        /* Home Button Style */
+        /* Violet Home Button Style */
         .home-btn {
             position: absolute;
             left: 0;
@@ -61,11 +63,11 @@
             display: inline-flex;
             align-items: center;
             gap: 0.35rem;
-            padding: 0.4rem 0.8rem;
-            border: 1px solid var(--border);
+            padding: 0.45rem 0.85rem;
+            border: 1px solid var(--violet);
             border-radius: 8px;
-            background: var(--surface);
-            color: var(--text-main);
+            background: #f5f3ff;
+            color: var(--violet);
             text-decoration: none;
             font-size: 0.85rem;
             font-weight: 600;
@@ -73,9 +75,10 @@
         }
 
         .home-btn:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-            background: #eff6ff;
+            border-color: var(--violet-hover);
+            color: white;
+            background: var(--violet);
+            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);
         }
 
         .header h1 {
@@ -246,7 +249,7 @@
 
     <div class="card">
         <div class="header">
-            <!-- Home Link Button -->
+            <!-- Violet Home Link Button -->
             <a href="https://pdf.shmwb.in/" class="home-btn">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
@@ -412,14 +415,11 @@
                 const pdf = await pdfjsLib.getDocument(typedarray).promise;
                 const totalPages = pdf.numPages;
                 
-                // 2. Setup jsPDF (using points 'pt' to perfectly match PDF.js rendering math)
+                // 2. Setup jsPDF
                 const { jsPDF } = window.jspdf;
                 const newPdf = new jsPDF({ unit: 'pt' }); 
                 
                 const quality = parseFloat(DOM.qualitySlider.value);
-                
-                // Dynamic scale: higher quality slider means slightly higher render resolution
-                // 1.2 is a low baseline for extreme compression. 
                 const renderScale = 1.2 + (quality * 0.8); 
 
                 // 3. Process Pages
@@ -432,29 +432,23 @@
                     const page = await pdf.getPage(pageNum);
                     const viewport = page.getViewport({ scale: renderScale });
                     
-                    // Create canvas
                     const canvas = document.createElement('canvas');
-                    // MODERNIZATION: { alpha: false } forces an opaque background and optimizes memory
                     const ctx = canvas.getContext('2d', { alpha: false });
                     
                     canvas.height = viewport.height;
                     canvas.width = viewport.width;
 
-                    // Fill white background natively to prevent transparent artifacts
                     ctx.fillStyle = '#ffffff';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                    // Render
                     await page.render({
                         canvasContext: ctx,
                         viewport: viewport
                     }).promise;
 
-                    // Extract image as compressed JPEG
                     const imgData = canvas.toDataURL('image/jpeg', quality);
 
-                    // Match exact orientation and physical size of original PDF page
-                    const pdfViewport = page.getViewport({ scale: 1.0 }); // physical 1:1 scale
+                    const pdfViewport = page.getViewport({ scale: 1.0 });
                     const orientation = pdfViewport.width > pdfViewport.height ? 'l' : 'p';
                     
                     newPdf.addPage([pdfViewport.width, pdfViewport.height], orientation);
@@ -463,13 +457,11 @@
 
                 updateProgress(95, 'Finalizing document structure...');
 
-                // Safely remove jsPDF's blank initialization page at the end to prevent crashes
                 newPdf.deletePage(1);
 
                 // 4. Generate Final File
                 state.compressedBlob = newPdf.output('blob');
                 
-                // Update UI with Success
                 DOM.compressedSize.textContent = formatBytes(state.compressedBlob.size);
                 DOM.compressedSize.classList.add('text-success');
                 updateProgress(100, 'Compression Complete!');
