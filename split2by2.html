@@ -3,46 +3,253 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF Splitter (Manual Download)</title>
-    <!-- pdf-lib লাইব্রেরি -->
+    <title>PDF Splitter (2 Pages per Part)</title>
+    <!-- pdf-lib Library -->
     <script src="https://unpkg.com/pdf-lib@1.17.1"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        button { margin-top: 10px; padding: 10px 15px; cursor: pointer; background-color: #007BFF; color: white; border: none; border-radius: 5px; }
-        button:hover { background-color: #0056b3; }
-        #status { margin-top: 15px; color: green; font-weight: bold; }
-        .download-btn { display: inline-block; margin: 10px 10px 0 0; padding: 10px 15px; background-color: #28a745; color: white; text-decoration: none; border-radius: 5px; }
-        .download-btn:hover { background-color: #218838; }
-        #downloadArea { margin-top: 20px; }
+        :root {
+            --primary: #4F46E5;
+            --primary-hover: #4338CA;
+            --violet: #7c3aed;
+            --violet-hover: #6d28d9;
+            --success: #10B981;
+            --success-hover: #059669;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --border: rgba(255, 255, 255, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Hind Siliguri', 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            padding: 35px 30px;
+            width: 100%;
+            max-width: 550px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        /* Header Layout & Home Button */
+        .header {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 25px;
+            gap: 15px;
+        }
+
+        .home-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border: 1px solid var(--violet);
+            border-radius: 10px;
+            background: #f5f3ff;
+            color: var(--violet);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(124, 58, 237, 0.15);
+        }
+
+        .home-btn:hover {
+            border-color: var(--violet-hover);
+            color: #ffffff;
+            background: var(--violet);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .header-text {
+            width: 100%;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 26px;
+            color: #1E293B;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        p {
+            font-size: 15px;
+            color: #64748B;
+            line-height: 1.5;
+        }
+
+        /* Custom File Upload Box */
+        .upload-area {
+            border: 2px dashed #CBD5E1;
+            border-radius: 16px;
+            padding: 30px 20px;
+            background: #F8FAFC;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: #EEF2FF;
+        }
+
+        .upload-icon {
+            font-size: 42px;
+            margin-bottom: 10px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-name {
+            margin-top: 10px;
+            font-size: 14px;
+            color: var(--primary);
+            font-weight: 600;
+            word-break: break-all;
+        }
+
+        /* Action Buttons */
+        .btn {
+            background: linear-gradient(135deg, var(--primary), var(--violet));
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+        }
+
+        /* Dynamic Download Buttons Grid */
+        #downloadArea {
+            margin-top: 25px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 12px 16px;
+            background: var(--success);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+        }
+
+        .download-btn:hover {
+            background: var(--success-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(16, 185, 129, 0.35);
+        }
+
+        #status {
+            margin-top: 15px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary);
+        }
     </style>
 </head>
 <body>
 
-    <h2>PDF ২ পৃষ্ঠা করে ভাগ করুন</h2>
-    <p>আপনার PDF এখানে আপলোড করুন। ভাগ হওয়ার পর নিচে ডাউনলোড বাটন আসবে।</p>
-    
-    <input type="file" id="pdfInput" accept="application/pdf" />
-    <br>
-    <button onclick="splitPDF()">PDF ভাগ করুন</button>
-    <p id="status"></p>
-    
-    <!-- এখানেই ডাউনলোড বাটনগুলো আসবে -->
-    <div id="downloadArea"></div>
+    <div class="container">
+        <!-- Colorful Home Button & Title Header -->
+        <div class="header">
+            <a href="https://pdf.shmwb.in/" class="home-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                Home
+            </a>
+            <div class="header-text">
+                <h2>PDF ২ পৃষ্ঠা করে ভাগ করুন</h2>
+                <p>আপনার PDF ফাইল আপলোড করুন। ভাগ হওয়ার পর নিচে আলাদা ডাউনলোড বাটন পেয়ে যাবেন।</p>
+            </div>
+        </div>
+
+        <!-- Styled Upload Section -->
+        <label for="pdfInput">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📄</div>
+                <h3 id="uploadText" style="font-size: 16px; color: #334155;">PDF ফাইল নির্বাচন করতে ক্লিক করুন</h3>
+                <div class="file-name" id="fileName"></div>
+            </div>
+        </label>
+        <input type="file" id="pdfInput" accept="application/pdf" />
+
+        <button class="btn" onclick="splitPDF()">PDF ভাগ করুন</button>
+        <p id="status"></p>
+        
+        <!-- Output Download Buttons Container -->
+        <div id="downloadArea"></div>
+    </div>
 
     <script>
+        const pdfInput = document.getElementById('pdfInput');
+        const fileNameDisplay = document.getElementById('fileName');
+        const uploadText = document.getElementById('uploadText');
+
+        // File Selection Display Logic
+        pdfInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                fileNameDisplay.textContent = "Selected: " + this.files[0].name;
+                uploadText.style.display = 'none';
+            }
+        });
+
         async function splitPDF() {
-            const fileInput = document.getElementById('pdfInput');
             const statusText = document.getElementById('status');
             const downloadArea = document.getElementById('downloadArea');
 
-            if (fileInput.files.length === 0) {
+            if (pdfInput.files.length === 0) {
                 alert("দয়া করে আগে একটি PDF ফাইল নির্বাচন করুন।");
                 return;
             }
 
-            const file = fileInput.files[0];
+            const file = pdfInput.files[0];
             const arrayBuffer = await file.arrayBuffer();
-            statusText.innerText = "প্রসেস হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন...";
+            statusText.innerText = "প্রসেস হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন... ⏳";
             
             // আগের ডাউনলোড বাটনগুলো মুছে ফেলা
             downloadArea.innerHTML = "";
@@ -74,18 +281,18 @@
                     
                     const link = document.createElement('a');
                     link.href = url;
-                    link.download = `Split_Part_${partNumber}.pdf`;
-                    link.innerText = `Part ${partNumber} ডাউনলোড করুন`;
-                    link.className = 'download-btn'; // CSS ক্লাস যোগ করা হলো ডিজাইনের জন্য
+                    link.download = `${file.name.replace('.pdf', '')}_Part_${partNumber}.pdf`;
+                    link.innerHTML = `⬇ Part ${partNumber} ডাউনলোড`;
+                    link.className = 'download-btn';
                     
                     // পেজে বাটনটি দেখানো
                     downloadArea.appendChild(link);
                 }
 
-                statusText.innerText = "ফাইলগুলো ভাগ করা সম্পন্ন হয়েছে! নিচের বাটনগুলো থেকে ডাউনলোড করুন।";
+                statusText.innerText = "✅ সফলভাবে ভাগ করা সম্পন্ন হয়েছে!";
             } catch (error) {
                 console.error(error);
-                statusText.innerText = "দুঃখিত, একটি সমস্যা হয়েছে।";
+                statusText.innerText = "❌ দুঃখিত, একটি সমস্যা হয়েছে। ফাইলটি চেক করে আবার চেষ্টা করুন।";
             }
         }
     </script>
