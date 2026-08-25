@@ -64,10 +64,27 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 2rem;
+            gap: 12px;
         }
 
-        .title-group h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
-        .title-group p { font-size: 0.875rem; color: var(--text-sub); margin-top: 0.25rem; }
+        /* Home Button Style */
+        .home-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--dropzone-bg);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 8px 14px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        .home-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+        .title-group h1 { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; }
+        .title-group p { font-size: 0.8rem; color: var(--text-sub); margin-top: 0.2rem; }
 
         .theme-toggle {
             background: var(--dropzone-bg);
@@ -80,6 +97,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
         }
 
         .drop-zone {
@@ -112,10 +130,17 @@
 
 <div class="container">
     <div class="header">
+        <!-- Top Left Home Button -->
+        <a href="https://pdf.shmwb.in/" class="home-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            Home
+        </a>
+
         <div class="title-group">
             <h1>Ultra Sharp PDF Splitter</h1>
-            <p>Strictly &lt;200KB per page • High DPI Engine</p>
+            <p>Strictly &lt;200KB per page • High DPI</p>
         </div>
+
         <button class="theme-toggle" id="themeBtn" aria-label="Toggle Theme">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
         </button>
@@ -201,7 +226,7 @@
         }
     });
 
-    // Phase 1: Pure Vector Direct Splitter (অরিজিনাল ভেক্টর টেক্সট ধরে রাখে)
+    // Phase 1: Pure Vector Direct Splitter
     async function extractNativeVectorPage(srcBuffer, pageIdx) {
         try {
             const srcDoc = await PDFLib.PDFDocument.load(srcBuffer, { ignoreEncryption: true });
@@ -217,7 +242,6 @@
 
     // Phase 2: Ultra-Sharp Multi-Scale Render Engine
     async function renderCrispHDPage(pageProxy) {
-        // ৩.০ লেভেলের High DPI Scale দিয়ে টেক্সটের শার্পনেস ঠিক রাখা হয়
         let currentScale = 3.0; 
         let currentQuality = 0.85;
         let bestFallbackBytes = null;
@@ -230,13 +254,11 @@
             canvas.width = viewport.width;
             canvas.height = viewport.height;
 
-            // Image Smoothing Filters
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = 'high';
 
             await pageProxy.render({ canvasContext: ctx, viewport }).promise;
 
-            // JPEG এ বদলে নিয়ে PDF এ বসানো
             const imgDataUrl = canvas.toDataURL('image/jpeg', currentQuality);
             const pdfDoc = await PDFLib.PDFDocument.create();
             const img = await pdfDoc.embedJpg(imgDataUrl);
@@ -248,12 +270,10 @@
             const pdfBytes = await pdfDoc.save();
             bestFallbackBytes = pdfBytes;
 
-            // সাইজ যদি ২০০ কেবি বা তার কম হয়ে যায়
             if (pdfBytes.byteLength <= MAX_BYTES) {
                 return pdfBytes;
             }
 
-            // অ্যালগরিদম টিউনিং: আগে হালকা Quality কমাবে, তারপর Resolution Scale সমন্বয় করবে
             if (currentQuality > 0.50) {
                 currentQuality -= 0.12;
             } else {
