@@ -74,7 +74,7 @@
     justify-content: center;
     width: 160px;
     height: 110px;
-    margin: 15px auto;
+    margin: 10px auto;
     padding: 10px;
     background: linear-gradient(145deg, #2563eb, #1d4ed8);
     color: #ffffff;
@@ -103,6 +103,24 @@
   .pay-icon {
     font-size: 24px;
     margin-bottom: 4px;
+  }
+
+  /* Copy UPI Button Style */
+  .copy-upi-btn {
+    display: block;
+    margin: 8px auto 15px auto;
+    padding: 8px 16px;
+    background: #f1f5f9;
+    border: 1px dashed #94a3b8;
+    border-radius: 20px;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .copy-upi-btn:hover {
+    background: #e2e8f0;
   }
 
   /* Stylish & Compact WhatsApp Button */
@@ -214,12 +232,19 @@
       return;
     }
     
-    // Exact requested message format
     let rawText = `Hello, I have Contributed for "SHM Golden Membership"\n\nName: ${name}\n\nPlease add my name to the Valued Members List`;
-    
     let whatsappUrl = `https://wa.me/919064373386?text=${encodeURIComponent(rawText)}`;
     
     window.open(whatsappUrl, '_blank');
+  }
+
+  function copyUPI() {
+    const upiID = "9064373386@superyes";
+    navigator.clipboard.writeText(upiID).then(() => {
+      alert("UPI ID (9064373386@superyes) কপি হয়েছে! যেকোনো UPI অ্যাপে পেস্ট করে পেমেন্ট করতে পারেন।");
+    }).catch(err => {
+      alert("UPI ID: " + upiID);
+    });
   }
 </script>
 </head>
@@ -243,13 +268,18 @@
     <!-- Payment QR Code -->
     <img class="qr-code" alt="Payment QR Code" src="https://res.cloudinary.com/ewu5hckc/image/upload/v1787671251/rs_100.png" />
     
-    <p style="font-weight: bold; margin-top: 15px; margin-bottom: 5px;">অথবা ডাইরেক্ট পেমেন্ট করতে ক্লিক করুন</p>
+    <p style="font-weight: bold; margin-top: 15px; margin-bottom: 5px;">অথবা ডাইরেক্ট পেমেন্ট করতে নিচে ক্লিক করুন</p>
     
-    <!-- 3D Compact Square Direct UPI Payment Button -->
-    <a class="pay-3d-square" href="upi://pay?pa=9064373386@superyes&am=100.00">
+    <!-- Optimized Standardized UPI Link -->
+    <a class="pay-3d-square" href="upi://pay?pa=9064373386@superyes&pn=SHM%20Membership&am=100.00&cu=INR">
       <span class="pay-icon">💳</span>
       <span>Direct UPI<br>Payment (₹100)</span>
     </a>
+
+    <!-- Easy Copy Option if Direct Link Fails on Some Browsers -->
+    <div>
+      <button class="copy-upi-btn" onclick="copyUPI()">📋 Copy UPI ID (9064373386@superyes)</button>
+    </div>
 
     <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 25px 0;">
 
@@ -268,7 +298,7 @@
       <ul class="member-list">
         
         <!-- Member 1 -->
-        <li class="member-item">
+         <li class="member-item">
           <span>ANIRUDDHA BOSE</span>
           <span class="badge">⭐ Golden Member</span>
         </li>
@@ -276,7 +306,6 @@
           <span>SUBHANKAR PAUL</span>
           <span class="badge">⭐ Golden Member</span>
         </li>
-
 
       </ul>
     </div>
