@@ -1,54 +1,63 @@
-const CACHE_NAME = 'shm-pdf-tools-v1';
+// ভার্সন কোড পরিবর্তন করলে সার্ভিস ওয়ার্কার অটোমেটিক পুরানো ক্যাশ মুছে ফেলবে
+const CACHE_NAME = 'shm-pdf-tools-v2';
 
-// Keep this strictly to LOCAL files. 
-// If even ONE of these files is missing (returns 404), the Service Worker will fail to install!
 const urlsToCache = [
   './',
   './index.html',
   './manifest.json',
-  './123pdf.png',
-  './123pdf.png',
+  './shmpdf.png',
   './123pdf.png'
 ];
 
-// Install Service Worker and Cache Files
+// 1. Install & Skip Waiting (নতুন আপডেট আসার সাথে সাথে ইনস্টল হবে)
 self.addEventListener('install', event => {
+  self.skipWaiting(); // পুরানো সার্ভিস ওয়ার্কারকে সাথে সাথে সরিয়ে দেবে
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Opened cache');
+        console.log('Cache updated successfully');
         return cache.addAll(urlsToCache);
       })
       .catch(err => console.error('Cache addAll failed:', err))
   );
 });
 
-// Serve Cached Files when Offline
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Cache hit - return response
-        if (response) {
-          return response;
-        }
-        return fetch(event.request);
-      })
-  );
-});
-
-// Update Service Worker & Clear Old Cache
+// 2. Activate & Clear ALL Old Caches
 self.addEventListener('activate', event => {
-  const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            return caches.delete(cacheName);
+          if (cacheName !== CACHE_NAME) {
+            console.log('Deleting old cache:', cacheName);
+            return caches.delete(cacheName); // পুরানো সমস্ত ক্যাশ অটো ডিলিট করবে
           }
         })
       );
-    })
+    }).then(() => self.clients.claim()) // নতুন সার্ভিস ওয়ার্কার সাথে সাথে পেজে প্রভাব ফেলবে
+  );
+});
+
+// 3. Network-First Strategy (লাইভ আপডেট পেতে সাহায্য করবে)
+self.addEventListener('fetch', event => {
+  // শুধুমাত্র GET ریکোয়েস্ট ক্যাশ করবে
+  if (event.request.method !== 'GET') return;
+
+  event.respondWith(
+    fetch(event.request)
+      .then(networkResponse => {
+        // নেটওয়ার্কে নতুন ফাইল পাওয়া গেলে ক্যাশ আপডেট করে নেবে
+        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        return networkResponse;
+      })
+      .catch(() => {
+        // যদি ইন্টারনেট না থাকে (Offline), তখন ক্যাশ থেকে ফাইল দেবে
+        return caches.match(event.request);
+      })
   );
 });
