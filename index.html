@@ -263,59 +263,69 @@
     </div>
 
     <!-- Smart Auto-Update Cache Buster Script -->
-    <script>
-        // Automatic Cache Bypassing Service Worker Registration
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                // Versioning Query Parameter forces instant Service Worker Update check
-                const swUrl = `./sw.js?v=${new Date().getTime()}`;
-
-                navigator.serviceWorker.register(swUrl)
-                    .then((registration) => {
-                        // Check for SW Updates constantly
-                        registration.addEventListener('updatefound', () => {
-                            const newWorker = registration.installing;
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    // Automatic Reload when new files deployed (No Ctrl+F5 needed)
+   <script>
+    // Automatic Cache Bypassing with Loop-Prevention Flag
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then((registration) => {
+                    // নতুন আপডেট এলে চেক করবে
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                // SessionStorage চেক করে নিশ্চিত করা হচ্ছে যাতে বার বার রিফ্রেশ না হয়
+                                if (!sessionStorage.getItem('app_updated')) {
+                                    sessionStorage.setItem('app_updated', 'true');
                                     window.location.reload();
                                 }
-                            });
+                            }
                         });
-                    })
-                    .catch((err) => console.log('SW registration error:', err));
-            });
-        }
-
-        // Install Banner Handler
-        let deferredPrompt;
-        const installBanner = document.getElementById('pwa-install-banner');
-        const installBtn = document.getElementById('pwa-install-btn');
-        const closeBtn = document.getElementById('pwa-close-btn');
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            installBanner.style.display = 'flex'; 
+                    });
+                })
+                .catch((err) => console.log('SW registration error:', err));
         });
 
-        installBtn.addEventListener('click', async () => {
-            installBanner.style.display = 'none';
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                deferredPrompt = null;
+        // সার্ভিস ওয়ার্কার কন্ট্রোল পরিবর্তন হলে লুপ আটকাবে
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (!refreshing && !sessionStorage.getItem('app_updated')) {
+                refreshing = true;
+                sessionStorage.setItem('app_updated', 'true');
+                window.location.reload();
             }
         });
+    }
 
-        closeBtn.addEventListener('click', () => {
-            installBanner.style.display = 'none';
-        });
+    // Install Banner Handler
+    let deferredPrompt;
+    const installBanner = document.getElementById('pwa-install-banner');
+    const installBtn = document.getElementById('pwa-install-btn');
+    const closeBtn = document.getElementById('pwa-close-btn');
 
-        window.addEventListener('appinstalled', () => {
-            installBanner.style.display = 'none';
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        installBanner.style.display = 'flex'; 
+    });
+
+    installBtn.addEventListener('click', async () => {
+        installBanner.style.display = 'none';
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
             deferredPrompt = null;
-        });
-    </script>
+        }
+    });
+
+    closeBtn.addEventListener('click', () => {
+        installBanner.style.display = 'none';
+    });
+
+    window.addEventListener('appinstalled', () => {
+        installBanner.style.display = 'none';
+        deferredPrompt = null;
+    });
+</script>
 </body>
 </html>
