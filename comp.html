@@ -50,12 +50,39 @@
         .header {
             text-align: center;
             margin-bottom: 2rem;
+            position: relative;
+        }
+
+        /* Home Button Style */
+        .home-btn {
+            position: absolute;
+            left: 0;
+            top: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.4rem 0.8rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface);
+            color: var(--text-main);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .home-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: #eff6ff;
         }
 
         .header h1 {
             font-size: 1.75rem;
             font-weight: 700;
             margin-bottom: 0.5rem;
+            padding-top: 0.25rem;
         }
 
         .header p {
@@ -219,6 +246,15 @@
 
     <div class="card">
         <div class="header">
+            <!-- Home Link Button -->
+            <a href="https://pdf.shmwb.in/" class="home-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                Home
+            </a>
+
             <h1>Pro PDF Compressor</h1>
             <p>Advanced client-side compression. Optimize your PDFs for tight file size limits (like 200KB) without uploading to a server.</p>
         </div>
