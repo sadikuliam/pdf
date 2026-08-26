@@ -1,197 +1,1233 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Exact PDF to HTML Converter</title>
 
-<!-- PDF.js Library -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <meta charset="UTF-8">
 
-<style>
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
-  }
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
-  body {
-    background-color: #525659; /* PDF reader dark background */
-    padding: 20px;
-  }
+  <title>Exact PDF to HTML Converter | SHM PDF Tools</title>
 
-  /* Control Panel */
-  .toolbar {
-    max-width: 850px;
-    margin: 0 auto 20px auto;
-    background: #ffffff;
-    padding: 15px 20px;
-    border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
 
-  .btn {
-    background-color: #007acc;
-    color: #ffffff;
-    border: none;
-    padding: 8px 16px;
-    font-size: 14px;
-    border-radius: 4px;
-    cursor: pointer;
-  }
+  <!-- PDF.js Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 
-  .btn:hover {
-    background-color: #005a96;
-  }
 
-  .btn-green {
-    background-color: #28a745;
-  }
-  .btn-green:hover {
-    background-color: #1e7e34;
-  }
+  <style>
 
-  /* Stacked PDF Page Boxes */
-  .pages-container {
-    max-width: 850px;
-    margin: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-  }
+    /* =========================================
+       GLOBAL
+    ========================================== */
 
-  .pdf-page-box {
-    background: #ffffff;
-    padding: 10px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    border-radius: 2px;
-    text-align: center;
-  }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
 
-  canvas {
-    max-width: 100%;
-    height: auto;
-    display: block;
-    margin: auto;
-  }
 
-  /* Code View Box */
-  #codeContainer {
-    max-width: 850px;
-    margin: 20px auto;
-    display: none;
-    background: #ffffff;
-    padding: 15px;
-    border-radius: 6px;
-  }
+    html {
+      background: #ffffff;
+    }
 
-  #htmlCodeArea {
-    width: 100%;
-    height: 200px;
-    font-family: monospace;
-    font-size: 12px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    background: #f9f9f9;
-  }
-</style>
-</head>
-<body>
 
-<div class="toolbar">
-  <input type="file" id="pdfUpload" accept="application/pdf">
-  <div>
-    <button class="btn" onclick="toggleCode()">View HTML Code</button>
-    <button class="btn btn-green" onclick="downloadHtmlFile()">Download HTML</button>
-  </div>
-</div>
+    body {
+      background: #ffffff;
+      padding: 20px;
+      min-height: 100vh;
+    }
 
-<div id="codeContainer">
-  <h4>HTML Export Code:</h4>
-  <textarea id="htmlCodeArea" readonly></textarea>
-</div>
 
-<div class="pages-container" id="pagesViewer">
-  <!-- Exact PDF layout boxes render here -->
-</div>
+    /* =========================================
+       TOP HEADER
+    ========================================== */
 
-<script>
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    .top-header {
+      max-width: 850px;
+      margin: 0 auto 15px auto;
 
-  let exportedHtml = "";
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+    }
 
-  document.getElementById('pdfUpload').addEventListener('change', async function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
 
-    const viewer = document.getElementById('pagesViewer');
-    viewer.innerHTML = "<p style='color:#fff; text-align:center;'>Rendering exact PDF layout...</p>";
+    /* =========================================
+       HOME BUTTON
+    ========================================== */
 
-    const fileReader = new FileReader();
-    fileReader.onload = async function() {
-      const typedArray = new Uint8Array(this.result);
-      const pdf = await pdfjsLib.getDocument(typedArray).promise;
+    .home-btn {
 
-      viewer.innerHTML = "";
-      let htmlPages = `<div style="max-width:850px; margin:auto; display:flex; flex-direction:column; gap:25px; background:#525659; padding:20px;">\n`;
+      display: inline-flex;
 
-      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-        const page = await pdf.getPage(pageNum);
-        const scale = 2.0; // High resolution
-        const viewport = page.getViewport({ scale: scale });
+      align-items: center;
 
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
+      justify-content: center;
 
-        await page.render({ canvasContext: context, viewport: viewport }).promise;
+      gap: 8px;
 
-        const imgData = canvas.toDataURL('image/png');
+      background:
+        linear-gradient(
+          135deg,
+          #007acc,
+          #005a96
+        );
 
-        // Append to UI
-        const pageBox = document.createElement('div');
-        pageBox.className = 'pdf-page-box';
-        pageBox.appendChild(canvas);
-        viewer.appendChild(pageBox);
+      color: #ffffff;
 
-        // Build standalone HTML export with exact layout image & styling
-        htmlPages += `  <div style="background:#ffffff; padding:10px; box-shadow:0 4px 15px rgba(0,0,0,0.3); margin-bottom:20px; text-align:center;">\n`;
-        htmlPages += `    <img src="${imgData}" style="max-width:100%; height:auto;" alt="Page ${pageNum}" />\n`;
-        htmlPages += `  </div>\n`;
+      text-decoration: none;
+
+      padding: 10px 18px;
+
+      border-radius: 6px;
+
+      font-size: 14px;
+
+      font-weight: bold;
+
+      box-shadow:
+        0 3px 8px
+        rgba(0, 0, 0, 0.18);
+
+      transition:
+        all 0.3s ease;
+    }
+
+
+    .home-btn:hover {
+
+      background:
+        linear-gradient(
+          135deg,
+          #005a96,
+          #003f6b
+        );
+
+      transform:
+        translateY(-1px);
+
+      box-shadow:
+        0 5px 12px
+        rgba(0, 0, 0, 0.25);
+    }
+
+
+    .home-icon {
+
+      font-size: 17px;
+
+      line-height: 1;
+    }
+
+
+    /* =========================================
+       CENTER LOGO
+    ========================================== */
+
+    .logo-area {
+
+      max-width: 850px;
+
+      margin:
+        0 auto 20px auto;
+
+      text-align: center;
+    }
+
+
+    .logo-area a {
+
+      display: inline-block;
+
+      text-decoration: none;
+    }
+
+
+    .logo-area img {
+
+      width: 280px;
+
+      max-width: 80vw;
+
+      height: auto;
+
+      display: block;
+
+      margin: auto;
+
+      filter:
+        drop-shadow(
+          0 4px 8px
+          rgba(0, 0, 0, 0.15)
+        );
+
+      transition:
+        transform 0.3s ease;
+    }
+
+
+    .logo-area img:hover {
+
+      transform:
+        scale(1.02);
+    }
+
+
+    /* =========================================
+       TOOLBAR
+    ========================================== */
+
+    .toolbar {
+
+      max-width: 850px;
+
+      margin:
+        0 auto 20px auto;
+
+      background: #ffffff;
+
+      padding: 15px 20px;
+
+      border-radius: 8px;
+
+      border:
+        1px solid #e5e5e5;
+
+      box-shadow:
+        0 2px 8px
+        rgba(0, 0, 0, 0.10);
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: space-between;
+
+      flex-wrap: wrap;
+
+      gap: 10px;
+    }
+
+
+    /* =========================================
+       FILE INPUT
+    ========================================== */
+
+    #pdfUpload {
+
+      max-width: 100%;
+
+      font-size: 14px;
+
+      color: #333333;
+
+      cursor: pointer;
+    }
+
+
+    /* =========================================
+       BUTTON GROUP
+    ========================================== */
+
+    .button-group {
+
+      display: flex;
+
+      gap: 8px;
+
+      flex-wrap: wrap;
+    }
+
+
+    /* =========================================
+       BUTTONS
+    ========================================== */
+
+    .btn {
+
+      background-color: #007acc;
+
+      color: #ffffff;
+
+      border: none;
+
+      padding: 9px 16px;
+
+      font-size: 14px;
+
+      border-radius: 5px;
+
+      cursor: pointer;
+
+      transition:
+        all 0.25s ease;
+    }
+
+
+    .btn:hover {
+
+      background-color: #005a96;
+
+      transform:
+        translateY(-1px);
+    }
+
+
+    .btn-green {
+
+      background-color: #28a745;
+    }
+
+
+    .btn-green:hover {
+
+      background-color: #1e7e34;
+    }
+
+
+    /* =========================================
+       CODE CONTAINER
+    ========================================== */
+
+    #codeContainer {
+
+      max-width: 850px;
+
+      margin:
+        20px auto;
+
+      display: none;
+
+      background: #ffffff;
+
+      padding: 15px;
+
+      border-radius: 8px;
+
+      border:
+        1px solid #e5e5e5;
+
+      box-shadow:
+        0 2px 8px
+        rgba(0, 0, 0, 0.10);
+    }
+
+
+    #codeContainer h4 {
+
+      margin-bottom: 10px;
+
+      color: #222222;
+
+      font-size: 15px;
+    }
+
+
+    #htmlCodeArea {
+
+      width: 100%;
+
+      height: 280px;
+
+      font-family:
+        Consolas,
+        "Courier New",
+        monospace;
+
+      font-size: 12px;
+
+      line-height: 1.5;
+
+      padding: 10px;
+
+      border:
+        1px solid #cccccc;
+
+      border-radius: 5px;
+
+      background: #f8f8f8;
+
+      resize: vertical;
+
+      outline: none;
+
+      color: #222222;
+    }
+
+
+    /* =========================================
+       PDF VIEWER CONTAINER
+    ========================================== */
+
+    .pages-container {
+
+      max-width: 850px;
+
+      margin: 0 auto;
+
+      display: flex;
+
+      flex-direction: column;
+
+      gap: 25px;
+
+      background: #ffffff;
+    }
+
+
+    /* =========================================
+       PDF PAGE
+    ========================================== */
+
+    .pdf-page-box {
+
+      background: #ffffff;
+
+      padding: 10px;
+
+      border:
+        1px solid #eeeeee;
+
+      box-shadow:
+        0 3px 12px
+        rgba(0, 0, 0, 0.14);
+
+      border-radius: 3px;
+
+      text-align: center;
+
+      overflow: hidden;
+    }
+
+
+    /* =========================================
+       CANVAS
+    ========================================== */
+
+    canvas {
+
+      max-width: 100%;
+
+      height: auto;
+
+      display: block;
+
+      margin: auto;
+    }
+
+
+    /* =========================================
+       STATUS MESSAGE
+    ========================================== */
+
+    .status-message {
+
+      color: #444444;
+
+      text-align: center;
+
+      font-size: 15px;
+
+      padding: 30px 10px;
+    }
+
+
+    .rendering-message {
+
+      color: #007acc;
+
+      text-align: center;
+
+      font-size: 15px;
+
+      padding: 30px 10px;
+    }
+
+
+    .error-message {
+
+      color: #d00000;
+
+      text-align: center;
+
+      font-size: 15px;
+
+      padding: 30px 10px;
+    }
+
+
+    /* =========================================
+       MOBILE RESPONSIVE
+    ========================================== */
+
+    @media (max-width: 600px) {
+
+      body {
+
+        padding: 10px;
       }
 
-      htmlPages += `</div>`;
-      exportedHtml = htmlPages;
-      document.getElementById('htmlCodeArea').value = exportedHtml;
-    };
 
-    fileReader.readAsArrayBuffer(file);
-  });
+      .top-header {
 
-  function toggleCode() {
-    const box = document.getElementById('codeContainer');
-    box.style.display = box.style.display === 'block' ? 'none' : 'block';
-  }
+        margin-bottom: 10px;
+      }
 
-  function downloadHtmlFile() {
-    if (!exportedHtml) {
-      alert("Please upload a PDF first.");
-      return;
+
+      .home-btn {
+
+        padding:
+          8px 13px;
+
+        font-size: 13px;
+      }
+
+
+      .logo-area {
+
+        margin-bottom: 15px;
+      }
+
+
+      .logo-area img {
+
+        width: 230px;
+
+        max-width: 85vw;
+      }
+
+
+      .toolbar {
+
+        padding: 12px;
+
+        justify-content: center;
+
+        flex-direction: column;
+
+        align-items: stretch;
+      }
+
+
+      #pdfUpload {
+
+        width: 100%;
+      }
+
+
+      .button-group {
+
+        width: 100%;
+
+        justify-content: center;
+      }
+
+
+      .button-group .btn {
+
+        flex:
+          1 1 auto;
+      }
+
+
+      .pages-container {
+
+        gap: 15px;
+      }
+
+
+      .pdf-page-box {
+
+        padding: 5px;
+      }
+
     }
-    const blob = new Blob([exportedHtml], { type: 'text/html' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'pdf_exact_design.html';
-    a.click();
+
+  </style>
+
+</head>
+
+
+<body>
+
+
+  <!-- =========================================
+       HOME BUTTON
+  ========================================== -->
+
+  <div class="top-header">
+
+    <a
+      href="https://pdf.shmwb.in/"
+      class="home-btn"
+      target="_self"
+      title="Go to SHM PDF Tools Home"
+    >
+
+      <span class="home-icon">⌂</span>
+
+      <span>Home</span>
+
+    </a>
+
+  </div>
+
+
+  <!-- =========================================
+       CENTER LOGO
+  ========================================== -->
+
+  <div class="logo-area">
+
+    <a
+      href="https://pdf.shmwb.in/"
+      target="_self"
+      title="SHM PDF Tools"
+    >
+
+      <img
+        src="https://pdf.shmwb.in/shmpdf.png"
+        alt="SHM PDF Editing Engine"
+      >
+
+    </a>
+
+  </div>
+
+
+  <!-- =========================================
+       TOOLBAR
+  ========================================== -->
+
+  <div class="toolbar">
+
+
+    <!-- PDF FILE UPLOAD -->
+
+    <input
+      type="file"
+      id="pdfUpload"
+      accept="application/pdf"
+    >
+
+
+    <!-- BUTTONS -->
+
+    <div class="button-group">
+
+      <button
+        class="btn"
+        type="button"
+        onclick="toggleCode()"
+      >
+
+        View HTML Code
+
+      </button>
+
+
+      <button
+        class="btn btn-green"
+        type="button"
+        onclick="downloadHtmlFile()"
+      >
+
+        Download HTML
+
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- =========================================
+       HTML CODE CONTAINER
+  ========================================== -->
+
+  <div
+    id="codeContainer"
+  >
+
+    <h4>
+      HTML Export Code:
+    </h4>
+
+
+    <textarea
+      id="htmlCodeArea"
+      readonly
+      spellcheck="false"
+    ></textarea>
+
+  </div>
+
+
+  <!-- =========================================
+       PDF VIEWER
+  ========================================== -->
+
+  <div
+    class="pages-container"
+    id="pagesViewer"
+  >
+
+    <p class="status-message">
+
+      Upload a PDF file to preview it here.
+
+    </p>
+
+  </div>
+
+
+  <!-- =========================================
+       JAVASCRIPT
+  ========================================== -->
+
+  <script>
+
+
+    /* ========================================
+       PDF.JS WORKER
+    ======================================== */
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+
+
+    /* ========================================
+       EXPORTED HTML VARIABLE
+    ======================================== */
+
+    let exportedHtml = "";
+
+
+    /* ========================================
+       PDF UPLOAD EVENT
+    ======================================== */
+
+    document
+      .getElementById("pdfUpload")
+      .addEventListener(
+        "change",
+        async function (event) {
+
+
+          /* Get selected file */
+
+          const file =
+            event.target.files[0];
+
+
+          if (!file) {
+
+            return;
+          }
+
+
+          /* Check PDF */
+
+          if (
+            file.type !==
+            "application/pdf"
+          ) {
+
+            alert(
+              "Please select a valid PDF file."
+            );
+
+            return;
+          }
+
+
+          /* PDF viewer */
+
+          const viewer =
+            document.getElementById(
+              "pagesViewer"
+            );
+
+
+          viewer.innerHTML =
+            `
+              <p class="rendering-message">
+                Rendering PDF...
+              </p>
+            `;
+
+
+          /* File reader */
+
+          const fileReader =
+            new FileReader();
+
+
+          fileReader.onload =
+            async function () {
+
+
+              try {
+
+
+                /* Convert file */
+
+                const typedArray =
+                  new Uint8Array(
+                    this.result
+                  );
+
+
+                /* Load PDF */
+
+                const pdf =
+                  await pdfjsLib
+                    .getDocument(
+                      typedArray
+                    )
+                    .promise;
+
+
+                /* Clear viewer */
+
+                viewer.innerHTML = "";
+
+
+                /* ===================================
+                   CREATE EXPORTED HTML
+                =================================== */
+
+                let htmlPages = `
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+>
+
+<title>PDF Exact Design</title>
+
+
+<style>
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: #ffffff;
+}
+
+body {
+
+  margin: 0;
+
+  padding: 20px;
+
+  background: #ffffff;
+
+  font-family: Arial, sans-serif;
+}
+
+.pdf-container {
+
+  max-width: 850px;
+
+  margin: 0 auto;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 25px;
+
+  background: #ffffff;
+}
+
+.pdf-page {
+
+  background: #ffffff;
+
+  padding: 10px;
+
+  text-align: center;
+
+  border:
+    1px solid #eeeeee;
+
+  box-shadow:
+    0 3px 12px
+    rgba(0,0,0,0.14);
+
+  margin-bottom: 20px;
+
+  border-radius: 3px;
+}
+
+.pdf-page img {
+
+  max-width: 100%;
+
+  height: auto;
+
+  display: block;
+
+  margin: auto;
+}
+
+@media (max-width: 600px) {
+
+  body {
+    padding: 10px;
   }
-</script>
+
+  .pdf-container {
+    gap: 15px;
+  }
+
+  .pdf-page {
+    padding: 5px;
+  }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="pdf-container">
+
+`;
+
+
+                /* ===================================
+                   RENDER EVERY PDF PAGE
+                =================================== */
+
+                for (
+                  let pageNum = 1;
+                  pageNum <= pdf.numPages;
+                  pageNum++
+                ) {
+
+
+                  /* Get page */
+
+                  const page =
+                    await pdf.getPage(
+                      pageNum
+                    );
+
+
+                  /* High resolution */
+
+                  const scale = 2.0;
+
+
+                  /* Viewport */
+
+                  const viewport =
+                    page.getViewport({
+                      scale: scale
+                    });
+
+
+                  /* Canvas */
+
+                  const canvas =
+                    document.createElement(
+                      "canvas"
+                    );
+
+
+                  const context =
+                    canvas.getContext(
+                      "2d"
+                    );
+
+
+                  canvas.width =
+                    viewport.width;
+
+
+                  canvas.height =
+                    viewport.height;
+
+
+                  /* Render */
+
+                  await page.render({
+
+                    canvasContext:
+                      context,
+
+                    viewport:
+                      viewport
+
+                  }).promise;
+
+
+                  /* Convert canvas to PNG */
+
+                  const imgData =
+                    canvas.toDataURL(
+                      "image/png"
+                    );
+
+
+                  /* =================================
+                     ADD TO LIVE VIEWER
+                  ================================= */
+
+                  const pageBox =
+                    document.createElement(
+                      "div"
+                    );
+
+
+                  pageBox.className =
+                    "pdf-page-box";
+
+
+                  pageBox.appendChild(
+                    canvas
+                  );
+
+
+                  viewer.appendChild(
+                    pageBox
+                  );
+
+
+                  /* =================================
+                     ADD TO EXPORTED HTML
+                  ================================= */
+
+                  htmlPages += `
+
+<div class="pdf-page">
+
+  <img
+    src="${imgData}"
+    alt="PDF Page ${pageNum}"
+  >
+
+</div>
+
+`;
+
+                }
+
+
+                /* ===================================
+                   CLOSE EXPORTED HTML
+                =================================== */
+
+                htmlPages += `
+
+</div>
+
 
 </body>
+
+</html>
+
+`;
+
+
+                /* Store HTML */
+
+                exportedHtml =
+                  htmlPages;
+
+
+                /* Put code in textarea */
+
+                document
+                  .getElementById(
+                    "htmlCodeArea"
+                  )
+                  .value =
+                  exportedHtml;
+
+
+              }
+
+
+              catch (error) {
+
+
+                console.error(
+                  "PDF Rendering Error:",
+                  error
+                );
+
+
+                viewer.innerHTML = `
+
+<p class="error-message">
+
+Unable to render this PDF.
+
+Please try another PDF file.
+
+</p>
+
+`;
+
+              }
+
+            };
+
+
+          /* Read PDF */
+
+          fileReader.readAsArrayBuffer(
+            file
+          );
+
+
+        }
+      );
+
+
+    /* ========================================
+       TOGGLE HTML CODE
+    ======================================== */
+
+    function toggleCode() {
+
+
+      const box =
+        document.getElementById(
+          "codeContainer"
+        );
+
+
+      if (
+        box.style.display ===
+        "block"
+      ) {
+
+        box.style.display =
+          "none";
+
+      }
+
+      else {
+
+        box.style.display =
+          "block";
+
+      }
+
+    }
+
+
+    /* ========================================
+       DOWNLOAD HTML
+    ======================================== */
+
+    function downloadHtmlFile() {
+
+
+      /* Check HTML */
+
+      if (!exportedHtml) {
+
+        alert(
+          "Please upload a PDF first."
+        );
+
+        return;
+      }
+
+
+      /* Create Blob */
+
+      const blob =
+        new Blob(
+          [exportedHtml],
+          {
+            type: "text/html"
+          }
+        );
+
+
+      /* Create object URL */
+
+      const url =
+        URL.createObjectURL(
+          blob
+        );
+
+
+      /* Create anchor */
+
+      const a =
+        document.createElement(
+          "a"
+        );
+
+
+      a.href =
+        url;
+
+
+      a.download =
+        "pdf_exact_design.html";
+
+
+      document
+        .body
+        .appendChild(a);
+
+
+      /* Start download */
+
+      a.click();
+
+
+      /* Remove anchor */
+
+      document
+        .body
+        .removeChild(a);
+
+
+      /* Release memory */
+
+      setTimeout(
+        function () {
+
+          URL.revokeObjectURL(
+            url
+          );
+
+        },
+        100
+      );
+
+    }
+
+  </script>
+
+
+</body>
+
 </html>
