@@ -60,6 +60,321 @@
     margin-bottom: 30px;
   }
 
+.badge-tag {
+  display: inline-block;
+  padding: 6px 14px;
+  background: rgba(0, 242, 254, 0.1);
+  border: 1px solid rgba(0, 242, 254, 0.3);
+  border-radius: 30px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #00f2fe;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  text-decoration: none;
+}
+
+.badge-tag:hover {
+  background: rgba(0, 242, 254, 0.18);
+  border-color: #00f2fe;
+  color: #ffffff;
+}
+
+.badge-tag i {
+  margin-right: 4px;
+}
+
+  .gradient-title {
+    font-size: 36px;
+    font-weight: 800;
+    background: var(--neon-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+
+  .subtitle {
+    color: var(--text-secondary);
+    font-size: 15px;
+  }
+
+  /* Main Card */
+  .converter-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.4);
+    margin-bottom: 30px;
+  }
+
+  /* Drag & Drop Zone */
+  .drop-zone {
+    border: 2px dashed rgba(79, 172, 254, 0.4);
+    border-radius: 14px;
+    padding: 35px 20px;
+    text-align: center;
+    background: rgba(15, 23, 42, 0.6);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: #00f2fe;
+    background: rgba(0, 242, 254, 0.05);
+    box-shadow: 0 0 20px rgba(0, 242, 254, 0.2);
+  }
+
+  .drop-icon {
+    font-size: 44px;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 12px;
+  }
+
+  .drop-zone h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .supported-formats {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 15px;
+  }
+
+  .format-pill {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 6px;
+  }
+
+  .format-pill.excel {
+    border-color: rgba(33, 163, 102, 0.5);
+    color: #2bd681;
+  }
+
+  .file-badge-active {
+    display: none;
+    margin-top: 15px;
+    padding: 8px 16px;
+    background: rgba(0, 242, 254, 0.08);
+    border: 1px solid rgba(0, 242, 254, 0.2);
+    border-radius: 8px;
+    font-size: 13px;
+    color: #00f2fe;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  /* Settings Grid */
+  .settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+  }
+
+  .form-control {
+    width: 100%;
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: #ffffff;
+    font-size: 14px;
+    outline: none;
+  }
+
+  .form-control:focus {
+    border-color: #4facfe;
+  }
+
+  /* Action Buttons */
+  .action-bar {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 25px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s ease;
+  }
+
+  .btn-primary {
+    background: var(--btn-gradient);
+    color: #ffffff;
+    box-shadow: 0 4px 15px rgba(0, 114, 255, 0.35);
+  }
+
+  .btn-primary:hover {
+    box-shadow: 0 6px 22px rgba(0, 114, 255, 0.55);
+    transform: translateY(-1px);
+  }
+
+  .btn-outline {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-primary);
+  }
+
+  .btn-outline:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  /* Preview Container */
+  .preview-wrapper {
+    margin-top: 30px;
+    display: none;
+  }
+
+  .preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .preview-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #00f2fe;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .page-preview-box {
+    background: #ffffff;
+    color: #1a1a1a;
+    border-radius: 6px;
+    padding: 30px;
+    min-height: 300px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    overflow-x: auto;
+  }
+
+  /* Styled Excel & CSV Tables in Preview */
+  .excel-rendered-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    color: #000000;
+    margin: auto;
+  }
+
+  .excel-rendered-table th, 
+  .excel-rendered-table td {
+    border: 1.5px solid #000000;
+    padding: 6px 10px;
+    text-align: center;
+  }
+
+  .excel-rendered-table th {
+    background-color: #ffff00;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Universal File & Excel to PDF Converter</title>
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- Font Awesome Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- Libraries for PDF, Word & Excel conversion -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<!-- SheetJS for Excel (.xlsx, .xls) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+  :root {
+    --bg-dark: #090d16;
+    --card-bg: rgba(17, 24, 39, 0.85);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --primary-gradient: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+    --neon-gradient: linear-gradient(135deg, #8a2387 0%, #e94057 50%, #f27121 100%);
+    --btn-gradient: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  body {
+    background-color: var(--bg-dark);
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(79, 172, 254, 0.15) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(245, 87, 108, 0.12) 0px, transparent 50%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 30px 15px;
+  }
+
+  .container {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
   .badge-tag {
     display: inline-block;
     padding: 6px 14px;
@@ -301,12 +616,310 @@
 
 <div class="container">
 
-  <!-- Header -->
-  <div class="header">
-    <div class="badge-tag"><i class="fa-solid fa-wand-magic-sparkles"></i> Universal Document Engine</div>
-    <h1 class="gradient-title">Convert Any File & Excel to PDF</h1>
-    <p class="subtitle">Supports Excel (.xlsx, .xls), Word (.docx), Images, CSV, Text & Code files.</p>
+ <!-- Header -->
+<div class="header">
+
+  <a href="https://pdf.shmwb.in/" class="badge-tag">
+    <i class="fa-solid fa-wand-magic-sparkles"></i>
+    SHM PDF TOOLS
+  </a>
+
+  <h1 class="gradient-title">Convert Any File & Excel to PDF</h1>
+
+  <p class="subtitle">
+    Supports Excel (.xlsx, .xls), Word (.docx), Images, CSV, Text & Code files.
+  </p>
+
+</div>
+
+  <!-- Converter Main Card -->
+  <div class="converter-card">
+
+    <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+      <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
+      <h3>Drag & Drop your file here, or click to browse</h3>
+      <p style="color: var(--text-muted); font-size: 13px;">Supports Excel, Word, Images, Text, CSV, and Code</p>
+      
+      <input type="file" id="fileInput" style="display: none;" accept=".xlsx,.xls,.docx,.jpg,.jpeg,.png,.webp,.gif,.bmp,.txt,.md,.html,.htm,.csv,.json,.js,.py,.css">
+      
+      <div class="supported-formats">
+        <span class="format-pill excel"><i class="fa-solid fa-file-excel"></i> Excel (.XLSX, .XLS)</span>
+        <span class="format-pill"><i class="fa-regular fa-file-word"></i> Word (.DOCX)</span>
+        <span class="format-pill"><i class="fa-regular fa-image"></i> Images</span>
+        <span class="format-pill"><i class="fa-solid fa-table"></i> CSV</span>
+        <span class="format-pill"><i class="fa-regular fa-file-lines"></i> Text & Code</span>
+      </div>
+
+      <div class="file-badge-active" id="activeFileIndicator">
+        <i class="fa-solid fa-circle-check"></i> <span id="fileNameDisplay">data.xlsx</span>
+      </div>
+    </div>
+
+    <!-- PDF Options -->
+    <div class="settings-grid">
+      <div class="form-group">
+        <label><i class="fa-solid fa-file"></i> Page Format</label>
+        <select id="pdfFormat" class="form-control">
+          <option value="a4" selected>A4 Standard</option>
+          <option value="letter">US Letter</option>
+          <option value="legal">Legal</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label><i class="fa-solid fa-arrows-rotate"></i> Orientation</label>
+        <select id="pdfOrientation" class="form-control">
+          <option value="portrait" selected>Portrait (Vertical)</option>
+          <option value="landscape">Landscape (Horizontal - Good for Tables)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label><i class="fa-solid fa-border-none"></i> Margins</label>
+        <select id="pdfMargin" class="form-control">
+          <option value="10" selected>Standard (10mm)</option>
+          <option value="5">Narrow (5mm)</option>
+          <option value="15">Moderate (15mm)</option>
+          <option value="0">None (0mm)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="action-bar">
+      <button class="btn btn-primary" onclick="generatePdf()"><i class="fa-solid fa-file-pdf"></i> Download PDF</button>
+      <button class="btn btn-outline" onclick="resetConverter()"><i class="fa-solid fa-arrow-rotate-right"></i> Reset</button>
+    </div>
+
   </div>
+
+  <!-- Live Document Preview -->
+  <div class="preview-wrapper" id="previewWrapper">
+    <div class="preview-header">
+      <div class="preview-title"><i class="fa-solid fa-eye"></i> Live Document Preview</div>
+    </div>
+    <div class="page-preview-box" id="pdfContentToConvert">
+      <!-- Populated via JavaScript -->
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let currentFile = null;
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+  const previewWrapper = document.getElementById('previewWrapper');
+  const previewBox = document.getElementById('pdfContentToConvert');
+  const activeIndicator = document.getElementById('activeFileIndicator');
+  const fileNameDisplay = document.getElementById('fileNameDisplay');
+
+  // Drag & drop handlers
+  ['dragenter', 'dragover'].forEach(name => {
+    dropZone.addEventListener(name, (e) => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+  });
+
+  ['dragleave', 'drop'].forEach(name => {
+    dropZone.addEventListener(name, (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+    });
+  });
+
+  dropZone.addEventListener('drop', (e) => {
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  });
+
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) handleFile(file);
+  });
+
+  // Handle various file formats
+  function handleFile(file) {
+    currentFile = file;
+    fileNameDisplay.textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+    activeIndicator.style.display = 'inline-flex';
+    previewWrapper.style.display = 'block';
+    previewBox.innerHTML = "<p style='color:#666;'>Loading content...</p>";
+
+    const extension = file.name.split('.').pop().toLowerCase();
+
+    // 1. Excel Spreadsheets (.xlsx, .xls)
+    if (['xlsx', 'xls'].includes(extension)) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          
+          // Convert sheet to JSON array
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+          
+          if (!jsonData || jsonData.length === 0) {
+            previewBox.innerHTML = "<p style='color:red;'>Excel file is empty.</p>";
+            return;
+          }
+
+          // Build styled table
+          let tableHtml = '<table class="excel-rendered-table">';
+          jsonData.forEach((row, rowIndex) => {
+            if (row.length === 0) return;
+            tableHtml += '<tr>';
+            row.forEach(cell => {
+              const cellValue = cell !== undefined ? cell : '';
+              if (rowIndex === 0) {
+                tableHtml += `<th>${cellValue}</th>`;
+              } else {
+                tableHtml += `<td>${cellValue}</td>`;
+              }
+            });
+            tableHtml += '</tr>';
+          });
+          tableHtml += '</table>';
+
+          previewBox.innerHTML = tableHtml;
+        } catch (err) {
+          previewBox.innerHTML = "<p style='color:red;'>Error reading Excel file.</p>";
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+    // 2. Word Documents (.docx)
+    else if (extension === 'docx') {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        mammoth.convertToHtml({ arrayBuffer: e.target.result })
+          .then(result => {
+            previewBox.innerHTML = `<div style="font-size:14px; line-height:1.6; color:#000000;">${result.value}</div>`;
+          })
+          .catch(() => {
+            previewBox.innerHTML = `<p style="color:red;'>Error parsing Word document.</p>`;
+          });
+      };
+      reader.readAsArrayBuffer(file);
+    }
+    // 3. Images (JPG, PNG, WEBP)
+    else if (['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'].includes(extension)) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        previewBox.innerHTML = `
+          <div style="text-align:center;">
+            <img src="${e.target.result}" style="max-width:100%; height:auto;" />
+          </div>`;
+      };
+      reader.readAsDataURL(file);
+    }
+    // 4. CSV Files
+    else if (extension === 'csv') {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const rows = e.target.result.trim().split('\n').map(row => row.split(','));
+        let tableHtml = '<table class="excel-rendered-table">';
+        rows.forEach((cols, idx) => {
+          tableHtml += '<tr>';
+          cols.forEach(cell => {
+            tableHtml += idx === 0 
+              ? `<th>${cell.trim()}</th>`
+              : `<td>${cell.trim()}</td>`;
+          });
+          tableHtml += '</tr>';
+        });
+        tableHtml += '</table>';
+        previewBox.innerHTML = tableHtml;
+      };
+      reader.readAsText(file);
+    }
+    // 5. HTML / Text / Code
+    else {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target.result;
+        if (extension === 'html' || extension === 'htm') {
+          previewBox.innerHTML = text;
+        } else {
+          previewBox.innerHTML = `<pre style="white-space:pre-wrap; font-family:'Fira Code', monospace; font-size:13px; line-height:1.6; color:#000000;">${escapeHtml(text)}</pre>`;
+        }
+      };
+      reader.readAsText(file);
+    }
+  }
+
+  function escapeHtml(string) {
+    return String(string).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  // Generate & Download PDF
+  function generatePdf() {
+    if (!currentFile && previewBox.innerHTML.trim() === "") {
+      alert("Please choose or drop a file first.");
+      return;
+    }
+
+    const format = document.getElementById('pdfFormat').value;
+    const orientation = document.getElementById('pdfOrientation').value;
+    const margin = parseInt(document.getElementById('pdfMargin').value, 10);
+    const baseName = currentFile ? currentFile.name.substring(0, currentFile.name.lastIndexOf('.')) || 'converted' : 'document';
+
+    // Clean container clone without outer scroll/margins
+    const tempContainer = document.createElement('div');
+    tempContainer.innerHTML = previewBox.innerHTML;
+    tempContainer.style.width = orientation === 'portrait' ? '190mm' : '270mm';
+    tempContainer.style.padding = '0px';
+    tempContainer.style.margin = '0px';
+    tempContainer.style.background = '#ffffff';
+    tempContainer.style.color = '#000000';
+    tempContainer.style.fontSize = '13px';
+    tempContainer.style.lineHeight = '1.4';
+
+    const opt = {
+      margin: [margin, margin, margin, margin],
+      filename: `${baseName}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        scrollY: 0,        /* Fixes blank space bug on top */
+        scrollX: 0,
+        windowWidth: document.documentElement.offsetWidth
+      },
+      jsPDF: { unit: 'mm', format: format, orientation: orientation },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    };
+
+    html2pdf().set(opt).from(tempContainer).save();
+  }
+
+  function resetConverter() {
+    currentFile = null;
+    fileInput.value = '';
+    activeIndicator.style.display = 'none';
+    previewWrapper.style.display = 'none';
+    previewBox.innerHTML = '';
+  }
+</script>
+
+</body>
+</html>
+
+
+  <h1 class="gradient-title">Convert Any File & Excel to PDF</h1>
+  <p class="subtitle">
+    Supports Excel (.xlsx, .xls), Word (.docx), Images, CSV, Text & Code files.
+  </p>
+</div>
+
+  <h1 class="gradient-title">Convert Any File & Excel to PDF</h1>
+  <p class="subtitle">
+    Supports Excel (.xlsx, .xls), Word (.docx), Images, CSV, Text & Code files.
+  </p>
+</div>
 
   <!-- Converter Main Card -->
   <div class="converter-card">
