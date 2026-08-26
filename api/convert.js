@@ -1,5 +1,4 @@
 module.exports = async (req, res) => {
-  // CORS Headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -29,7 +28,7 @@ module.exports = async (req, res) => {
       body: JSON.stringify({
         "tasks": {
           "import-my-file": { 
-            "operation": "upload" 
+            "operation": "import/upload" 
           },
           "convert-my-file": {
             "operation": "convert",
