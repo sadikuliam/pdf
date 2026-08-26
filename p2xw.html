@@ -3,16 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SHM PDF Tools - Free PDF Converter Engine</title>
+  <title>SHM PDF Tools - Professional PDF Converter</title>
 
   <!-- Tailwind CSS & Lucide Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-
-  <!-- High-Performance Engine Libraries -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
 
   <script>
     tailwind.config = {
@@ -44,7 +39,7 @@
           <h1 class="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
             SHM PDF Tools
           </h1>
-          <p class="text-xs text-slate-400">100% Free Client-Side Conversion Engine</p>
+          <p class="text-xs text-slate-400">Cloud API Powered High-Precision Conversion Engine</p>
         </div>
       </div>
 
@@ -58,22 +53,22 @@
 
       <!-- Format Selection -->
       <div class="grid grid-cols-2 gap-4">
-        <button id="btnExcel" onclick="selectFormat('excel')" class="format-btn p-5 rounded-2xl border-2 border-indigo-600 bg-indigo-950/30 text-left transition-all">
-          <div class="flex items-center justify-between mb-2">
-            <i data-lucide="sheet" class="w-7 h-7 text-emerald-400"></i>
-            <span class="badge text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-600 text-white">Selected</span>
-          </div>
-          <h2 class="font-bold text-white">Convert to Excel</h2>
-          <p class="text-xs text-slate-400 mt-0.5">Extract tables & structured text (.xlsx)</p>
-        </button>
-
-        <button id="btnWord" onclick="selectFormat('word')" class="format-btn p-5 rounded-2xl border-2 border-slate-800 bg-slate-900 text-left transition-all opacity-70 hover:opacity-100">
+        <button id="btnWord" onclick="selectFormat('docx')" class="format-btn p-5 rounded-2xl border-2 border-indigo-600 bg-indigo-950/30 text-left transition-all">
           <div class="flex items-center justify-between mb-2">
             <i data-lucide="file-text" class="w-7 h-7 text-blue-400"></i>
-            <span class="badge hidden text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-600 text-white">Selected</span>
+            <span class="badge text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-600 text-white">Selected</span>
           </div>
           <h2 class="font-bold text-white">Convert to Word</h2>
-          <p class="text-xs text-slate-400 mt-0.5">Extract layout & paragraphs (.docx)</p>
+          <p class="text-xs text-slate-400 mt-0.5">Full Layout & Columns Preserved (.docx)</p>
+        </button>
+
+        <button id="btnExcel" onclick="selectFormat('xlsx')" class="format-btn p-5 rounded-2xl border-2 border-slate-800 bg-slate-900 text-left transition-all opacity-70 hover:opacity-100">
+          <div class="flex items-center justify-between mb-2">
+            <i data-lucide="sheet" class="w-7 h-7 text-emerald-400"></i>
+            <span class="badge hidden text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-600 text-white">Selected</span>
+          </div>
+          <h2 class="font-bold text-white">Convert to Excel</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Extract tables & structured data (.xlsx)</p>
         </button>
       </div>
 
@@ -89,7 +84,7 @@
             <p class="text-base font-semibold text-slate-200">
               Drag & Drop your PDF file here, or <span class="text-indigo-400 underline">Browse</span>
             </p>
-            <p class="text-xs text-slate-500 mt-1">Files are processed locally in your browser (Unlimited & Private)</p>
+            <p class="text-xs text-slate-500 mt-1">High-accuracy cloud API powered document processing</p>
           </div>
         </div>
       </div>
@@ -113,11 +108,11 @@
       <!-- Progress Container -->
       <div id="progressContainer" class="hidden space-y-2">
         <div class="flex justify-between text-xs font-semibold text-slate-300">
-          <span id="progressStatus">Parsing PDF pages...</span>
-          <span id="progressPercent">0%</span>
+          <span id="progressStatus">Uploading file...</span>
+          <span id="progressPercent">Processing</span>
         </div>
         <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
-          <div id="progressBar" class="bg-indigo-500 h-full w-0 transition-all duration-150"></div>
+          <div id="progressBar" class="bg-indigo-500 h-full w-full animate-pulse"></div>
         </div>
       </div>
 
@@ -131,18 +126,18 @@
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-800 text-center">
         <div class="p-3">
           <i data-lucide="shield-check" class="w-5 h-5 text-indigo-400 mx-auto mb-1"></i>
-          <p class="text-xs font-semibold text-slate-300">100% Unlimited</p>
-          <p class="text-[11px] text-slate-500">No server limits or subscription fees</p>
+          <p class="text-xs font-semibold text-slate-300">High Accuracy</p>
+          <p class="text-[11px] text-slate-500">Preserves multi-column & graphics</p>
         </div>
         <div class="p-3">
           <i data-lucide="zap" class="w-5 h-5 text-indigo-400 mx-auto mb-1"></i>
-          <p class="text-xs font-semibold text-slate-300">Fast Local Wasm</p>
-          <p class="text-[11px] text-slate-500">Processed using device power</p>
+          <p class="text-xs font-semibold text-slate-300">Vercel API Powered</p>
+          <p class="text-[11px] text-slate-500">Fast Cloud Processing</p>
         </div>
         <div class="p-3">
           <i data-lucide="lock" class="w-5 h-5 text-indigo-400 mx-auto mb-1"></i>
-          <p class="text-xs font-semibold text-slate-300">Private & Secure</p>
-          <p class="text-[11px] text-slate-500">Files never leave your computer</p>
+          <p class="text-xs font-semibold text-slate-300">Encrypted Transport</p>
+          <p class="text-[11px] text-slate-500">Secure end-to-end processing</p>
         </div>
       </div>
 
@@ -150,10 +145,7 @@
   </div>
 
   <script>
-    // Initialize PDF.js
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-    let currentFormat = 'excel';
+    let currentFormat = 'docx';
     let selectedFile = null;
 
     lucide.createIcons();
@@ -179,7 +171,7 @@
         btn.querySelector('.badge').classList.add('hidden');
       });
 
-      const activeBtn = format === 'excel' ? btnExcel : btnWord;
+      const activeBtn = format === 'docx' ? btnWord : btnExcel;
       activeBtn.classList.add('border-indigo-600', 'bg-indigo-950/30');
       activeBtn.classList.remove('border-slate-800', 'opacity-70');
       activeBtn.querySelector('.badge').classList.remove('hidden');
@@ -228,7 +220,7 @@
         btn.disabled = false;
         btn.classList.remove('bg-slate-800', 'cursor-not-allowed');
         btn.classList.add('bg-indigo-600', 'hover:bg-indigo-500', 'cursor-pointer');
-        btnText.textContent = `Convert to ${currentFormat === 'excel' ? 'Excel (.xlsx)' : 'Word (.docx)'}`;
+        btnText.textContent = `Convert to ${currentFormat === 'docx' ? 'Word (.docx)' : 'Excel (.xlsx)'}`;
       } else {
         btn.disabled = true;
         btn.classList.add('bg-slate-800', 'cursor-not-allowed');
@@ -237,98 +229,93 @@
       }
     }
 
-    // Core Wasm Engine Execution
+    // CloudConvert API integration via Vercel Serverless Endpoint
     async function executeConversion() {
       if (!selectedFile) return;
 
       const progressContainer = document.getElementById('progressContainer');
-      const progressBar = document.getElementById('progressBar');
       const progressStatus = document.getElementById('progressStatus');
-      const progressPercent = document.getElementById('progressPercent');
+      const convertBtn = document.getElementById('convertBtn');
 
       progressContainer.classList.remove('hidden');
-      document.getElementById('convertBtn').disabled = true;
+      convertBtn.disabled = true;
+      progressStatus.textContent = "Initializing server job...";
 
       try {
-        const arrayBuffer = await selectedFile.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        const totalPages = pdf.numPages;
-        let extractedPages = [];
+        // Step 1: Request upload credentials from /api/convert
+        const initRes = await fetch('/api/convert', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ format: currentFormat })
+        });
 
-        for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
-          progressStatus.textContent = `Parsing page ${pageNum} of ${totalPages}...`;
-          const percent = Math.round((pageNum / totalPages) * 70);
-          progressBar.style.width = percent + '%';
-          progressPercent.textContent = percent + '%';
+        const initData = await initRes.json();
+        if (!initRes.ok) throw new Error(initData.error || 'Server initialization failed');
 
-          const page = await pdf.getPage(pageNum);
-          const textContent = await page.getTextContent();
-          
-          let items = textContent.items.map(item => ({
-            text: item.str,
-            x: item.transform[4],
-            y: item.transform[5]
-          }));
+        const { uploadUrl, uploadParams, jobId } = initData;
 
-          items.sort((a, b) => Math.abs(a.y - b.y) < 5 ? a.x - b.x : b.y - a.y);
-
-          let lines = [];
-          items.forEach(item => {
-            let line = lines.find(l => Math.abs(l.y - item.y) < 5);
-            if (line) line.items.push(item);
-            else lines.push({ y: item.y, items: [item] });
-          });
-
-          extractedPages.push(lines);
+        // Step 2: Directly upload PDF to CloudConvert
+        progressStatus.textContent = "Uploading file for processing...";
+        const formData = new FormData();
+        for (const [key, value] of Object.entries(uploadParams)) {
+          formData.append(key, value);
         }
+        formData.append('file', selectedFile);
 
-        progressStatus.textContent = 'Generating file...';
-        progressBar.style.width = '90%';
-        progressPercent.textContent = '90%';
+        await fetch(uploadUrl, { method: 'POST', body: formData });
 
-        if (currentFormat === 'excel') {
-          const workbook = XLSX.utils.book_new();
-          extractedPages.forEach((lines, idx) => {
-            let sheetData = lines.map(line => line.items.map(i => i.text));
-            let worksheet = XLSX.utils.aoa_to_sheet(sheetData);
-            XLSX.utils.book_append_sheet(workbook, worksheet, `Page ${idx + 1}`);
-          });
-          XLSX.writeFile(workbook, `${selectedFile.name.replace('.pdf', '')}_converted.xlsx`);
-        } else {
-          const { Document, Packer, Paragraph, TextRun } = docx;
-          let docParagraphs = [];
+        // Step 3: Poll status until completion
+        progressStatus.textContent = "Converting layout & content...";
+        checkJobStatus(jobId);
 
-          extractedPages.forEach((lines, idx) => {
-            docParagraphs.push(new Paragraph({
-              children: [new TextRun({ text: `--- Page ${idx + 1} ---`, bold: true, color: "6366F1" })]
-            }));
-            lines.forEach(line => {
-              const lineText = line.items.map(i => i.text).join(' ');
-              if (lineText.trim().length > 0) {
-                docParagraphs.push(new Paragraph({ children: [new TextRun(lineText)] }));
-              }
-            });
-          });
-
-          const doc = new Document({ sections: [{ children: docParagraphs }] });
-          const blob = await Packer.toBlob(doc);
-          const link = document.createElement('a');
-          link.href = URL.createObjectURL(blob);
-          link.download = `${selectedFile.name.replace('.pdf', '')}_converted.docx`;
-          link.click();
-        }
-
-        progressBar.style.width = '100%';
-        progressPercent.textContent = '100%';
-        progressStatus.textContent = 'Conversion Completed!';
       } catch (err) {
-        alert('Error during conversion: ' + err.message);
-      } finally {
-        setTimeout(() => {
+        alert("Conversion Error: " + err.message);
+        progressContainer.classList.add('hidden');
+        updateConvertButtonState();
+      }
+    }
+
+    async function checkJobStatus(jobId) {
+      const progressStatus = document.getElementById('progressStatus');
+      const progressContainer = document.getElementById('progressContainer');
+
+      const timer = setInterval(async () => {
+        try {
+          const res = await fetch(`https://api.cloudconvert.com/v2/jobs/${jobId}`);
+          const job = await res.json();
+
+          if (job.data.status === 'finished') {
+            clearInterval(timer);
+            progressStatus.textContent = "Download starting...";
+            const exportTask = job.data.tasks.find(t => t.name === 'export-my-file');
+            const fileUrl = exportTask.result.files[0].url;
+
+            // Trigger file download
+            const a = document.createElement('a');
+            a.href = fileUrl;
+            a.download = selectedFile.name.replace('.pdf', `_converted.${currentFormat}`);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+
+            setTimeout(() => {
+              progressContainer.classList.add('hidden');
+              updateConvertButtonState();
+            }, 2000);
+
+          } else if (job.data.status === 'error') {
+            clearInterval(timer);
+            alert("Conversion failed during processing!");
+            progressContainer.classList.add('hidden');
+            updateConvertButtonState();
+          }
+        } catch (e) {
+          clearInterval(timer);
+          console.error(e);
           progressContainer.classList.add('hidden');
           updateConvertButtonState();
-        }, 2000);
-      }
+        }
+      }, 2000);
     }
   </script>
 </body>
