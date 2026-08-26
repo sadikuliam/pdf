@@ -230,55 +230,56 @@
     }
 
     // Render Microservice Integration
-    async function executeConversion() {
-      if (!selectedFile) return;
+   async function executeConversion() {
+  if (!selectedFile) return;
 
-      const progressContainer = document.getElementById('progressContainer');
-      const progressStatus = document.getElementById('progressStatus');
-      const convertBtn = document.getElementById('convertBtn');
+  const progressContainer = document.getElementById('progressContainer');
+  const progressStatus = document.getElementById('progressStatus');
+  const convertBtn = document.getElementById('convertBtn');
 
-      progressContainer.classList.remove('hidden');
-      convertBtn.disabled = true;
-      progressStatus.textContent = "Processing PDF on backend server...";
+  progressContainer.classList.remove('hidden');
+  convertBtn.disabled = true;
+  progressStatus.textContent = "Processing PDF on backend server...";
 
-     // Render থেকে প্রাপ্ত লাইভ ব্যাকএন্ড URL
-const RENDER_BACKEND_URL = "https://shm-pdf-backend.onrender.com/convert-to-word";
+  // বর্তমান সিলেক্ট করা ফরম্যাট অনুযায়ী এন্ডপয়েন্ট নির্ধারণ করা
+  const endpoint = currentFormat === 'xlsx' ? '/convert-to-excel' : '/convert-to-word';
+  const RENDER_BACKEND_URL = `https://shm-pdf-backend.onrender.com${endpoint}`;
 
-      const formData = new FormData();
-      formData.append("file", selectedFile);
+  const formData = new FormData();
+  formData.append("file", selectedFile);
 
-      try {
-        const response = await fetch(RENDER_BACKEND_URL, {
-          method: "POST",
-          body: formData
-        });
+  try {
+    const response = await fetch(RENDER_BACKEND_URL, {
+      method: "POST",
+      body: formData
+    });
 
-        if (!response.ok) {
-          throw new Error("Conversion failed on backend server.");
-        }
-
-        progressStatus.textContent = "Conversion complete! Download starting...";
-
-        const blob = await response.blob();
-        const downloadUrl = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = downloadUrl;
-        a.download = selectedFile.name.replace(".pdf", `_converted.${currentFormat}`);
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-
-        setTimeout(() => {
-          progressContainer.classList.add('hidden');
-          updateConvertButtonState();
-        }, 2000);
-
-      } catch (err) {
-        alert("Conversion Error: " + err.message);
-        progressContainer.classList.add('hidden');
-        updateConvertButtonState();
-      }
+    if (!response.ok) {
+      throw new Error("Conversion failed on backend server.");
     }
+
+    progressStatus.textContent = "Conversion complete! Download starting...";
+
+    const blob = await response.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = downloadUrl;
+    a.download = selectedFile.name.replace(".pdf", `_converted.${currentFormat}`);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    setTimeout(() => {
+      progressContainer.classList.add('hidden');
+      updateConvertButtonState();
+    }, 2000);
+
+  } catch (err) {
+    alert("Conversion Error: " + err.message);
+    progressContainer.classList.add('hidden');
+    updateConvertButtonState();
+  }
+}
   </script>
 </body>
 </html>
