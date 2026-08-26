@@ -39,7 +39,7 @@
           <h1 class="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
             SHM PDF Tools
           </h1>
-          <p class="text-xs text-slate-400">Cloud API Powered High-Precision Conversion Engine</p>
+          <p class="text-xs text-slate-400">Render Python Microservice Powered Engine</p>
         </div>
       </div>
 
@@ -84,7 +84,7 @@
             <p class="text-base font-semibold text-slate-200">
               Drag & Drop your PDF file here, or <span class="text-indigo-400 underline">Browse</span>
             </p>
-            <p class="text-xs text-slate-500 mt-1">High-accuracy cloud API powered document processing</p>
+            <p class="text-xs text-slate-500 mt-1">Unlimited high-accuracy backend document conversion</p>
           </div>
         </div>
       </div>
@@ -126,13 +126,13 @@
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-800 text-center">
         <div class="p-3">
           <i data-lucide="shield-check" class="w-5 h-5 text-indigo-400 mx-auto mb-1"></i>
-          <p class="text-xs font-semibold text-slate-300">High Accuracy</p>
-          <p class="text-[11px] text-slate-500">Preserves multi-column & graphics</p>
+          <p class="text-xs font-semibold text-slate-300">100% Free & Unlimited</p>
+          <p class="text-[11px] text-slate-500">No credits limit or daily cap</p>
         </div>
         <div class="p-3">
           <i data-lucide="zap" class="w-5 h-5 text-indigo-400 mx-auto mb-1"></i>
-          <p class="text-xs font-semibold text-slate-300">Vercel API Powered</p>
-          <p class="text-[11px] text-slate-500">Fast Cloud Processing</p>
+          <p class="text-xs font-semibold text-slate-300">High Layout Accuracy</p>
+          <p class="text-[11px] text-slate-500">Preserves tables and columns</p>
         </div>
         <div class="p-3">
           <i data-lucide="lock" class="w-5 h-5 text-indigo-400 mx-auto mb-1"></i>
@@ -229,7 +229,7 @@
       }
     }
 
-    // CloudConvert API integration via Vercel Serverless Endpoint
+    // Render Microservice Integration
     async function executeConversion() {
       if (!selectedFile) return;
 
@@ -239,83 +239,45 @@
 
       progressContainer.classList.remove('hidden');
       convertBtn.disabled = true;
-      progressStatus.textContent = "Initializing server job...";
+      progressStatus.textContent = "Processing PDF on backend server...";
+
+      // আপনার Render-এর Web Service URL টি এখানে বসাবেন
+      const RENDER_BACKEND_URL = "https://shm-pdf-backend.onrender.com/convert-to-word";
+
+      const formData = new FormData();
+      formData.append("file", selectedFile);
 
       try {
-        // Step 1: Request upload credentials from /api/convert
-        const initRes = await fetch('/api/convert', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ format: currentFormat })
+        const response = await fetch(RENDER_BACKEND_URL, {
+          method: "POST",
+          body: formData
         });
 
-        const initData = await initRes.json();
-        if (!initRes.ok) throw new Error(initData.error || 'Server initialization failed');
-
-        const { uploadUrl, uploadParams, jobId } = initData;
-
-        // Step 2: Directly upload PDF to CloudConvert
-        progressStatus.textContent = "Uploading file for processing...";
-        const formData = new FormData();
-        for (const [key, value] of Object.entries(uploadParams)) {
-          formData.append(key, value);
+        if (!response.ok) {
+          throw new Error("Conversion failed on backend server.");
         }
-        formData.append('file', selectedFile);
 
-        await fetch(uploadUrl, { method: 'POST', body: formData });
+        progressStatus.textContent = "Conversion complete! Download starting...";
 
-        // Step 3: Poll status until completion
-        progressStatus.textContent = "Converting layout & content...";
-        checkJobStatus(jobId);
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = downloadUrl;
+        a.download = selectedFile.name.replace(".pdf", `_converted.${currentFormat}`);
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        setTimeout(() => {
+          progressContainer.classList.add('hidden');
+          updateConvertButtonState();
+        }, 2000);
 
       } catch (err) {
         alert("Conversion Error: " + err.message);
         progressContainer.classList.add('hidden');
         updateConvertButtonState();
       }
-    }
-
-    async function checkJobStatus(jobId) {
-      const progressStatus = document.getElementById('progressStatus');
-      const progressContainer = document.getElementById('progressContainer');
-
-      const timer = setInterval(async () => {
-        try {
-          const res = await fetch(`https://api.cloudconvert.com/v2/jobs/${jobId}`);
-          const job = await res.json();
-
-          if (job.data.status === 'finished') {
-            clearInterval(timer);
-            progressStatus.textContent = "Download starting...";
-            const exportTask = job.data.tasks.find(t => t.name === 'export-my-file');
-            const fileUrl = exportTask.result.files[0].url;
-
-            // Trigger file download
-            const a = document.createElement('a');
-            a.href = fileUrl;
-            a.download = selectedFile.name.replace('.pdf', `_converted.${currentFormat}`);
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-
-            setTimeout(() => {
-              progressContainer.classList.add('hidden');
-              updateConvertButtonState();
-            }, 2000);
-
-          } else if (job.data.status === 'error') {
-            clearInterval(timer);
-            alert("Conversion failed during processing!");
-            progressContainer.classList.add('hidden');
-            updateConvertButtonState();
-          }
-        } catch (e) {
-          clearInterval(timer);
-          console.error(e);
-          progressContainer.classList.add('hidden');
-          updateConvertButtonState();
-        }
-      }, 2000);
     }
   </script>
 </body>
