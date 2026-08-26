@@ -79,15 +79,27 @@
             margin-bottom: 3rem; 
         }
 
-        /* Top Logo - সাইজ বাড়ানো হয়েছে */
-        .logo { 
-            height: 180px; 
-            max-width: 100%; 
-            width: auto; 
-            margin-bottom: 1.5rem; 
-            filter: drop-shadow(0 14px 24px rgba(0,0,0,0.18)); 
-            transition: transform 0.4s ease; 
-        }
+       /* Top Logo - সাইজ বাড়ানো ও আরও স্পষ্ট করা হয়েছে */
+.logo { 
+    height: 240px; /* ১৭০-১৮০px থেকে বাড়িয়ে ২৪০px করা হলো */
+    max-width: 100%; 
+    width: auto; 
+    margin-bottom: 1.5rem; 
+    /* ফিল্টার বাড়িয়ে শেড আরও গাঢ় ও স্পষ্ট করা হয়েছে */
+    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.35)) contrast(1.05) brightness(1.02); 
+    transition: transform 0.4s ease; 
+}
+
+.logo:hover { 
+    transform: scale(1.05) rotate(-2deg); 
+}
+
+@media (max-width: 768px) {
+    /* মোবাইল ডিভাইসেও লোগো বেশ স্পষ্ট দেখাবে */
+    .logo { 
+        height: 160px; 
+    } 
+}
         
         .logo:hover { 
             transform: scale(1.05) rotate(-2deg); 
