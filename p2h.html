@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDF to HTML Page Box Converter</title>
+
+<!-- PDF.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+
+  body {
+    background-color: #eef2f5;
+    color: #333333;
+    padding-bottom: 50px;
+  }
+
+  /* Navigation Bar */
+  .navbar {
+    background-color: #00324d;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 25px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  }
+
+  .nav-brand {
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  /* Control / Upload Box */
+  .upload-card {
+    max-width: 800px;
+    margin: 30px auto;
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    border: 1px solid #dce4ec;
+    text-align: center;
+  }
+
+  .upload-card h2 {
+    color: #00324d;
+    margin-bottom: 10px;
+  }
+
+  .upload-card p {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  .file-input {
+    padding: 10px;
+    border: 1px dashed #007acc;
+    border-radius: 6px;
+    background-color: #f8fbfe;
+    width: 100%;
+    max-width: 400px;
+    cursor: pointer;
+  }
+
+  .btn-group {
+    margin-top: 18px;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    background-color: #007acc;
+    color: #ffffff;
+    border: none;
+    padding: 10px 22px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .btn:hover {
+    background-color: #005a96;
+  }
+
+  .btn-secondary {
+    background-color: #5a6b7c;
+  }
+
+  .btn-secondary:hover {
+    background-color: #435160;
+  }
+
+  /* PDF Page Boxes (Under-box layout) */
+  .pdf-viewer-container {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 25px; /* Spacing between page boxes */
+  }
+
+  .pdf-page-box {
+    background: #ffffff;
+    border-radius: 6px;
+    border: 1px solid #d3dbe3;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 35px 40px;
+    min-height: 500px;
+    position: relative;
+  }
+
+  .page-badge {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    background-color: #e3edf5;
+    color: #00324d;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 12px;
+  }
+
+  .pdf-page-content {
+    line-height: 1.7;
+    font-size: 15px;
+    color: #2b2b2b;
+    word-wrap: break-word;
+  }
+
+  .pdf-page-content p {
+    margin-bottom: 12px;
+  }
+
+  /* Raw HTML Code Output Box */
+  .code-output-container {
+    max-width: 800px;
+    margin: 30px auto;
+    display: none;
+  }
+
+  .code-output-box {
+    width: 100%;
+    height: 250px;
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 15px;
+    border-radius: 6px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    border: 1px solid #333;
+    resize: vertical;
+  }
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="navbar">
+  <a href="#" class="nav-brand">SHM Tools</a>
+  <span style="color: #bcd5e6; font-size: 14px;">PDF to HTML Box Converter</span>
+</nav>
+
+<!-- Upload Control Box -->
+<div class="upload-card">
+  <h2>PDF to HTML Designer Box</h2>
+  <p>Upload your PDF document to render formatted HTML page boxes placed vertically one under another.</p>
+  
+  <input type="file" id="pdfFileInput" accept="application/pdf" class="file-input">
+  
+  <div class="btn-group">
+    <button class="btn" onclick="processPdf()">Convert & Render Boxes</button>
+    <button class="btn btn-secondary" onclick="toggleCodeView()">Show / Hide HTML Code</button>
+    <button class="btn" onclick="downloadHtml()">Download HTML File</button>
+  </div>
+</div>
+
+<!-- HTML Code Output Box -->
+<div class="code-output-container" id="codeContainer">
+  <h4 style="margin-bottom: 8px;">Generated HTML Code:</h4>
+  <textarea id="htmlCodeOutput" class="code-output-box" readonly></textarea>
+</div>
+
+<!-- PDF Stacked Page Boxes Container -->
+<div class="pdf-viewer-container" id="pdfViewer">
+  <!-- Dynamic page boxes will be injected here -->
+</div>
+
+<script>
+  // Initialize PDF.js worker
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+  let generatedFullHtml = "";
+
+  async function processPdf() {
+    const fileInput = document.getElementById('pdfFileInput');
+    const file = fileInput.files[0];
+
+    if (!file) {
+      alert("Please select a PDF file first.");
+      return;
+    }
+
+    const viewer = document.getElementById('pdfViewer');
+    viewer.innerHTML = "<p style='text-align:center;'>Reading and converting pages...</p>";
+
+    const fileReader = new FileReader();
+    fileReader.onload = async function() {
+      const typedArray = new Uint8Array(this.result);
+      const pdf = await pdfjsLib.getDocument(typedArray).promise;
+
+      viewer.innerHTML = "";
+      let htmlOutput = `<div class="pdf-container" style="max-width:800px; margin:auto; display:flex; flex-direction:column; gap:25px;">\n`;
+
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const textContent = await page.getTextContent();
+
+        // Build HTML for current page box
+        let pageText = "";
+        let lastY;
+
+        for (let item of textContent.items) {
+          if (lastY !== undefined && Math.abs(item.transform[5] - lastY) > 6) {
+            pageText += `</p>\n    <p>`;
+          }
+          pageText += item.str + " ";
+          lastY = item.transform[5];
+        }
+
+        const pageHtml = `
+  <div class="pdf-page-box" style="background:#ffffff; border:1px solid #d3dbe3; box-shadow:0 4px 12px rgba(0,0,0,0.08); padding:35px 40px; border-radius:6px; position:relative; margin-bottom:20px;">
+    <span style="position:absolute; top:15px; right:20px; background:#e3edf5; color:#00324d; font-size:12px; font-weight:600; padding:3px 10px; border-radius:12px;">Page ${pageNum} of ${pdf.numPages}</span>
+    <div style="line-height:1.7; font-size:15px; color:#2b2b2b;">
+      <p>${pageText.trim()}</p>
+    </div>
+  </div>`;
+
+        htmlOutput += pageHtml + "\n";
+
+        // Render preview in UI
+        const pageElement = document.createElement('div');
+        pageElement.className = 'pdf-page-box';
+        pageElement.innerHTML = `
+          <span class="page-badge">Page ${pageNum} of ${pdf.numPages}</span>
+          <div class="pdf-page-content">
+            <p>${pageText.trim()}</p>
+          </div>
+        `;
+        viewer.appendChild(pageElement);
+      }
+
+      htmlOutput += `</div>`;
+      generatedFullHtml = htmlOutput;
+      document.getElementById('htmlCodeOutput').value = generatedFullHtml;
+    };
+
+    fileReader.readAsArrayBuffer(file);
+  }
+
+  function toggleCodeView() {
+    const codeContainer = document.getElementById('codeContainer');
+    codeContainer.style.display = codeContainer.style.display === 'block' ? 'none' : 'block';
+  }
+
+  function downloadHtml() {
+    if (!generatedFullHtml) {
+      alert("Please convert a PDF first before downloading.");
+      return;
+    }
+    const blob = new Blob([generatedFullHtml], { type: 'text/html' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'converted_pdf_boxes.html';
+    link.click();
+  }
+</script>
+
+</body>
+</html>
