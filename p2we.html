@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OmniConvert - Enterprise PDF Converter</title>
+
+  <!-- Tailwind CSS & Lucide Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- High-Performance PDF & Document Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen transition-colors duration-300 font-sans antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Background Decorative Gradients -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+    <div class="absolute -top-40 -right-40 w-96 h-96 bg-purple-500/10 dark:bg-purple-500/20 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-indigo-500/10 dark:bg-indigo-500/20 rounded-full blur-3xl"></div>
+  </div>
+
+  <div class="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+    
+    <!-- Top Bar Navigation -->
+    <header class="flex items-center justify-between pb-8 border-b border-slate-200 dark:border-slate-800">
+      <div class="flex items-center gap-3">
+        <div class="p-2.5 bg-gradient-to-tr from-indigo-600 to-violet-500 rounded-xl text-white shadow-lg shadow-indigo-500/30">
+          <i data-lucide="file-spreadsheets" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent">
+            OmniConvert Pro
+          </h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Client-Side PDF Conversion Engine</p>
+        </div>
+      </div>
+
+      <!-- Dark Mode Toggle Button -->
+      <button id="themeToggle" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:border-indigo-500 dark:hover:border-indigo-500 transition-all duration-200 shadow-sm hover:shadow">
+        <i id="themeIcon" data-lucide="moon" class="w-5 h-5"></i>
+      </button>
+    </header>
+
+    <main class="mt-8 space-y-6">
+
+      <!-- Target Format Selector Controls -->
+      <div class="grid grid-cols-2 gap-4">
+        <button id="btnExcel" onclick="selectFormat('excel')" class="format-btn active relative p-5 rounded-2xl border-2 border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/30 text-left transition-all duration-200 shadow-sm">
+          <div class="flex items-center justify-between mb-2">
+            <i data-lucide="sheet" class="w-7 h-7 text-emerald-600 dark:text-emerald-400"></i>
+            <span class="badge text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-600 text-white">Active</span>
+          </div>
+          <h2 class="font-bold text-slate-900 dark:text-white">Convert to Excel</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Extracts structured data, lines & tables (.xlsx)</p>
+        </button>
+
+        <button id="btnWord" onclick="selectFormat('word')" class="format-btn relative p-5 rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-left transition-all duration-200 shadow-sm opacity-70 hover:opacity-100">
+          <div class="flex items-center justify-between mb-2">
+            <i data-lucide="file-text" class="w-7 h-7 text-blue-600 dark:text-blue-400"></i>
+            <span class="badge hidden text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-600 text-white">Active</span>
+          </div>
+          <h2 class="font-bold text-slate-900 dark:text-white">Convert to Word</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Extracts paragraphs & text layouts (.docx)</p>
+        </button>
+      </div>
+
+      <!-- Drag & Drop Upload Zone -->
+      <div id="dropZone" class="relative group border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-500 rounded-3xl p-10 text-center bg-white dark:bg-slate-900 transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md">
+        <input type="file" id="fileInput" accept="application/pdf" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+        
+        <div class="flex flex-col items-center justify-center space-y-4">
+          <div class="p-4 bg-indigo-50 dark:bg-slate-800 rounded-2xl text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform duration-200">
+            <i data-lucide="upload-cloud" class="w-10 h-10"></i>
+          </div>
+          <div>
+            <p class="text-base font-semibold text-slate-800 dark:text-slate-200">
+              Drag & Drop your PDF file here, or <span class="text-indigo-600 dark:text-indigo-400 hover:underline">Browse</span>
+            </p>
+            <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Maximum performance processing directly inside your browser</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Selected File Details Card -->
+      <div id="fileCard" class="hidden p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-between shadow-sm">
+        <div class="flex items-center space-x-3 truncate">
+          <div class="p-2.5 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 rounded-xl">
+            <i data-lucide="file-type-2" class="w-6 h-6"></i>
+          </div>
+          <div class="truncate">
+            <p id="fileName" class="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">document.pdf</p>
+            <p id="fileSize" class="text-xs text-slate-400">0 KB</p>
+          </div>
+        </div>
+        <button onclick="resetFile()" class="p-2 text-slate-400 hover:text-red-500 rounded-lg transition-colors">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Progress Tracking Bar -->
+      <div id="progressContainer" class="hidden space-y-2">
+        <div class="flex justify-between text-xs font-semibold text-slate-600 dark:text-slate-300">
+          <span id="progressStatus">Parsing PDF pages...</span>
+          <span id="progressPercent">0%</span>
+        </div>
+        <div class="w-full bg-slate-200 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
+          <div id="progressBar" class="bg-gradient-to-r from-indigo-500 to-violet-500 h-full w-0 transition-all duration-150"></div>
+        </div>
+      </div>
+
+      <!-- Execution Button -->
+      <button id="convertBtn" disabled onclick="executeConversion()" class="w-full py-4 px-6 rounded-2xl font-bold text-white bg-slate-400 cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg">
+        <i data-lucide="sparkles" class="w-5 h-5"></i>
+        <span id="btnText">Convert PDF</span>
+      </button>
+
+      <!-- Security / Feature Highlights -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-200 dark:border-slate-800 text-center">
+        <div class="p-3">
+          <i data-lucide="shield-check" class="w-5 h-5 text-indigo-500 mx-auto mb-1"></i>
+          <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">100% Client-Side</p>
+          <p class="text-[11px] text-slate-400">Files never leave your browser</p>
+        </div>
+        <div class="p-3">
+          <i data-lucide="zap" class="w-5 h-5 text-indigo-500 mx-auto mb-1"></i>
+          <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">High Speed</p>
+          <p class="text-[11px] text-slate-400">Instant extraction algorithm</p>
+        </div>
+        <div class="p-3">
+          <i data-lucide="lock" class="w-5 h-5 text-indigo-500 mx-auto mb-1"></i>
+          <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">Zero Server Storage</p>
+          <p class="text-[11px] text-slate-400">Fully private and secure</p>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    // Initialize PDF.js worker
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    let currentFormat = 'excel';
+    let selectedFile = null;
+
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // Dark Mode Toggle Logic
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+
+    themeToggle.addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+      const isDark = document.documentElement.classList.contains('dark');
+      themeIcon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+      lucide.createIcons();
+    });
+
+    // Format Selection Switching
+    function selectFormat(format) {
+      currentFormat = format;
+      const btnExcel = document.getElementById('btnExcel');
+      const btnWord = document.getElementById('btnWord');
+
+      const formatBtns = [btnExcel, btnWord];
+      formatBtns.forEach(btn => {
+        btn.classList.remove('border-indigo-600', 'bg-indigo-50/50', 'dark:bg-indigo-950/30');
+        btn.classList.add('border-slate-200', 'dark:border-slate-800', 'bg-white', 'dark:bg-slate-900', 'opacity-70');
+        btn.querySelector('.badge').classList.add('hidden');
+      });
+
+      const activeBtn = format === 'excel' ? btnExcel : btnWord;
+      activeBtn.classList.add('border-indigo-600', 'bg-indigo-50/50', 'dark:bg-indigo-950/30');
+      activeBtn.classList.remove('border-slate-200', 'dark:border-slate-800', 'bg-white', 'dark:bg-slate-900', 'opacity-70');
+      activeBtn.querySelector('.badge').classList.remove('hidden');
+
+      updateConvertButtonState();
+    }
+
+    // File Drag & Drop Handlers
+    const fileInput = document.getElementById('fileInput');
+    const dropZone = document.getElementById('dropZone');
+
+    fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+    
+    ['dragenter', 'dragover'].forEach(evt => {
+      dropZone.addEventListener(evt, (e) => {
+        e.preventDefault();
+        dropZone.classList.add('border-indigo-600', 'bg-indigo-50/20');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(evt => {
+      dropZone.addEventListener(evt, (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-indigo-600', 'bg-indigo-50/20');
+      });
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+    });
+
+    function handleFile(file) {
+      if (!file || file.type !== 'application/pdf') {
+        alert('Please upload a valid PDF document.');
+        return;
+      }
+      selectedFile = file;
+      document.getElementById('fileName').textContent = file.name;
+      document.getElementById('fileSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
+      
+      document.getElementById('fileCard').classList.remove('hidden');
+      updateConvertButtonState();
+    }
+
+    function resetFile() {
+      selectedFile = null;
+      fileInput.value = '';
+      document.getElementById('fileCard').classList.add('hidden');
+      updateConvertButtonState();
+    }
+
+    function updateConvertButtonState() {
+      const btn = document.getElementById('convertBtn');
+      const btnText = document.getElementById('btnText');
+      if (selectedFile) {
+        btn.disabled = false;
+        btn.classList.remove('bg-slate-400', 'cursor-not-allowed');
+        btn.classList.add('bg-gradient-to-r', 'from-indigo-600', 'to-violet-600', 'hover:opacity-95', 'shadow-indigo-500/25', 'cursor-pointer');
+        btnText.textContent = `Convert to ${currentFormat === 'excel' ? 'Excel (.xlsx)' : 'Word (.docx)'}`;
+      } else {
+        btn.disabled = true;
+        btn.classList.add('bg-slate-400', 'cursor-not-allowed');
+        btn.classList.remove('bg-gradient-to-r', 'from-indigo-600', 'to-violet-600', 'hover:opacity-95', 'shadow-indigo-500/25', 'cursor-pointer');
+        btnText.textContent = 'Select a PDF File First';
+      }
+    }
+
+    // Core Conversion Engine
+    async function executeConversion() {
+      if (!selectedFile) return;
+
+      const progressContainer = document.getElementById('progressContainer');
+      const progressBar = document.getElementById('progressBar');
+      const progressStatus = document.getElementById('progressStatus');
+      const progressPercent = document.getElementById('progressPercent');
+      const convertBtn = document.getElementById('convertBtn');
+
+      progressContainer.classList.remove('hidden');
+      convertBtn.disabled = true;
+
+      try {
+        const arrayBuffer = await selectedFile.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        const totalPages = pdf.numPages;
+        
+        let extractedPages = [];
+
+        for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+          progressStatus.textContent = `Processing page ${pageNum} of ${totalPages}...`;
+          const percent = Math.round((pageNum / totalPages) * 70);
+          progressBar.style.width = percent + '%';
+          progressPercent.textContent = percent + '%';
+
+          const page = await pdf.getPage(pageNum);
+          const textContent = await page.getTextContent();
+          
+          // Spatial position sorting algorithm for structure preservation
+          const items = textContent.items.map(item => ({
+            text: item.str,
+            x: item.transform[4],
+            y: item.transform[5]
+          }));
+
+          // Sort by Y position descending (top to bottom), then X ascending (left to right)
+          items.sort((a, b) => Math.abs(a.y - b.y) < 5 ? a.x - b.x : b.y - a.y);
+
+          // Group lines based on vertical tolerance
+          let lines = [];
+          items.forEach(item => {
+            let line = lines.find(l => Math.abs(l.y - item.y) < 5);
+            if (line) {
+              line.items.push(item);
+            } else {
+              lines.push({ y: item.y, items: [item] });
+            }
+          });
+
+          extractedPages.push(lines);
+        }
+
+        progressStatus.textContent = 'Generating output document...';
+        progressBar.style.width = '90%';
+        progressPercent.textContent = '90%';
+
+        if (currentFormat === 'excel') {
+          await generateExcelOutput(extractedPages);
+        } else {
+          await generateWordOutput(extractedPages);
+        }
+
+        progressBar.style.width = '100%';
+        progressPercent.textContent = '100%';
+        progressStatus.textContent = 'Conversion finished successfully!';
+
+      } catch (err) {
+        console.error(err);
+        alert('An error occurred during conversion: ' + err.message);
+      } finally {
+        setTimeout(() => {
+          progressContainer.classList.add('hidden');
+          updateConvertButtonState();
+        }, 2000);
+      }
+    }
+
+    // Excel Generator (.xlsx)
+    async function generateExcelOutput(extractedPages) {
+      const workbook = XLSX.utils.book_new();
+
+      extractedPages.forEach((lines, idx) => {
+        let sheetData = lines.map(line => line.items.map(i => i.text));
+        let worksheet = XLSX.utils.aoa_to_sheet(sheetData);
+        XLSX.utils.book_append_sheet(workbook, worksheet, `Page ${idx + 1}`);
+      });
+
+      const baseName = selectedFile.name.replace(/\.[^/.]+$/, "");
+      XLSX.writeFile(workbook, `${baseName}_converted.xlsx`);
+    }
+
+    // Word Generator (.docx)
+    async function generateWordOutput(extractedPages) {
+      const { Document, Packer, Paragraph, TextRun } = docx;
+
+      let docParagraphs = [];
+
+      extractedPages.forEach((lines, idx) => {
+        docParagraphs.push(new Paragraph({
+          children: [new TextRun({ text: `--- Page ${idx + 1} ---`, bold: true, color: "6366F1" })]
+        }));
+
+        lines.forEach(line => {
+          const lineText = line.items.map(i => i.text).join(' ');
+          if (lineText.trim().length > 0) {
+            docParagraphs.push(new Paragraph({
+              children: [new TextRun(lineText)]
+            }));
+          }
+        });
+      });
+
+      const doc = new Document({
+        sections: [{ properties: {}, children: docParagraphs }]
+      });
+
+      const blob = await Packer.toBlob(doc);
+      const baseName = selectedFile.name.replace(/\.[^/.]+$/, "");
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `${baseName}_converted.docx`;
+      link.click();
+    }
+  </script>
+</body>
+</html>
