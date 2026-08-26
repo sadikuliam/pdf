@@ -241,8 +241,8 @@
       convertBtn.disabled = true;
       progressStatus.textContent = "Processing PDF on backend server...";
 
-      // আপনার Render-এর Web Service URL টি এখানে বসাবেন
-      const RENDER_BACKEND_URL = "https://shm-pdf-backend.onrender.com/convert-to-word";
+     // Render থেকে প্রাপ্ত লাইভ ব্যাকএন্ড URL
+const RENDER_BACKEND_URL = "https://shm-pdf-backend.onrender.com/convert-to-word";
 
       const formData = new FormData();
       formData.append("file", selectedFile);
