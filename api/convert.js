@@ -1,13 +1,23 @@
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
+  // CORS Headers
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
 
-  const { format } = req.body;
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const { format } = req.body || {};
   const apiKey = process.env.CLOUDCONVERT_API_KEY;
+
+  if (!apiKey) {
+    return res.status(500).json({ error: 'CLOUDCONVERT_API_KEY is missing in Vercel Environment Variables.' });
+  }
 
   try {
     const response = await fetch('https://api.cloudconvert.com/v2/jobs', {
@@ -18,11 +28,13 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         "tasks": {
-          "import-my-file": { "operation": "upload" },
+          "import-my-file": { 
+            "operation": "upload" 
+          },
           "convert-my-file": {
             "operation": "convert",
             "input": ["import-my-file"],
-            "output_format": format
+            "output_format": format || 'docx'
           },
           "export-my-file": {
             "operation": "export/url",
@@ -33,14 +45,19 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
+
+    if (!response.ok || !data.data || !data.data.tasks) {
+      return res.status(500).json({ error: data.message || 'CloudConvert API Auth Failure' });
+    }
+
     const uploadTask = data.data.tasks.find(t => t.name === 'import-my-file');
 
-    res.status(200).json({
+    return res.status(200).json({
       uploadUrl: uploadTask.result.form.url,
       uploadParams: uploadTask.result.form.parameters,
       jobId: data.data.id
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
-}
+};
