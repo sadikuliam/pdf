@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF Splitter (2 Pages per Part)</title>
+    <title>PDF Splitter</title>
     <!-- pdf-lib Library -->
     <script src="https://unpkg.com/pdf-lib@1.17.1"></script>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
@@ -132,6 +132,39 @@
             word-break: break-all;
         }
 
+        /* Options Selector Layout */
+        .option-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .option-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 6px;
+        }
+
+        .select-input {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #1E293B;
+            background: #F8FAFC;
+            border: 2px solid #CBD5E1;
+            border-radius: 12px;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .select-input:focus, .select-input:hover {
+            border-color: var(--primary);
+            background: #EEF2FF;
+        }
+
         /* Action Buttons */
         .btn {
             background: linear-gradient(135deg, var(--primary), var(--violet));
@@ -203,8 +236,8 @@
                 Home
             </a>
             <div class="header-text">
-                <h2>PDF ২ পৃষ্ঠা করে ভাগ করুন</h2>
-                <p>আপনার PDF ফাইল আপলোড করুন। ভাগ হওয়ার পর নিচে আলাদা ডাউনলোড বাটন পেয়ে যাবেন।</p>
+                <h2>PDF Splitter</h2>
+                <p>আপনার PDF ফাইল আপলোড করুন এবং কত পৃষ্ঠা করে ভাগ করতে চান তা নির্বাচন করুন।</p>
             </div>
         </div>
 
@@ -217,6 +250,16 @@
             </div>
         </label>
         <input type="file" id="pdfInput" accept="application/pdf" />
+
+        <!-- Split Option Selection -->
+        <div class="option-group">
+            <label for="splitOption">ভাগ করার ধরন নির্বাচন করুন:</label>
+            <select id="splitOption" class="select-input">
+                <option value="1">১ পৃষ্ঠা করে (1 Page per file)</option>
+                <option value="2" selected>২ পৃষ্ঠা করে (2 Pages per file)</option>
+                <option value="3">৩ পৃষ্ঠা করে (3 Pages per file)</option>
+            </select>
+        </div>
 
         <button class="btn" onclick="splitPDF()">PDF ভাগ করুন</button>
         <p id="status"></p>
@@ -241,6 +284,7 @@
         async function splitPDF() {
             const statusText = document.getElementById('status');
             const downloadArea = document.getElementById('downloadArea');
+            const pagesPerChunk = parseInt(document.getElementById('splitOption').value, 10);
 
             if (pdfInput.files.length === 0) {
                 alert("দয়া করে আগে একটি PDF ফাইল নির্বাচন করুন।");
@@ -251,7 +295,7 @@
             const arrayBuffer = await file.arrayBuffer();
             statusText.innerText = "প্রসেস হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন... ⏳";
             
-            // আগের ডাউনলোড বাটনগুলো মুছে ফেলা
+            // Clear previous download links
             downloadArea.innerHTML = "";
 
             try {
@@ -259,25 +303,25 @@
                 const originalPdf = await PDFDocument.load(arrayBuffer);
                 const totalPages = originalPdf.getPageCount();
 
-                for (let i = 0; i < totalPages; i += 2) {
+                for (let i = 0; i < totalPages; i += pagesPerChunk) {
                     const newPdf = await PDFDocument.create();
 
-                    // প্রথম পৃষ্ঠা
-                    const [page1] = await newPdf.copyPages(originalPdf, [i]);
-                    newPdf.addPage(page1);
-
-                    // দ্বিতীয় পৃষ্ঠা (যদি থাকে)
-                    if (i + 1 < totalPages) {
-                        const [page2] = await newPdf.copyPages(originalPdf, [i + 1]);
-                        newPdf.addPage(page2);
+                    // Collect page indices dynamically based on selected option
+                    const pageIndices = [];
+                    for (let j = 0; j < pagesPerChunk && (i + j) < totalPages; j++) {
+                        pageIndices.push(i + j);
                     }
 
-                    // PDF তৈরি এবং ডাউনলোড লিঙ্ক (বাটন) জেনারেট করা
+                    // Copy and add the pages to new PDF
+                    const copiedPages = await newPdf.copyPages(originalPdf, pageIndices);
+                    copiedPages.forEach(page => newPdf.addPage(page));
+
+                    // Generate file blob and download URL
                     const pdfBytes = await newPdf.save();
                     const blob = new Blob([pdfBytes], { type: "application/pdf" });
                     const url = URL.createObjectURL(blob);
                     
-                    const partNumber = (i / 2) + 1;
+                    const partNumber = Math.floor(i / pagesPerChunk) + 1;
                     
                     const link = document.createElement('a');
                     link.href = url;
@@ -285,7 +329,7 @@
                     link.innerHTML = `⬇ Part ${partNumber} ডাউনলোড`;
                     link.className = 'download-btn';
                     
-                    // পেজে বাটনটি দেখানো
+                    // Render download button
                     downloadArea.appendChild(link);
                 }
 
