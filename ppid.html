@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Photo Print Maker | Passport, Stamp, Joint & ID Card</title>
+    <title>Pro Photo Print Maker | Mixed Layout Support</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -50,16 +50,25 @@
             overflow: hidden;
         }
 
-        /* Controls Toolbar */
+        /* Top Toolbar */
         .toolbar {
             background-color: #ffffff;
             padding: 15px 20px;
             display: flex;
             flex-wrap: wrap;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
             gap: 15px;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .toolbar-title {
+            color: #1f2937;
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         select {
@@ -69,11 +78,11 @@
             font-size: 0.9rem;
             outline: none;
             cursor: pointer;
-            font-weight: 500;
+            font-weight: 600;
             color: #1f2937;
         }
 
-        /* Dynamic Panel for Multi-Person */
+        /* Dynamic Panel for Persons */
         .person-panel {
             background-color: #f3f4f6;
             padding: 15px 20px;
@@ -86,7 +95,7 @@
         .person-row {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 12px;
             background: #ffffff;
             padding: 10px 15px;
             border-radius: 8px;
@@ -95,15 +104,23 @@
         }
 
         .person-label {
-            font-weight: 600;
+            font-weight: 700;
             color: #111827;
-            min-width: 80px;
+            background: #e5e7eb;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .person-size-select {
+            flex-grow: 1;
+            min-width: 180px;
         }
 
         .upload-btn {
             background-color: var(--primary);
             color: white;
-            padding: 8px 16px;
+            padding: 8px 14px;
             border-radius: 6px;
             font-size: 0.85rem;
             font-weight: 600;
@@ -121,23 +138,13 @@
         input[type="file"] { display: none; }
 
         /* Quantity Counter */
-        .qty-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-left: auto;
-        }
-        .qty-wrapper span {
-            font-size: 0.85rem;
-            color: #4b5563;
-            font-weight: 600;
-        }
         .qty-control {
             display: flex;
             align-items: center;
             border: 1px solid #d1d5db;
             border-radius: 6px;
             overflow: hidden;
+            background: #fff;
         }
         .qty-btn {
             background: #f3f4f6;
@@ -149,7 +156,7 @@
         }
         .qty-btn:hover { background: #e5e7eb; }
         .qty-input {
-            width: 40px;
+            width: 35px;
             text-align: center;
             border: none;
             border-left: 1px solid #d1d5db;
@@ -164,13 +171,14 @@
             background-color: var(--danger);
             color: white;
             border: none;
-            width: 32px;
-            height: 32px;
-            border-radius: 4px;
+            width: 34px;
+            height: 34px;
+            border-radius: 6px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
+            margin-left: auto;
         }
         .btn-remove:hover { background-color: #dc2626; }
 
@@ -178,7 +186,7 @@
             background-color: #374151;
             color: white;
             border: none;
-            padding: 8px 15px;
+            padding: 10px 15px;
             border-radius: 6px;
             font-weight: 600;
             cursor: pointer;
@@ -186,10 +194,11 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            margin-top: 5px;
         }
         .add-person-btn:hover { background-color: #1f2937; }
 
-        /* Preview Workspace */
+        /* Workspace Preview */
         .workspace {
             padding: 30px;
             display: flex;
@@ -244,10 +253,8 @@
         .btn-print:hover { background-color: #059669; }
 
         @media (max-width: 768px) {
-            .toolbar { flex-direction: column; align-items: stretch; }
-            select { width: 100%; }
             .person-row { flex-direction: column; align-items: stretch; }
-            .qty-wrapper { margin-left: 0; justify-content: space-between; }
+            .btn-remove { margin-left: 0; width: 100%; }
         }
     </style>
 </head>
@@ -255,18 +262,11 @@
 
     <div class="tool-container">
         <div class="toolbar">
+            <div class="toolbar-title"><i class="fa-solid fa-users-viewfinder"></i> Mixed Print Pro</div>
             <select id="paper-size" onchange="drawLayout()">
                 <option value="A4">Paper: A4 Sheet</option>
                 <option value="Letter">Paper: US Letter</option>
                 <option value="4x6">Paper: 4x6 Inch</option>
-            </select>
-
-            <select id="photo-size" onchange="handleFormatChange()">
-                <option value="passport_in">Format: Passport (3.5x4.5 cm)</option>
-                <option value="stamp_in">Format: Stamp (2x2.5 cm)</option>
-                <option value="joint_in">Format: Joint Photo (4.83x4.06 cm)</option>
-                <option value="visa_us">Format: Passport/Visa (2x2 Inch)</option>
-                <option value="id_card_in">Format: ID Card F+B (8.5x5.4 cm)</option>
             </select>
         </div>
 
@@ -274,7 +274,7 @@
             <div id="persons-container">
                 </div>
             <button class="add-person-btn" onclick="addPersonRow()">
-                <i class="fa-solid fa-plus"></i> Add Person
+                <i class="fa-solid fa-user-plus"></i> Add Person
             </button>
         </div>
 
@@ -293,11 +293,9 @@
     <script>
         const canvas = document.getElementById('main-canvas');
         const ctx = canvas.getContext('2d');
-        const sizeSelect = document.getElementById('photo-size');
         const paperSelect = document.getElementById('paper-size');
         const previewWrapper = document.getElementById('preview-wrapper');
         
-        // Universal Persons Array
         let persons = [];
 
         const MM_TO_PX = 11.811; 
@@ -309,7 +307,7 @@
             '4x6': { w: 1200, h: 1800, jsPdfFormat: [101.6, 152.4] }
         };
 
-        // Photo Definitions (Width & Height in mm)
+        // Photo Definitions
         const photoDimensions = {
             'passport_in': { w: 35, h: 45 },
             'stamp_in': { w: 20, h: 25 },
@@ -318,32 +316,21 @@
             'visa_us': { w: 51, h: 51 }
         };
 
-        // Init
-        initPanel();
+        // Initialize
+        addPersonRow();
         setCanvasSize();
 
-        function initPanel() {
-            persons = [];
-            addPersonRow();
-        }
-
         function addPersonRow() {
-            const format = sizeSelect.value;
-            
-            // Limit to 5 persons for ID Card, 15 for others
-            if (format === 'id_card_in' && persons.length >= 5) {
-                alert("Maximum 5 persons allowed for ID Cards on A4.");
-                return;
-            }
             if (persons.length >= 15) {
-                alert("Maximum person limit reached.");
+                alert("Maximum 15 persons allowed at once.");
                 return;
             }
             
             persons.push({
-                photo: new Image(), photoLoaded: false, qty: 8, // Standard Photos
-                frontImg: new Image(), frontLoaded: false,      // ID Card Front
-                backImg: new Image(), backLoaded: false         // ID Card Back
+                size: 'passport_in',  // Default size
+                qty: 8,
+                img1: new Image(), loaded1: false,
+                img2: new Image(), loaded2: false
             });
 
             renderRows();
@@ -351,8 +338,14 @@
 
         function removePerson(index) {
             persons.splice(index, 1);
-            if(persons.length === 0) addPersonRow(); // Keep at least 1
+            if(persons.length === 0) addPersonRow(); 
             else renderRows();
+            drawLayout();
+        }
+
+        function changePersonSize(index, newSize) {
+            persons[index].size = newSize;
+            renderRows();
             drawLayout();
         }
 
@@ -361,84 +354,27 @@
             let newVal = current + change;
             if (newVal >= 1 && newVal <= 50) {
                 persons[index].qty = newVal;
-                renderRows(); // update UI number
-                drawLayout(); // update canvas
+                renderRows(); 
+                drawLayout(); 
             }
         }
 
-        function renderRows() {
-            const container = document.getElementById('persons-container');
-            const format = sizeSelect.value;
-            container.innerHTML = '';
-
-            persons.forEach((p, index) => {
-                const row = document.createElement('div');
-                row.className = 'person-row';
-                
-                if (format === 'id_card_in') {
-                    // --- ID CARD UI ---
-                    const fText = p.frontLoaded ? 'Front ✓' : 'Upload Front';
-                    const bText = p.backLoaded ? 'Back ✓' : 'Upload Back';
-
-                    row.innerHTML = `
-                        <div class="person-label">Person ${index + 1}:</div>
-                        <label class="upload-btn">
-                            <i class="fa-solid fa-id-card"></i> ${fText}
-                            <input type="file" accept="image/*" onchange="handleUpload(event, ${index}, 'front')">
-                        </label>
-                        <label class="upload-btn upload-btn-secondary">
-                            <i class="fa-solid fa-address-card"></i> ${bText}
-                            <input type="file" accept="image/*" onchange="handleUpload(event, ${index}, 'back')">
-                        </label>
-                        ${persons.length > 1 ? `<button class="btn-remove" onclick="removePerson(${index})" style="margin-left:auto;"><i class="fa-solid fa-trash"></i></button>` : ''}
-                    `;
-                } else {
-                    // --- STANDARD PHOTO UI (Passport, Stamp, etc.) ---
-                    const pText = p.photoLoaded ? 'Photo ✓' : 'Upload Photo';
-
-                    row.innerHTML = `
-                        <div class="person-label">Person ${index + 1}:</div>
-                        <label class="upload-btn">
-                            <i class="fa-solid fa-user"></i> ${pText}
-                            <input type="file" accept="image/*" onchange="handleUpload(event, ${index}, 'photo')">
-                        </label>
-                        <div class="qty-wrapper">
-                            <span>Copies:</span>
-                            <div class="qty-control">
-                                <button class="qty-btn" onclick="updatePersonQty(${index}, -1)">-</button>
-                                <input type="text" class="qty-input" value="${p.qty}" readonly>
-                                <button class="qty-btn" onclick="updatePersonQty(${index}, 1)">+</button>
-                            </div>
-                        </div>
-                        ${persons.length > 1 ? `<button class="btn-remove" onclick="removePerson(${index})"><i class="fa-solid fa-trash"></i></button>` : '<div style="width:32px"></div>'}
-                    `;
-                }
-                container.appendChild(row);
-            });
-        }
-
-        function handleUpload(event, index, type) {
+        function handleUpload(event, index, imgNum) {
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const dataUrl = e.target.result;
-                    if (type === 'photo') {
-                        persons[index].photo.src = dataUrl;
-                        persons[index].photo.onload = () => {
-                            persons[index].photoLoaded = true;
+                    if (imgNum === 1) {
+                        persons[index].img1.src = dataUrl;
+                        persons[index].img1.onload = () => {
+                            persons[index].loaded1 = true;
                             renderRows(); drawLayout();
                         }
-                    } else if (type === 'front') {
-                        persons[index].frontImg.src = dataUrl;
-                        persons[index].frontImg.onload = () => {
-                            persons[index].frontLoaded = true;
-                            renderRows(); drawLayout();
-                        }
-                    } else if (type === 'back') {
-                        persons[index].backImg.src = dataUrl;
-                        persons[index].backImg.onload = () => {
-                            persons[index].backLoaded = true;
+                    } else {
+                        persons[index].img2.src = dataUrl;
+                        persons[index].img2.onload = () => {
+                            persons[index].loaded2 = true;
                             renderRows(); drawLayout();
                         }
                     }
@@ -447,10 +383,64 @@
             }
         }
 
-        function handleFormatChange() {
-            // When format changes, reset the panel to clear incompatible images
-            initPanel();
-            drawLayout();
+        function renderRows() {
+            const container = document.getElementById('persons-container');
+            container.innerHTML = '';
+
+            persons.forEach((p, index) => {
+                const row = document.createElement('div');
+                row.className = 'person-row';
+                
+                let sizeOptions = `
+                    <select class="person-size-select" onchange="changePersonSize(${index}, this.value)">
+                        <option value="passport_in" ${p.size === 'passport_in' ? 'selected' : ''}>Passport (3.5x4.5 cm)</option>
+                        <option value="stamp_in" ${p.size === 'stamp_in' ? 'selected' : ''}>Stamp (2x2.5 cm)</option>
+                        <option value="joint_in" ${p.size === 'joint_in' ? 'selected' : ''}>Joint Photo (4.8x4.0 cm)</option>
+                        <option value="id_card_in" ${p.size === 'id_card_in' ? 'selected' : ''}>ID Card (F+B) (8.5x5.4 cm)</option>
+                        <option value="visa_us" ${p.size === 'visa_us' ? 'selected' : ''}>Visa (2x2 Inch)</option>
+                    </select>
+                `;
+
+                let uploadControls = '';
+                
+                if (p.size === 'id_card_in') {
+                    uploadControls = `
+                        <label class="upload-btn">
+                            <i class="fa-solid fa-id-card"></i> ${p.loaded1 ? 'Front ✓' : 'Front'}
+                            <input type="file" accept="image/*" onchange="handleUpload(event, ${index}, 1)">
+                        </label>
+                        <label class="upload-btn upload-btn-secondary">
+                            <i class="fa-solid fa-address-card"></i> ${p.loaded2 ? 'Back ✓' : 'Back'}
+                            <input type="file" accept="image/*" onchange="handleUpload(event, ${index}, 2)">
+                        </label>
+                        <div class="qty-control">
+                            <button class="qty-btn" onclick="updatePersonQty(${index}, -1)">-</button>
+                            <input type="text" class="qty-input" value="${p.qty}" readonly>
+                            <button class="qty-btn" onclick="updatePersonQty(${index}, 1)">+</button>
+                        </div>
+                    `;
+                } else {
+                    uploadControls = `
+                        <label class="upload-btn">
+                            <i class="fa-solid fa-image"></i> ${p.loaded1 ? 'Photo ✓' : 'Upload'}
+                            <input type="file" accept="image/*" onchange="handleUpload(event, ${index}, 1)">
+                        </label>
+                        <div class="qty-control">
+                            <button class="qty-btn" onclick="updatePersonQty(${index}, -1)">-</button>
+                            <input type="text" class="qty-input" value="${p.qty}" readonly>
+                            <button class="qty-btn" onclick="updatePersonQty(${index}, 1)">+</button>
+                        </div>
+                    `;
+                }
+
+                row.innerHTML = `
+                    <div class="person-label">P-${index + 1}</div>
+                    ${sizeOptions}
+                    ${uploadControls}
+                    <button class="btn-remove" onclick="removePerson(${index})" title="Remove"><i class="fa-solid fa-trash"></i></button>
+                `;
+                container.appendChild(row);
+            });
         }
 
         function setCanvasSize() {
@@ -463,84 +453,84 @@
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
 
-        // ------------------ Core Layout Engine ------------------ //
+        // ------------------ Smart Mixed Layout Engine ------------------ //
         function drawLayout() {
             setCanvasSize();
 
-            const format = sizeSelect.value;
-            const photoW_mm = photoDimensions[format].w;
-            const photoH_mm = photoDimensions[format].h;
-            const pW = photoW_mm * MM_TO_PX;
-            const pH = photoH_mm * MM_TO_PX;
+            const minMargin = 5 * MM_TO_PX; 
+            const gapX = 3 * MM_TO_PX;   
+            const gapY = 3 * MM_TO_PX;   
 
-            if (format === 'id_card_in') {
-                // --- ID CARD LOGIC ---
-                const gapX = 3 * MM_TO_PX;   
-                const gapY = 3 * MM_TO_PX; 
-                const startY = 8 * MM_TO_PX; 
+            let startX = minMargin;
+            let currentX = startX;
+            let currentY = minMargin + (3 * MM_TO_PX); 
+            
+            let rowHeight = 0;
+            let lastSize = null;
 
-                const rowWidth = (pW * 2) + gapX;
-                const startX = (canvas.width - rowWidth) / 2;
+            persons.forEach(p => {
+                if (!p.loaded1 && p.size !== 'id_card_in') return; // Skip if no photo uploaded
+                if (p.size === 'id_card_in' && !p.loaded1 && !p.loaded2) return; 
 
-                let row = 0;
-                persons.forEach(p => {
-                    let y = startY + (row * (pH + gapY));
-                    if (y + pH <= canvas.height) {
-                        if (p.frontLoaded) {
-                            ctx.drawImage(p.frontImg, startX, y, pW, pH);
-                            ctx.strokeStyle = "#000000"; ctx.lineWidth = 2; 
-                            ctx.strokeRect(startX, y, pW, pH);
-                        }
-                        if (p.backLoaded) {
-                            ctx.drawImage(p.backImg, startX + pW + gapX, y, pW, pH);
-                            ctx.strokeStyle = "#000000"; ctx.lineWidth = 2; 
-                            ctx.strokeRect(startX + pW + gapX, y, pW, pH);
-                        }
+                const pW = photoDimensions[p.size].w * MM_TO_PX;
+                const pH = photoDimensions[p.size].h * MM_TO_PX;
+
+                for (let i = 0; i < p.qty; i++) {
+                    
+                    // SMART LINE BREAK: Force new row if photo format changes
+                    if (lastSize !== null && lastSize !== p.size) {
+                        currentX = startX;
+                        currentY += rowHeight + gapY;
+                        rowHeight = pH;
                     }
-                    row++;
-                });
 
-            } else {
-                // --- MULTI-PERSON STANDARD PHOTO LOGIC ---
-                const minMargin = 4 * MM_TO_PX; 
-                const gapX = 2.5 * MM_TO_PX;   
-                const gapY = 2.5 * MM_TO_PX;   
+                    if (p.size === 'id_card_in') {
+                        let neededWidth = (pW * 2) + gapX;
 
-                const usableWidth = canvas.width - (minMargin * 2);
-                const cols = Math.floor((usableWidth + gapX) / (pW + gapX));
-
-                const totalContentWidth = (cols * pW) + ((cols - 1) * gapX);
-                const startX = Math.max(minMargin, (canvas.width - totalContentWidth) / 2);
-                const startY = minMargin + (2 * MM_TO_PX); 
-
-                let col = 0;
-                let row = 0;
-
-                persons.forEach(p => {
-                    if (p.photoLoaded) {
-                        for (let i = 0; i < p.qty; i++) {
-                            let x = startX + (col * (pW + gapX));
-                            let y = startY + (row * (pH + gapY));
-
-                            // Stop if page is full
-                            if (y + pH > canvas.height - minMargin) return;
-
-                            ctx.drawImage(p.photo, x, y, pW, pH);
-                            ctx.strokeStyle = "#000000"; ctx.lineWidth = 2; 
-                            ctx.strokeRect(x, y, pW, pH);
-
-                            col++;
-                            if (col >= cols) {
-                                col = 0;
-                                row++;
-                            }
+                        // Check if row exceeds width
+                        if (currentX + neededWidth > canvas.width - minMargin) {
+                            currentX = startX;
+                            currentY += rowHeight + gapY;
                         }
+                        
+                        // Check if page full
+                        if (currentY + pH > canvas.height - minMargin) return;
+
+                        if (p.loaded1) {
+                            ctx.drawImage(p.img1, currentX, currentY, pW, pH);
+                            ctx.strokeStyle = "#000000"; ctx.lineWidth = 2; ctx.strokeRect(currentX, currentY, pW, pH);
+                        }
+                        if (p.loaded2) {
+                            ctx.drawImage(p.img2, currentX + pW + gapX, currentY, pW, pH);
+                            ctx.strokeStyle = "#000000"; ctx.lineWidth = 2; ctx.strokeRect(currentX + pW + gapX, currentY, pW, pH);
+                        }
+                        
+                        currentX += neededWidth + gapX;
+                        rowHeight = pH;
+                        lastSize = p.size;
+                    } 
+                    else {
+                        // Regular Photos
+                        if (currentX + pW > canvas.width - minMargin) {
+                            currentX = startX;
+                            currentY += rowHeight + gapY;
+                        }
+
+                        if (currentY + pH > canvas.height - minMargin) return;
+
+                        if (p.loaded1) {
+                            ctx.drawImage(p.img1, currentX, currentY, pW, pH);
+                            ctx.strokeStyle = "#000000"; ctx.lineWidth = 2; ctx.strokeRect(currentX, currentY, pW, pH);
+                        }
+                        
+                        currentX += pW + gapX;
+                        rowHeight = pH;
+                        lastSize = p.size;
                     }
-                });
-            }
+                }
+            });
         }
 
-        // Output Functions
         function downloadPDF() {
             const paperData = paperDimensions[paperSelect.value];
             const imgData = canvas.toDataURL('image/jpeg', 0.95);
