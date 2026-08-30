@@ -91,10 +91,6 @@
         .logo:hover { 
             transform: scale(1.05) rotate(-2deg); 
         }
-
-        @media (max-width: 768px) {
-            .logo { height: 160px; } 
-        }
         
         .title { 
             font-size: 3.5rem; 
@@ -106,17 +102,18 @@
             letter-spacing: -1px; 
         }
 
+        /* ===== Update: 5 Buttons Per Line on Desktop ===== */
         .tools-grid { 
             display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); 
-            gap: 1.5rem; 
+            grid-template-columns: repeat(5, 1fr); 
+            gap: 1.2rem; 
         }
         
         .tool-card { 
             background: rgba(255, 255, 255, 0.6); 
             border: 1px solid rgba(255, 255, 255, 0.8); 
             border-radius: 20px; 
-            padding: 2rem 1.5rem; 
+            padding: 1.8rem 1rem; 
             text-decoration: none; 
             color: var(--text-main); 
             display: flex; 
@@ -157,9 +154,10 @@
         }
 
         .tool-card span { 
-            font-size: 1.15rem; 
+            font-size: 1.05rem; 
             font-weight: 700; 
             z-index: 2; 
+            line-height: 1.2;
         }
 
         .tool-card::before { 
@@ -246,14 +244,14 @@
             position: relative; 
         }
 
-        /* ===== Updated Premium Modal Styles (Like 1st Option in Video) ===== */
+        /* ===== Modal Styles ===== */
         .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.7); /* প্রথম অপশনের মতো সলিড ডার্ক ট্রান্সপারেন্ট ওভারলে (কোনো ব্লার নেই) */
+            background: rgba(0, 0, 0, 0.7);
             z-index: 2000;
             display: flex;
             justify-content: center;
@@ -268,12 +266,11 @@
             visibility: visible;
         }
 
-        /* Wrapper for positioning the floating close button */
         .modal-container-wrapper {
             position: relative;
             width: 95%;
-            max-width: 1250px; /* প্রথম অপশনের মতো অনেক চওড়া */
-            height: 94vh; /* প্রথম অপশনের মতো অনেক লম্বা */
+            max-width: 1250px;
+            height: 94vh;
             transform: scale(0.95);
             transition: transform 0.3s ease;
         }
@@ -282,19 +279,17 @@
             transform: scale(1);
         }
 
-        /* Main window holding the iframe */
         .modal-container {
             width: 100%;
             height: 100%;
             background: #ffffff;
-            border-radius: 12px; /* প্রথম অপশনের মতো হালকা রাউন্ডেড বর্ডার */
+            border-radius: 12px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
             overflow: hidden; 
             display: flex;
             flex-direction: column;
         }
 
-        /* Floating Close Button Style (Matched with 1st Option) */
         .close-modal-btn {
             position: absolute;
             top: -15px;
@@ -303,7 +298,7 @@
             background: #ff3b30; 
             color: white;
             border: 2px solid #ffffff; 
-            width: 36px; /* প্রথম অপশনের মতো ছিমছাম সাইজ */
+            width: 36px; 
             height: 36px;
             border-radius: 50%;
             font-size: 22px;
@@ -359,19 +354,51 @@
         .install-btn { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border: none; padding: 8px 16px; border-radius: 10px; font-family: 'Outfit', sans-serif; font-weight: 700; cursor: pointer; }
         .close-install { background: transparent; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
 
+        /* ===== Mobile Responsive Update: 3 Buttons Per Line ===== */
         @media (max-width: 768px) {
             body { padding: 1rem; }
             .app-container { padding: 1.5rem 1rem; border-radius: 24px; }
             .header { margin-bottom: 2rem; }
             .title { font-size: 2.2rem; }
             .logo { height: 120px; } 
-            .tools-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-            .tool-card { padding: 1.2rem 0.5rem; }
+            
+            /* Grid adjustments for mobile - 3 columns */
+            .tools-grid { 
+                grid-template-columns: repeat(3, 1fr); 
+                gap: 0.6rem; 
+            }
+            .tool-card { 
+                padding: 1rem 0.4rem; 
+                border-radius: 14px;
+            }
+            .icon-box {
+                width: 42px;
+                height: 42px;
+                border-radius: 12px;
+                margin-bottom: 0.8rem;
+            }
+            .icon-box svg {
+                width: 20px;
+                height: 20px;
+            }
+            .tool-card span {
+                font-size: 0.8rem; /* Smaller text so 3 items fit perfectly */
+            }
+            
             .footer { flex-direction: column; text-align: center; }
-            /* Mobile adjustments for Modal */
+            
+            /* Modal adjustments */
             .modal-container-wrapper { width: 98%; height: 96vh; }
             .close-modal-btn { top: -10px; right: -5px; width: 32px; height: 32px; font-size: 18px; }
             .modal-container { border-radius: 8px; }
+        }
+
+        /* Extra small devices (like iPhone SE) */
+        @media (max-width: 380px) {
+            .tool-card span { font-size: 0.75rem; }
+            .icon-box { width: 38px; height: 38px; }
+            .icon-box svg { width: 18px; height: 18px; }
+            .tools-grid { gap: 0.4rem; }
         }
     </style>
 </head>
@@ -417,6 +444,18 @@
                 <div class="icon-box"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/></svg></div>
                 <span>Split 2x2 Page</span>
             </a>
+           <a href="id.html" class="tool-card">
+    <div class="icon-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="5" width="20" height="14" rx="2"/>
+            <circle cx="9" cy="11" r="2"/>
+            <path d="M6.17 15a3 3 0 0 1 5.66 0"/>
+            <path d="M15 10h4"/>
+            <path d="M15 14h4"/>
+        </svg>
+    </div>
+    <span>ID Card Scanner</span>
+</a>
             
             <a href="2in1pdf.html" class="tool-card">
                 <div class="icon-box"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div>
