@@ -5,11 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pro Photo Print Maker | Passport, Stamp, Joint & ID Card</title>
     
-    <!-- Google Fonts & FontAwesome -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
-    <!-- jsPDF Library for PDF Generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
@@ -251,16 +249,13 @@
 <body>
 
     <div class="tool-container">
-        <!-- Main Toolbar -->
         <div class="toolbar">
             
-            <!-- Default Normal Upload Button (Hidden in ID Mode) -->
             <label class="upload-btn" id="normal-upload-btn">
                 <i class="fa-solid fa-cloud-arrow-up"></i> Upload Photo
                 <input type="file" id="image-upload-normal" accept="image/*">
             </label>
 
-            <!-- Paper Size Options -->
             <div class="control-group">
                 <select id="paper-size" onchange="drawLayout()">
                     <option value="A4">A4 Sheet</option>
@@ -269,7 +264,6 @@
                 </select>
             </div>
 
-            <!-- Photo Size Options -->
             <div class="control-group">
                 <select id="photo-size" onchange="handleFormatChange()">
                     <option value="passport_in">Passport (India) 3.5x4.5 cm</option>
@@ -280,7 +274,6 @@
                 </select>
             </div>
 
-            <!-- Quantity Options (Hidden in ID Mode) -->
             <div class="control-group" id="normal-qty-control">
                 <div class="qty-control">
                     <button class="qty-btn" onclick="updateQty(-1)">-</button>
@@ -290,24 +283,20 @@
             </div>
         </div>
 
-        <!-- ID Card Dynamic Panel -->
         <div class="id-panel" id="id-panel">
             <div id="id-persons-container">
-                <!-- Person rows will be added here by JS -->
-            </div>
+                </div>
             <button class="add-person-btn" id="add-person-btn" onclick="addPersonRow()">
                 <i class="fa-solid fa-plus"></i> Add Person (Max 5)
             </button>
         </div>
 
-        <!-- Workspace Preview -->
         <div class="workspace">
             <div class="paper-preview-wrapper" id="preview-wrapper">
                 <canvas id="main-canvas"></canvas>
             </div>
         </div>
 
-        <!-- Bottom Actions -->
         <div class="actions-bar">
             <button class="action-btn btn-pdf" onclick="downloadPDF()"><i class="fa-solid fa-file-pdf"></i> Download PDF</button>
             <button class="action-btn btn-print" onclick="printPage()"><i class="fa-solid fa-print"></i> Direct Print</button>
@@ -507,28 +496,22 @@
             // Draw ID Card Format
             if (format === 'id_card_in') {
                 const gapX = 3 * MM_TO_PX;   
-                
-                // গ্যাপ এবং মার্জিন কমানো হয়েছে যাতে ৫ জনের কার্ড অনায়াসে ধরে
-                const gapY = 3 * MM_TO_PX; // 3mm vertical gap
-                const startY = 8 * MM_TO_PX; // 8mm top margin
+                const gapY = 3 * MM_TO_PX; 
+                const startY = 8 * MM_TO_PX; // 8mm top margin for ID Cards
 
-                // Width of Front + Gap + Back
                 const rowWidth = (pW * 2) + gapX;
                 const startX = (canvas.width - rowWidth) / 2;
 
                 idCards.forEach((person, index) => {
                     let y = startY + (index * (pH + gapY));
 
-                    // Check if it fits on paper
                     if (y + pH <= canvas.height) {
-                        // Draw Front
                         if (person.frontLoaded) {
                             ctx.drawImage(person.frontImg, startX, y, pW, pH);
                             ctx.strokeStyle = "#000000";
                             ctx.lineWidth = 2; 
                             ctx.strokeRect(startX, y, pW, pH);
                         }
-                        // Draw Back
                         if (person.backLoaded) {
                             ctx.drawImage(person.backImg, startX + pW + gapX, y, pW, pH);
                             ctx.strokeStyle = "#000000";
@@ -544,16 +527,19 @@
                 if (!normalImageLoaded) return;
                 const qty = parseInt(qtyInput.value);
 
-                const minMargin = 5 * MM_TO_PX; 
-                const gapX = 3 * MM_TO_PX;   
-                const gapY = 3 * MM_TO_PX;   
+                // Margin & Gap adjustments for perfectly fitting the bottom row
+                const minMargin = 4 * MM_TO_PX; // Margin reduced to 4mm
+                const gapX = 2.5 * MM_TO_PX;   // X gap 2.5mm
+                const gapY = 2.5 * MM_TO_PX;   // Y gap 2.5mm
 
                 const usableWidth = canvas.width - (minMargin * 2);
                 const cols = Math.floor((usableWidth + gapX) / (pW + gapX));
 
                 const totalContentWidth = (cols * pW) + ((cols - 1) * gapX);
                 const startX = Math.max(minMargin, (canvas.width - totalContentWidth) / 2);
-                const startY = minMargin + (5 * MM_TO_PX); 
+                
+                // Reduced top start margin so bottom row gets enough space
+                const startY = minMargin + (2 * MM_TO_PX); 
 
                 for (let i = 0; i < qty; i++) {
                     let row = Math.floor(i / cols);
@@ -562,6 +548,7 @@
                     let x = startX + (col * (pW + gapX));
                     let y = startY + (row * (pH + gapY));
 
+                    // Stop drawing if it overflows the paper boundary
                     if (y + pH > canvas.height - minMargin) break;
 
                     ctx.drawImage(normalImage, x, y, pW, pH);
