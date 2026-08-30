@@ -246,23 +246,21 @@
             position: relative; 
         }
 
-        /* ===== New Premium Modal Styles ===== */
+        /* ===== Updated Premium Modal Styles (Like 1st Option in Video) ===== */
         .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(15, 23, 42, 0.6); /* চমৎকার ডার্ক ব্লার ব্যাকগ্রাউন্ড */
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: rgba(0, 0, 0, 0.7); /* প্রথম অপশনের মতো সলিড ডার্ক ট্রান্সপারেন্ট ওভারলে (কোনো ব্লার নেই) */
             z-index: 2000;
             display: flex;
             justify-content: center;
             align-items: center;
             opacity: 0;
             visibility: hidden;
-            transition: opacity 0.4s ease, visibility 0.4s ease;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
         }
 
         .modal-overlay.active {
@@ -274,10 +272,10 @@
         .modal-container-wrapper {
             position: relative;
             width: 95%;
-            max-width: 1050px; /* বেশ চওড়া ও সুন্দর Width */
-            height: 85vh; /* পারফেক্ট Height */
-            transform: scale(0.9);
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-width: 1250px; /* প্রথম অপশনের মতো অনেক চওড়া */
+            height: 94vh; /* প্রথম অপশনের মতো অনেক লম্বা */
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
         }
 
         .modal-overlay.active .modal-container-wrapper {
@@ -289,40 +287,39 @@
             width: 100%;
             height: 100%;
             background: #ffffff;
-            border-radius: 20px; /* চমৎকার রাউন্ডেড বর্ডার */
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            overflow: hidden; /* ভেতরের কন্টেন্টকে রাউন্ডেড রাখার জন্য */
+            border-radius: 12px; /* প্রথম অপশনের মতো হালকা রাউন্ডেড বর্ডার */
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            overflow: hidden; 
             display: flex;
             flex-direction: column;
         }
 
-        /* Floating Close Button Style */
+        /* Floating Close Button Style (Matched with 1st Option) */
         .close-modal-btn {
             position: absolute;
-            top: -18px;
-            right: -18px;
+            top: -15px;
+            right: -15px;
             z-index: 10;
-            background: #ef4444; /* উজ্জ্বল লাল রং */
+            background: #ff3b30; 
             color: white;
-            border: 4px solid #ffffff; /* সাদা বর্ডার */
-            width: 44px;
-            height: 44px;
+            border: 2px solid #ffffff; 
+            width: 36px; /* প্রথম অপশনের মতো ছিমছাম সাইজ */
+            height: 36px;
             border-radius: 50%;
-            font-size: 26px;
+            font-size: 22px;
             font-weight: bold;
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
             padding-bottom: 2px;
         }
 
         .close-modal-btn:hover {
-            background: #dc2626;
-            transform: scale(1.1) rotate(90deg); /* হোভারে চমৎকার স্পিন ইফেক্ট */
-            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
+            background: #d32f2f;
+            transform: scale(1.1);
         }
 
         .modal-container iframe {
@@ -330,6 +327,7 @@
             height: 100%;
             border: none;
             display: block;
+            background: #ffffff;
         }
 
         /* PWA Install Banner UI */
@@ -371,9 +369,9 @@
             .tool-card { padding: 1.2rem 0.5rem; }
             .footer { flex-direction: column; text-align: center; }
             /* Mobile adjustments for Modal */
-            .modal-container-wrapper { width: 100%; height: 90vh; }
-            .close-modal-btn { top: -10px; right: 0; border: 2px solid #fff; width: 38px; height: 38px; font-size: 20px; }
-            .modal-container { border-radius: 16px; }
+            .modal-container-wrapper { width: 98%; height: 96vh; }
+            .close-modal-btn { top: -10px; right: -5px; width: 32px; height: 32px; font-size: 18px; }
+            .modal-container { border-radius: 8px; }
         }
     </style>
 </head>
@@ -522,7 +520,7 @@
         </div>
     </div>
 
-    <!-- Scripts (Includes logic for Popup/Modal) -->
+    <!-- Scripts -->
     <script>
     document.addEventListener("DOMContentLoaded", function() {
         const toolCards = document.querySelectorAll('.tool-card');
@@ -550,7 +548,7 @@
             setTimeout(() => {
                 modalIframe.src = ''; 
                 document.body.style.overflow = ''; 
-            }, 400); 
+            }, 300); 
         };
 
         closeModalBtn.addEventListener('click', closeModal);
@@ -592,7 +590,6 @@
         });
     }
 
-    // Install Banner Handler
     let deferredPrompt;
     const installBanner = document.getElementById('pwa-install-banner');
     const installBtn = document.getElementById('pwa-install-btn');
