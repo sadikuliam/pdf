@@ -190,7 +190,6 @@
             opacity: 1; 
         }
 
-        /* স্ট্যাটিক এনিমেশন ডিলের জন্য */
         .tool-card:nth-child(1) { animation-delay: 0.1s; } 
         .tool-card:nth-child(2) { animation-delay: 0.2s; } 
         .tool-card:nth-child(3) { animation-delay: 0.3s; } 
@@ -247,22 +246,23 @@
             position: relative; 
         }
 
-        /* ===== Modal (Popup) Styles Added Here ===== */
+        /* ===== New Premium Modal Styles ===== */
         .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(8px);
+            background: rgba(15, 23, 42, 0.6); /* চমৎকার ডার্ক ব্লার ব্যাকগ্রাউন্ড */
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             z-index: 2000;
             display: flex;
             justify-content: center;
             align-items: center;
             opacity: 0;
             visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
         }
 
         .modal-overlay.active {
@@ -270,65 +270,66 @@
             visibility: visible;
         }
 
-        .modal-container {
+        /* Wrapper for positioning the floating close button */
+        .modal-container-wrapper {
             position: relative;
             width: 95%;
-            max-width: 1200px;
-            height: 90vh;
-            background: #ffffff;
-            border-radius: 20px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            transform: scale(0.95);
-            transition: transform 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            max-width: 1050px; /* বেশ চওড়া ও সুন্দর Width */
+            height: 85vh; /* পারফেক্ট Height */
+            transform: scale(0.9);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        .modal-overlay.active .modal-container {
+        .modal-overlay.active .modal-container-wrapper {
             transform: scale(1);
         }
 
-        .modal-header {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            padding: 10px 20px;
+        /* Main window holding the iframe */
+        .modal-container {
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            border-radius: 20px; /* চমৎকার রাউন্ডেড বর্ডার */
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            overflow: hidden; /* ভেতরের কন্টেন্টকে রাউন্ডেড রাখার জন্য */
             display: flex;
-            justify-content: flex-end; /* Close button on the right */
-            align-items: center;
+            flex-direction: column;
         }
 
+        /* Floating Close Button Style */
         .close-modal-btn {
-            background: #ef4444;
+            position: absolute;
+            top: -18px;
+            right: -18px;
+            z-index: 10;
+            background: #ef4444; /* উজ্জ্বল লাল রং */
             color: white;
-            border: 2px solid #fff;
-            width: 35px;
-            height: 35px;
+            border: 4px solid #ffffff; /* সাদা বর্ডার */
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
-            font-size: 20px;
+            font-size: 26px;
             font-weight: bold;
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            padding-bottom: 2px;
         }
 
         .close-modal-btn:hover {
             background: #dc2626;
-            transform: scale(1.1);
+            transform: scale(1.1) rotate(90deg); /* হোভারে চমৎকার স্পিন ইফেক্ট */
+            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
         }
 
-        .modal-iframe-wrapper {
-            flex-grow: 1;
-            width: 100%;
-            background: #f8fafc;
-        }
-
-        .modal-iframe-wrapper iframe {
+        .modal-container iframe {
             width: 100%;
             height: 100%;
             border: none;
+            display: block;
         }
 
         /* PWA Install Banner UI */
@@ -369,7 +370,10 @@
             .tools-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
             .tool-card { padding: 1.2rem 0.5rem; }
             .footer { flex-direction: column; text-align: center; }
-            .modal-container { height: 95vh; width: 100%; border-radius: 15px; }
+            /* Mobile adjustments for Modal */
+            .modal-container-wrapper { width: 100%; height: 90vh; }
+            .close-modal-btn { top: -10px; right: 0; border: 2px solid #fff; width: 38px; height: 38px; font-size: 20px; }
+            .modal-container { border-radius: 16px; }
         }
     </style>
 </head>
@@ -491,14 +495,13 @@
         </div>
     </div>
 
-    <!-- Modal Layout Added Here -->
+    <!-- ===== New Modal Layout With Floating Button ===== -->
     <div id="tool-modal" class="modal-overlay">
-        <div class="modal-container">
-            <div class="modal-header">
-                <!-- Close button top right corner -->
-                <button id="close-modal-btn" class="close-modal-btn">&times;</button>
-            </div>
-            <div class="modal-iframe-wrapper">
+        <div class="modal-container-wrapper">
+            <!-- Floating close button outside the main frame -->
+            <button id="close-modal-btn" class="close-modal-btn">&times;</button>
+            
+            <div class="modal-container">
                 <iframe id="modal-iframe" src=""></iframe>
             </div>
         </div>
@@ -521,7 +524,6 @@
 
     <!-- Scripts (Includes logic for Popup/Modal) -->
     <script>
-    // ===== Modal Logic Added =====
     document.addEventListener("DOMContentLoaded", function() {
         const toolCards = document.querySelectorAll('.tool-card');
         const modalOverlay = document.getElementById('tool-modal');
@@ -531,14 +533,13 @@
         // ওপেন করার ফাংশন
         toolCards.forEach(card => {
             card.addEventListener('click', function(e) {
-                // লিংকে সরাসরি না গিয়ে পপআপ ওপেন হবে
                 e.preventDefault(); 
                 const linkUrl = this.getAttribute('href');
                 
                 if(linkUrl) {
                     modalIframe.src = linkUrl;
                     modalOverlay.classList.add('active');
-                    document.body.style.overflow = 'hidden'; // ব্যাকগ্রাউন্ড স্ক্রল বন্ধ করা
+                    document.body.style.overflow = 'hidden'; 
                 }
             });
         });
@@ -547,15 +548,13 @@
         const closeModal = () => {
             modalOverlay.classList.remove('active');
             setTimeout(() => {
-                modalIframe.src = ''; // Iframe রিসেট করা
-                document.body.style.overflow = ''; // ব্যাকগ্রাউন্ড স্ক্রল চালু করা
-            }, 300); // অ্যানিমেশনের সময়কাল
+                modalIframe.src = ''; 
+                document.body.style.overflow = ''; 
+            }, 400); 
         };
 
-        // বাটনে ক্লিক করলে ক্লোজ হবে
         closeModalBtn.addEventListener('click', closeModal);
 
-        // বাইরে ক্লিক করলেও ক্লোজ হবে
         modalOverlay.addEventListener('click', function(e) {
             if (e.target === modalOverlay) {
                 closeModal();
