@@ -3,7 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visiting Card Pro</title>
+    
+    <title>Visiting Card Pro - Create Smart Visiting Cards</title>
+    <meta name="title" content="Visiting Card Pro - Create Smart Business Cards">
+    <meta name="description" content="Create, customize, and download your smart visiting card instantly with high quality 3D designs.">
+
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://আপনার-ওয়েবসাইটের-লিংক.com/">
+    <meta property="og:title" content="Visiting Card Pro - Zeno">
+    <meta property="og:description" content="Create, customize, and download your smart visiting card instantly.">
+    <meta property="og:image" content="https://res.cloudinary.com/ewu5hckc/image/upload/v1788176928/visiting_card.png">
+
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://আপনার-ওয়েবসাইটের-লিংক.com/">
+    <meta property="twitter:title" content="Visiting Card Pro - Zeno">
+    <meta property="twitter:description" content="Create, customize, and download your smart visiting card instantly.">
+    <meta property="twitter:image" content="https://res.cloudinary.com/ewu5hckc/image/upload/v1788176928/visiting_card.png">
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
@@ -164,21 +180,21 @@
             max-width: 450px;
             min-height: 200px; 
             padding: 30px;
-            display: block; /* Modified for floating layout */
+            display: block; 
             transition: all 0.4s ease;
             word-wrap: break-word;
             position: relative;
             z-index: 1;
         }
         
-        /* Clearfix to ensure card wraps around floated photo */
+        /* Clearfix */
         .business-card::after {
             content: "";
             display: table;
             clear: both;
         }
 
-        /* Float the photo to the right so text wraps around and under it */
+        /* Float the photo to the right */
         .photo-area {
             float: right; 
             width: 100px; height: 100px;
@@ -207,25 +223,24 @@
         .out-dept { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
         .out-desc { font-size: 13px; margin-bottom: 16px; line-height: 1.5; font-weight: 500;}
         
-        /* New Container - flows normally around the floated photo */
+        /* Contact Container */
         .contact-container {
             display: block;
             margin-top: 5px;
         }
 
         .out-contact-row {
-            display: none; /* Changed to inline-flex via JS */
+            display: none; 
             align-items: center;
             gap: 6px;
             font-size: 13px;
             font-weight: 600;
-            margin-right: 20px; /* Space on the right for next item */
-            margin-bottom: 8px; /* Space below */
+            margin-right: 20px; 
+            margin-bottom: 8px; 
         }
         .contact-icon { font-size: 14px; }
 
-        /* --- NEW DESIGN THEME STYLES --- */
-        
+        /* --- DESIGN THEME STYLES --- */
         .theme-minimal {
             border-radius: 10px; box-shadow: var(--shadow-md);
             border-left: 6px solid var(--primary);
@@ -236,7 +251,7 @@
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(79, 70, 229, 0.12), 0 1px 3px rgba(0,0,0,0.05);
             border: 1px solid rgba(79, 70, 229, 0.2);
-            background-image: linear-gradient(135deg, rgba(255,255,255,1) 40%, rgba(243,244,246,1) 100%);
+            background-image: linear-gradient(135deg, #ffffff 40%, #f3f4f6 100%);
         }
         .theme-modern .photo-area, .theme-modern #photoPlaceholder, .theme-modern #outPhoto {
             border-radius: 12px;
@@ -254,9 +269,7 @@
 
         .theme-creative {
             background: #ffffff;
-            background-image: 
-                radial-gradient(circle at top right, #e0e7ff, transparent 60%),
-                radial-gradient(circle at bottom left, #fae8ff, transparent 60%);
+            background-image: linear-gradient(135deg, #e0e7ff 0%, #ffffff 50%, #fae8ff 100%);
             border-radius: 40px 10px 40px 10px; 
             box-shadow: 0 15px 30px rgba(0,0,0,0.08);
             border: 1px solid #e5e7eb;
@@ -314,7 +327,7 @@
 <body>
 
     <div class="main-wrapper">
-        <h1 class="header-title">VISITING CARD PRO</h1>
+        <h1 class="header-title">SHM Visiting Card Pro</h1>
 
         <div class="container">
             <div class="left-panel">
@@ -423,18 +436,14 @@
             const color = document.getElementById(`col${field.id}`);
             const row = document.getElementById(`row${field.id}`);
 
-            // Text Update Event
             input.addEventListener('input', (e) => {
                 const val = e.target.value;
                 output.innerText = val;
-                
                 if (field.type === 'contact') {
-                    // Update to inline-flex to wrap properly under the floated photo
                     row.style.display = val.trim().length > 0 ? 'inline-flex' : 'none';
                 }
             });
 
-            // Color Update Event
             color.addEventListener('input', (e) => {
                 if (field.type === 'contact') {
                     row.style.color = e.target.value; 
@@ -473,7 +482,7 @@
             });
         });
 
-        // 4. Download Function
+        // 4. Download Function (Updated with Background Fix for Corners)
         function downloadImage(format) {
             const card = document.getElementById('cardPreview');
             const btn = document.querySelector(`.btn-${format === 'jpeg' ? 'jpg' : 'png'}`);
@@ -484,7 +493,7 @@
 
             html2canvas(card, { 
                 scale: 3, 
-                backgroundColor: null, 
+                backgroundColor: format === 'jpeg' ? '#ffffff' : null, 
                 useCORS: true 
             }).then(canvas => {
                 const link = document.createElement('a');
