@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <title>Visiting Card Pro - Create Smart Business Cards</title>
-    <meta name="title" content="Visiting Card Pro - Create Smart Business Cards">
+    <title>Visiting Card Pro - Create Smart Visiting Cards</title>
+    <meta name="title" content="Visiting Card Pro - Create Smart Visiting Cards">
     <meta name="description" content="Create, customize, and download your smart visiting card instantly with high quality 3D designs.">
 
     <meta property="og:type" content="website">
@@ -316,11 +316,51 @@
         .btn-jpg { background-color: #8B5CF6; }
         .btn-pdf { background-color: #F97316; }
 
+        /* =========================================
+           RESPONSIVE DESIGN (MOBILE & TABLET FIXES)
+           ========================================= */
+
+        /* Tablet Layout */
         @media (max-width: 900px) {
             .left-panel, .right-panel { width: 100%; border-right: none; }
-            .left-panel { border-bottom: 1px solid var(--border); }
+            .left-panel { border-bottom: 1px solid var(--border); padding: 30px 20px; }
+            .right-panel { padding: 30px 20px; }
+        }
+
+        /* Mobile Phone Layout */
+        @media (max-width: 600px) {
+            body { padding: 15px 10px; }
+            
+            .header-title { font-size: 22px; margin-bottom: 20px; }
+            
+            .left-panel, .right-panel { padding: 25px 15px; }
+            
+            /* Card Container Mobile View */
+            .preview-container { padding: 25px 15px; min-height: auto; }
+            
+            /* The Card Itself */
+            .business-card { padding: 20px; min-height: auto; }
+            
+            /* Smaller Profile Photo for Mobile */
+            .photo-area { 
+                width: 75px; 
+                height: 75px; 
+                margin-left: 10px; 
+                margin-bottom: 5px; 
+            }
+            
+            /* Scaled Down Text for Mobile */
+            .out-name { font-size: 18px; }
+            .out-title { font-size: 13px; margin-bottom: 10px; }
+            .out-dept { font-size: 12px; }
+            .out-desc { font-size: 11px; margin-bottom: 10px; }
+            .out-contact-row { font-size: 11px; margin-right: 10px; }
+            
+            /* Stack Buttons for Easy Tapping */
             .template-grid { grid-template-columns: repeat(2, 1fr); }
             .action-grid { grid-template-columns: 1fr; }
+            
+            .btn-action { padding: 16px; font-size: 15px; }
         }
     </style>
 </head>
@@ -482,7 +522,7 @@
             });
         });
 
-        // 4. Download Function (Updated with Background Fix for Corners)
+        // 4. Download Function
         function downloadImage(format) {
             const card = document.getElementById('cardPreview');
             const btn = document.querySelector(`.btn-${format === 'jpeg' ? 'jpg' : 'png'}`);
