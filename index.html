@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <!-- Prevent Browser Cache on Dashboard Load -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -102,7 +103,7 @@
             letter-spacing: -1px; 
         }
 
-        /* ===== Update: 5 Buttons Per Line on Desktop ===== */
+        /* ===== Desktop Grid: 5 Buttons Per Line ===== */
         .tools-grid { 
             display: grid; 
             grid-template-columns: repeat(5, 1fr); 
@@ -188,17 +189,22 @@
             opacity: 1; 
         }
 
+        /* Staggered animation delays */
         .tool-card:nth-child(1) { animation-delay: 0.1s; } 
-        .tool-card:nth-child(2) { animation-delay: 0.2s; } 
-        .tool-card:nth-child(3) { animation-delay: 0.3s; } 
-        .tool-card:nth-child(4) { animation-delay: 0.4s; } 
-        .tool-card:nth-child(5) { animation-delay: 0.5s; } 
-        .tool-card:nth-child(6) { animation-delay: 0.6s; } 
-        .tool-card:nth-child(7) { animation-delay: 0.7s; }
-        .tool-card:nth-child(8) { animation-delay: 0.8s; }
-        .tool-card:nth-child(9) { animation-delay: 0.9s; }
-        .tool-card:nth-child(10) { animation-delay: 1.0s; }
-        .tool-card:nth-child(11) { animation-delay: 1.1s; }
+        .tool-card:nth-child(2) { animation-delay: 0.15s; } 
+        .tool-card:nth-child(3) { animation-delay: 0.2s; } 
+        .tool-card:nth-child(4) { animation-delay: 0.25s; } 
+        .tool-card:nth-child(5) { animation-delay: 0.3s; } 
+        .tool-card:nth-child(6) { animation-delay: 0.35s; } 
+        .tool-card:nth-child(7) { animation-delay: 0.4s; }
+        .tool-card:nth-child(8) { animation-delay: 0.45s; }
+        .tool-card:nth-child(9) { animation-delay: 0.5s; }
+        .tool-card:nth-child(10) { animation-delay: 0.55s; }
+        .tool-card:nth-child(11) { animation-delay: 0.6s; }
+        .tool-card:nth-child(12) { animation-delay: 0.65s; }
+        .tool-card:nth-child(13) { animation-delay: 0.7s; }
+        .tool-card:nth-child(14) { animation-delay: 0.75s; }
+        .tool-card:nth-child(15) { animation-delay: 0.8s; }
 
         .footer { 
             margin-top: 3.5rem; 
@@ -209,7 +215,7 @@
             align-items: center; 
             opacity: 0; 
             animation: fadeUp 0.6s forwards; 
-            animation-delay: 0.8s; 
+            animation-delay: 0.9s; 
             flex-wrap: wrap;
             gap: 1rem;
         }
@@ -272,7 +278,7 @@
             max-width: 1250px;
             height: 94vh;
             transform: scale(0.95);
-            transition: transform 0.3s ease;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .modal-overlay.active .modal-container-wrapper {
@@ -325,7 +331,7 @@
             background: #ffffff;
         }
 
-        /* PWA Install Banner UI */
+        /* ===== PWA Install Banner UI ===== */
         .install-banner {
             position: fixed;
             bottom: 24px;
@@ -346,15 +352,27 @@
             z-index: 1000;
             display: none; 
         }
+        
         .install-info { display: flex; align-items: center; gap: 12px; }
         .install-icon { width: 45px; height: 45px; border-radius: 12px; object-fit: cover; }
         .install-text h4 { margin: 0; font-size: 1.05rem; color: var(--text-main); }
         .install-text p { margin: 2px 0 0 0; font-size: 0.85rem; color: var(--text-muted); }
         .install-actions { display: flex; align-items: center; gap: 12px; }
-        .install-btn { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border: none; padding: 8px 16px; border-radius: 10px; font-family: 'Outfit', sans-serif; font-weight: 700; cursor: pointer; }
+        .install-btn { 
+            background: linear-gradient(135deg, var(--primary), var(--secondary)); 
+            color: white; 
+            border: none; 
+            padding: 8px 16px; 
+            border-radius: 10px; 
+            font-family: 'Outfit', sans-serif; 
+            font-weight: 700; 
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+        }
+        .install-btn:hover { opacity: 0.9; }
         .close-install { background: transparent; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
 
-        /* ===== Mobile Responsive Update: 3 Buttons Per Line ===== */
+        /* ===== Mobile Responsive: 3 Buttons Per Line ===== */
         @media (max-width: 768px) {
             body { padding: 1rem; }
             .app-container { padding: 1.5rem 1rem; border-radius: 24px; }
@@ -362,7 +380,6 @@
             .title { font-size: 2.2rem; }
             .logo { height: 120px; } 
             
-            /* Grid adjustments for mobile - 3 columns */
             .tools-grid { 
                 grid-template-columns: repeat(3, 1fr); 
                 gap: 0.6rem; 
@@ -382,18 +399,17 @@
                 height: 20px;
             }
             .tool-card span {
-                font-size: 0.8rem; /* Smaller text so 3 items fit perfectly */
+                font-size: 0.8rem;
             }
             
             .footer { flex-direction: column; text-align: center; }
             
-            /* Modal adjustments */
             .modal-container-wrapper { width: 98%; height: 96vh; }
             .close-modal-btn { top: -10px; right: -5px; width: 32px; height: 32px; font-size: 18px; }
             .modal-container { border-radius: 8px; }
         }
 
-        /* Extra small devices (like iPhone SE) */
+        /* ===== Extra small devices ===== */
         @media (max-width: 380px) {
             .tool-card span { font-size: 0.75rem; }
             .icon-box { width: 38px; height: 38px; }
@@ -410,63 +426,65 @@
         </div>
 
         <div class="tools-grid">
-            <a href="editpdf.html" class="tool-card">
+            <a href="editpdf.html" class="tool-card" aria-label="Edit PDF">
                 <div class="icon-box"><svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div>
                 <span>Edit PDF</span>
             </a>
             
-            <a href="comp.html" class="tool-card">
+            <a href="comp.html" class="tool-card" aria-label="Compress PDF">
                 <div class="icon-box"><svg viewBox="0 0 24 24"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242M12 12v9m-4-4 4 4 4-4"/></svg></div>
                 <span>Compress PDF</span>
             </a>
             
-            <a href="pdf2png.html" class="tool-card">
+            <a href="pdf2png.html" class="tool-card" aria-label="PDF to Image">
                 <div class="icon-box"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
                 <span>PDF to Image</span>
             </a>
             
-            <a href="img2ocr.html" class="tool-card">
+            <a href="img2ocr.html" class="tool-card" aria-label="Image to PDF">
                 <div class="icon-box"><svg viewBox="0 0 24 24"><path d="M4 3h12l4 4v14H4z"/><polyline points="16 3 16 8 20 8"/><path d="M7 13h10M7 17h7"/></svg></div>
                 <span>Image to PDF</span>
             </a>
             
-            <a href="marge.html" class="tool-card">
+            <a href="marge.html" class="tool-card" aria-label="Merge PDF">
                 <div class="icon-box"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
                 <span>Merge PDF</span>
             </a>
             
-            <a href="split.html" class="tool-card">
+            <a href="split.html" class="tool-card" aria-label="Split PDF">
                 <div class="icon-box"><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg></div>
                 <span>Split PDF</span>
             </a>
             
-            <a href="split2by2.html" class="tool-card">
+            <a href="split2by2.html" class="tool-card" aria-label="Split 2x2 Page">
                 <div class="icon-box"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/></svg></div>
                 <span>Split 2x2 Page</span>
             </a>
-           <a href="id.html" class="tool-card">
-    <div class="icon-box">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="5" width="20" height="14" rx="2"/>
-            <circle cx="9" cy="11" r="2"/>
-            <path d="M6.17 15a3 3 0 0 1 5.66 0"/>
-            <path d="M15 10h4"/>
-            <path d="M15 14h4"/>
-        </svg>
-    </div>
-    <span>ID Card Scanner</span>
-</a>
-             <a href="ppid.html" class="tool-card">
+            
+            <a href="id.html" class="tool-card" aria-label="ID Card Scanner">
+                <div class="icon-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="5" width="20" height="14" rx="2"/>
+                        <circle cx="9" cy="11" r="2"/>
+                        <path d="M6.17 15a3 3 0 0 1 5.66 0"/>
+                        <path d="M15 10h4"/>
+                        <path d="M15 14h4"/>
+                    </svg>
+                </div>
+                <span>ID Card Scanner</span>
+            </a>
+            
+            <a href="ppid.html" class="tool-card" aria-label="Photo and Card Print">
                 <div class="icon-box"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/></svg></div>
                 <span>Photo & Card Print</span>
             </a>
             
-            <a href="2in1pdf.html" class="tool-card">
+            <a href="2in1pdf.html" class="tool-card" aria-label="2 in 1 PDF">
                 <div class="icon-box"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div>
                 <span>2in1 PDF</span>
             </a>
             
-            <a href="p2xw.html" class="tool-card">
+            <a href="p2xw.html" class="tool-card" aria-label="PDF to Excel/Word">
                 <div class="icon-box">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M4 2h9l5 5v13a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
@@ -482,7 +500,7 @@
                 <span>PDF 2 Excel/Word</span>
             </a>
             
-            <a href="a2p.html" class="tool-card">
+            <a href="a2p.html" class="tool-card" aria-label="Any File to PDF">
                 <div class="icon-box">
                     <svg viewBox="0 0 32 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M2 4h7l2 2v5H2V4z"/>
@@ -499,7 +517,7 @@
                 <span>Any file2PDF</span>
             </a>
             
-            <a href="p2h.html" class="tool-card">
+            <a href="p2h.html" class="tool-card" aria-label="PDF to HTML">
                 <div class="icon-box">
                     <svg viewBox="0 0 32 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M2 2h9l4 4v12a2 2 0 0 1-2 2H2V2z"/>
@@ -513,16 +531,16 @@
                 </div>
                 <span>PDF 2 HTML</span>
             </a>
-               <a href="gmem.html" class="tool-card membership-card">
-                <div class="icon-box membership-icon">
-                   🪪
+            
+            <a href="vcard.html" class="tool-card membership-card" aria-label="Visiting Card Pro">
+                <div class="icon-box membership-icon" style="font-size: 1.5rem;">
+                    🪪
                 </div>
                 <span>Visiting Card Pro</span>
             </a>
-        </div>
-            
-            <a href="gmem.html" class="tool-card membership-card">
-                <div class="icon-box membership-icon">
+                    
+            <a href="gmem.html" class="tool-card membership-card" aria-label="SHM Golden Membership">
+                <div class="icon-box membership-icon" style="font-size: 1.5rem;">
                     👑
                 </div>
                 <span>SHM Golden Membership</span>
@@ -543,11 +561,11 @@
         </div>
     </div>
 
-    <!-- ===== New Modal Layout With Floating Button ===== -->
+    <!-- ===== Modal Layout With Floating Button ===== -->
     <div id="tool-modal" class="modal-overlay">
         <div class="modal-container-wrapper">
             <!-- Floating close button outside the main frame -->
-            <button id="close-modal-btn" class="close-modal-btn">&times;</button>
+            <button id="close-modal-btn" class="close-modal-btn" aria-label="Close Modal">&times;</button>
             
             <div class="modal-container">
                 <iframe id="modal-iframe" src=""></iframe>
@@ -566,7 +584,7 @@
         </div>
         <div class="install-actions">
             <button id="pwa-install-btn" class="install-btn">Install App</button>
-            <button id="pwa-close-btn" class="close-install">&times;</button>
+            <button id="pwa-close-btn" class="close-install" aria-label="Close Install Prompt">&times;</button>
         </div>
     </div>
 
@@ -578,13 +596,13 @@
         const modalIframe = document.getElementById('modal-iframe');
         const closeModalBtn = document.getElementById('close-modal-btn');
 
-        // ওপেন করার ফাংশন
+        // Modal Open Logic
         toolCards.forEach(card => {
             card.addEventListener('click', function(e) {
-                e.preventDefault(); 
                 const linkUrl = this.getAttribute('href');
-                
-                if(linkUrl) {
+                // Allow normal linking if it opens in a new tab or lacks a valid URL
+                if (linkUrl && linkUrl !== "#") {
+                    e.preventDefault(); 
                     modalIframe.src = linkUrl;
                     modalOverlay.classList.add('active');
                     document.body.style.overflow = 'hidden'; 
@@ -592,7 +610,7 @@
             });
         });
 
-        // ক্লোজ করার ফাংশন
+        // Modal Close Logic
         const closeModal = () => {
             modalOverlay.classList.remove('active');
             setTimeout(() => {
@@ -603,6 +621,7 @@
 
         closeModalBtn.addEventListener('click', closeModal);
 
+        // Close on clicking outside the modal
         modalOverlay.addEventListener('click', function(e) {
             if (e.target === modalOverlay) {
                 closeModal();
