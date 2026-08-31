@@ -84,37 +84,40 @@
 
         .header { 
             text-align: center; 
-            margin-bottom: 1.5rem; /* ব্যানারের নিচের ফাঁকা জায়গা কমানো হয়েছে */
+            margin-bottom: 1.5rem;
         }
 
-        /* ===== Header Logo Blink Animation ===== */
+        /* ===== Header Logo Shape & Blink Animation ===== */
         .logo { 
             height: 200px; 
             max-width: 100%; 
-            object-fit: contain;
-            margin-bottom: 0.5rem; /* লোগোর মার্জিন কমানো হয়েছে */
-            /* 1.5 সেকেন্ডের স্মুথ ব্লিঙ্ক অ্যানিমেশন */
-            animation: blinkBanner 1.5s ease-in-out infinite;
-            transition: all 0.3s ease;
+            object-fit: cover; /* ইমেজের শেপ ঠিক রাখার জন্য */
+            border-radius: 24px; /* চারিদিকের কোণা বাঁকানো (Rounded Corners) */
+            margin-bottom: 0.5rem; 
+            animation: blinkBanner 1.8s ease-in-out infinite; /* ব্লিঙ্ক অ্যানিমেশন */
+            transition: all 0.4s ease;
             cursor: pointer;
         }
 
         .logo:hover { 
             animation-play-state: paused;
-            transform: scale(1.05); 
+            transform: scale(1.04); 
             opacity: 1;
-            filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.3)) drop-shadow(0 0 40px rgba(255, 255, 255, 0.8));
+            /* হোভার করলে আরও গ্লোয়িং কালারফুল শ্যাডো */
+            box-shadow: 0 15px 35px rgba(79, 70, 229, 0.6), 0 0 45px rgba(236, 72, 153, 0.6);
         }
 
-        /* Blinking Keyframes */
+        /* Blinking & Colorful Shadow Keyframes */
         @keyframes blinkBanner {
             0%, 100% {
                 opacity: 1;
-                filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.2)) drop-shadow(0 0 20px rgba(255, 255, 255, 0.5));
+                /* কালার অনুযায়ী ডাইনামিক শ্যাডো (নীল এবং পিঙ্ক মিশ্রিত) */
+                box-shadow: 0 8px 25px rgba(65, 88, 208, 0.5), 0 0 30px rgba(200, 80, 192, 0.5);
             }
             50% {
-                opacity: 0.3;
-                filter: none;
+                opacity: 0.4;
+                /* ব্লিঙ্ক করার সময় শ্যাডো হালকা হয়ে যাবে */
+                box-shadow: 0 3px 10px rgba(65, 88, 208, 0.2), 0 0 10px rgba(200, 80, 192, 0.2);
             }
         }
 
@@ -210,7 +213,7 @@
             left: 200%;
         }
 
-        /* Staggered animation delays for 14 items */
+        /* Staggered animation delays */
         .tool-card:nth-child(1) { animation-delay: 0.1s; } 
         .tool-card:nth-child(2) { animation-delay: 0.15s; } 
         .tool-card:nth-child(3) { animation-delay: 0.2s; } 
@@ -452,7 +455,6 @@
             .modal-container { border-radius: 16px; }
         }
 
-        /* ===== Extra small devices ===== */
         @media (max-width: 480px) {
             body { padding: 1rem; }
             .app-container { padding: 1.5rem 1rem; border-radius: 24px; }
@@ -647,12 +649,11 @@
             setTimeout(() => {
                 modalIframe.src = ''; 
                 document.body.style.overflow = ''; 
-            }, 400); // Matches CSS transition time
+            }, 400);
         };
 
         closeModalBtn.addEventListener('click', closeModal);
 
-        // Close on clicking outside the modal
         modalOverlay.addEventListener('click', function(e) {
             if (e.target === modalOverlay) {
                 closeModal();
@@ -698,10 +699,8 @@
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        // Delay showing install banner slightly for better UX
         setTimeout(() => {
             installBanner.style.display = 'flex'; 
-            // Small timeout to allow display:flex to apply before adding class for transition
             setTimeout(() => installBanner.classList.add('show'), 50);
         }, 1500);
     });
