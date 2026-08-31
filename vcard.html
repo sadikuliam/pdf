@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visiting Card Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --primary-hover: #4338CA;
+            --bg-main: #F3F4F6;
+            --panel-bg: #FFFFFF;
+            --border: #E5E7EB;
+            --text-dark: #111827;
+            --text-muted: #6B7280;
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            text-rendering: optimizeLegibility; 
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-dark);
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .main-wrapper {
+            width: 100%;
+            max-width: 1100px;
+        }
+
+        .header-title {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 30px;
+            color: #111827;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+        }
+
+        .container {
+            display: flex;
+            background: var(--panel-bg);
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            flex-wrap: wrap;
+        }
+
+        /* --- LEFT PANEL (FORM) --- */
+        .left-panel {
+            width: 45%;
+            padding: 40px;
+            border-right: 1px solid var(--border);
+            background-color: #FAFAFA;
+        }
+
+        .upload-btn-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+            margin-bottom: 25px;
+        }
+
+        .btn-upload {
+            border: 2px dashed #A5B4FC;
+            color: var(--primary);
+            background-color: #EEF2FF;
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            width: 100%;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-upload:hover { background-color: #E0E7FF; border-color: var(--primary); }
+
+        .upload-btn-wrapper input[type=file] {
+            font-size: 100px;
+            position: absolute;
+            left: 0; top: 0; opacity: 0;
+            cursor: pointer; height: 100%; width: 100%;
+        }
+
+        .section-divider {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--primary);
+            font-weight: 700;
+            margin: 0 0 20px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-divider::after {
+            content: ""; flex: 1; height: 1px; background: var(--border); margin-left: 10px;
+        }
+
+        .form-group {
+            display: flex; gap: 12px; margin-bottom: 16px;
+        }
+
+        .form-group input[type="text"] {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--text-dark);
+            transition: border-color 0.2s;
+            outline: none;
+        }
+
+        .form-group input[type="text"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .form-group input[type="color"] {
+            width: 46px; height: 46px; padding: 2px;
+            border: 1px solid var(--border); border-radius: 8px;
+            cursor: pointer; background: #fff;
+        }
+
+        /* --- RIGHT PANEL (PREVIEW & CONTROLS) --- */
+        .right-panel {
+            width: 55%; padding: 40px;
+            display: flex; flex-direction: column;
+        }
+
+        .preview-container {
+            background-color: var(--bg-main);
+            padding: 50px 30px;
+            border-radius: 12px;
+            display: flex; justify-content: center; align-items: center;
+            margin-bottom: 30px;
+            min-height: 350px;
+        }
+
+        /* --- THE BUSINESS CARD (BASE) --- */
+        .business-card {
+            background: #ffffff;
+            width: 100%;
+            max-width: 450px;
+            min-height: 200px; 
+            padding: 30px;
+            display: block; /* Modified for floating layout */
+            transition: all 0.4s ease;
+            word-wrap: break-word;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Clearfix to ensure card wraps around floated photo */
+        .business-card::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        /* Float the photo to the right so text wraps around and under it */
+        .photo-area {
+            float: right; 
+            width: 100px; height: 100px;
+            margin-left: 20px;
+            margin-bottom: 10px;
+            transition: all 0.4s ease;
+        }
+
+        #photoPlaceholder {
+            width: 100%; height: 100%;
+            background-color: #E5E7EB;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 13px; color: var(--text-muted);
+            border: 1px dashed #9CA3AF;
+        }
+
+        #outPhoto {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            display: none; 
+        }
+
+        /* High Quality Text Styles */
+        .out-name { font-size: 24px; font-weight: 800; margin-bottom: 4px; letter-spacing: -0.3px;}
+        .out-title { font-size: 15px; font-weight: 700; margin-bottom: 16px; }
+        .out-dept { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+        .out-desc { font-size: 13px; margin-bottom: 16px; line-height: 1.5; font-weight: 500;}
+        
+        /* New Container - flows normally around the floated photo */
+        .contact-container {
+            display: block;
+            margin-top: 5px;
+        }
+
+        .out-contact-row {
+            display: none; /* Changed to inline-flex via JS */
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-right: 20px; /* Space on the right for next item */
+            margin-bottom: 8px; /* Space below */
+        }
+        .contact-icon { font-size: 14px; }
+
+        /* --- NEW DESIGN THEME STYLES --- */
+        
+        .theme-minimal {
+            border-radius: 10px; box-shadow: var(--shadow-md);
+            border-left: 6px solid var(--primary);
+        }
+
+        .theme-modern {
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(79, 70, 229, 0.12), 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid rgba(79, 70, 229, 0.2);
+            background-image: linear-gradient(135deg, rgba(255,255,255,1) 40%, rgba(243,244,246,1) 100%);
+        }
+        .theme-modern .photo-area, .theme-modern #photoPlaceholder, .theme-modern #outPhoto {
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+            border: 2px solid #ffffff;
+        }
+
+        .theme-classic {
+            background: #e0e5ec; border-radius: 12px;
+            box-shadow: 9px 9px 16px rgb(163,177,198,0.6), -9px -9px 16px rgba(255,255,255, 0.5);
+        }
+        .theme-classic .photo-area, .theme-classic #photoPlaceholder, .theme-classic #outPhoto {
+            border-radius: 50%;
+        }
+
+        .theme-creative {
+            background: #ffffff;
+            background-image: 
+                radial-gradient(circle at top right, #e0e7ff, transparent 60%),
+                radial-gradient(circle at bottom left, #fae8ff, transparent 60%);
+            border-radius: 40px 10px 40px 10px; 
+            box-shadow: 0 15px 30px rgba(0,0,0,0.08);
+            border: 1px solid #e5e7eb;
+        }
+        .theme-creative .photo-area, .theme-creative #photoPlaceholder, .theme-creative #outPhoto {
+            border-radius: 16px;
+            border: 3px solid #ffffff;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        /* --- CONTROLS --- */
+        .controls-label {
+            font-size: 12px; font-weight: 700; color: var(--primary);
+            margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+
+        .template-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 30px;
+        }
+
+        .btn-template {
+            padding: 10px 5px; background: #fff; border: 1px solid var(--border);
+            border-radius: 8px; font-size: 13px; font-weight: 600;
+            color: var(--text-muted); cursor: pointer; transition: all 0.2s;
+        }
+
+        .btn-template:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-template.active {
+            background: var(--primary); color: #fff; border-color: var(--primary);
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+        }
+
+        .action-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+
+        .btn-action {
+            padding: 14px 10px; border: none; border-radius: 8px; color: white;
+            font-weight: 600; font-size: 14px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            transition: transform 0.2s, filter 0.2s;
+        }
+
+        .btn-action:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .btn-png { background-color: #10B981; }
+        .btn-jpg { background-color: #8B5CF6; }
+        .btn-pdf { background-color: #F97316; }
+
+        @media (max-width: 900px) {
+            .left-panel, .right-panel { width: 100%; border-right: none; }
+            .left-panel { border-bottom: 1px solid var(--border); }
+            .template-grid { grid-template-columns: repeat(2, 1fr); }
+            .action-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-wrapper">
+        <h1 class="header-title">VISITING CARD PRO</h1>
+
+        <div class="container">
+            <div class="left-panel">
+                <div class="upload-btn-wrapper">
+                    <div class="btn-upload">☁️ Upload Profile Photo</div>
+                    <input type="file" id="logoUpload" accept="image/*">
+                </div>
+
+                <div class="section-divider">Card Information & Colors</div>
+
+                <div class="form-group">
+                    <input type="text" id="inpName" value="" placeholder="Full Name">
+                    <input type="color" id="colName" value="#111827">
+                </div>
+                <div class="form-group">
+                    <input type="text" id="inpTitle" value="" placeholder="Job Title">
+                    <input type="color" id="colTitle" value="#4F46E5">
+                </div>
+                <div class="form-group">
+                    <input type="text" id="inpDept" value="" placeholder="Department">
+                    <input type="color" id="colDept" value="#111827">
+                </div>
+                <div class="form-group">
+                    <input type="text" id="inpDesc" value="" placeholder="Address / Description">
+                    <input type="color" id="colDesc" value="#6B7280">
+                </div>
+                <div class="form-group">
+                    <input type="text" id="inpPhone" value="" placeholder="Telephone">
+                    <input type="color" id="colPhone" value="#6B7280">
+                </div>
+                <div class="form-group">
+                    <input type="text" id="inpEmail" value="" placeholder="Email Address">
+                    <input type="color" id="colEmail" value="#6B7280">
+                </div>
+                <div class="form-group">
+                    <input type="text" id="inpWeb" value="" placeholder="Website (e.g., www.example.com)">
+                    <input type="color" id="colWeb" value="#6B7280">
+                </div>
+            </div>
+
+            <div class="right-panel">
+                
+                <div class="preview-container">
+                    <div class="business-card theme-creative" id="cardPreview">
+                        
+                        <div class="photo-area">
+                            <div id="photoPlaceholder">Profile</div>
+                            <img src="" alt="Profile" id="outPhoto">
+                        </div>
+                        
+                        <div class="out-name" id="outName" style="color: #111827;"></div>
+                        <div class="out-title" id="outTitle" style="color: #4F46E5;"></div>
+                        <div class="out-dept" id="outDept" style="color: #111827;"></div>
+                        <div class="out-desc" id="outDesc" style="color: #6B7280;"></div>
+                        
+                        <div class="contact-container">
+                            <div class="out-contact-row" id="rowPhone" style="color: #6B7280;">
+                                <span class="contact-icon">📞</span>
+                                <span id="outPhone"></span>
+                            </div>
+                            <div class="out-contact-row" id="rowEmail" style="color: #6B7280;">
+                                <span class="contact-icon">✉️</span>
+                                <span id="outEmail"></span>
+                            </div>
+                            <div class="out-contact-row" id="rowWeb" style="color: #6B7280;">
+                                <span class="contact-icon">🌐</span>
+                                <span id="outWeb"></span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="controls-label">Select Design Template</div>
+                <div class="template-grid">
+                    <button class="btn-template">Minimal</button>
+                    <button class="btn-template">Modern</button>
+                    <button class="btn-template">Classic</button>
+                    <button class="btn-template active">Creative</button>
+                </div>
+
+                <div class="action-grid">
+                    <button class="btn-action btn-png" onclick="downloadImage('png')">🖼️ Save as PNG</button>
+                    <button class="btn-action btn-jpg" onclick="downloadImage('jpeg')">🖼️ Save as JPG</button>
+                    <button class="btn-action btn-pdf" onclick="alert('PDF generation requires jsPDF. Please use PNG/JPG for best visual quality!')">📄 Save as PDF</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. Data Mapping including contact rows logic
+        const fields = [
+            { id: 'Name', type: 'text' }, 
+            { id: 'Title', type: 'text' }, 
+            { id: 'Dept', type: 'text' }, 
+            { id: 'Desc', type: 'text' }, 
+            { id: 'Phone', type: 'contact' }, 
+            { id: 'Email', type: 'contact' },
+            { id: 'Web', type: 'contact' }
+        ];
+
+        fields.forEach(field => {
+            const input = document.getElementById(`inp${field.id}`);
+            const output = document.getElementById(`out${field.id}`);
+            const color = document.getElementById(`col${field.id}`);
+            const row = document.getElementById(`row${field.id}`);
+
+            // Text Update Event
+            input.addEventListener('input', (e) => {
+                const val = e.target.value;
+                output.innerText = val;
+                
+                if (field.type === 'contact') {
+                    // Update to inline-flex to wrap properly under the floated photo
+                    row.style.display = val.trim().length > 0 ? 'inline-flex' : 'none';
+                }
+            });
+
+            // Color Update Event
+            color.addEventListener('input', (e) => {
+                if (field.type === 'contact') {
+                    row.style.color = e.target.value; 
+                } else {
+                    output.style.color = e.target.value;
+                }
+            });
+        });
+
+        // 2. Profile Photo Upload Logic 
+        document.getElementById('logoUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('outPhoto').src = event.target.result;
+                    document.getElementById('outPhoto').style.display = 'block';
+                    document.getElementById('photoPlaceholder').style.display = 'none';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // 3. Theme Switching Logic
+        const templateBtns = document.querySelectorAll('.btn-template');
+        const cardPreview = document.getElementById('cardPreview');
+
+        templateBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                templateBtns.forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+
+                const templateName = e.target.innerText.toLowerCase();
+                cardPreview.className = 'business-card'; 
+                cardPreview.classList.add(`theme-${templateName}`); 
+            });
+        });
+
+        // 4. Download Function
+        function downloadImage(format) {
+            const card = document.getElementById('cardPreview');
+            const btn = document.querySelector(`.btn-${format === 'jpeg' ? 'jpg' : 'png'}`);
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = '⏳ Saving...';
+            btn.style.opacity = '0.7';
+
+            html2canvas(card, { 
+                scale: 3, 
+                backgroundColor: null, 
+                useCORS: true 
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Visiting_Card.${format}`;
+                link.href = canvas.toDataURL(`image/${format}`, 1.0);
+                link.click();
+                
+                btn.innerHTML = originalText;
+                btn.style.opacity = '1';
+            }).catch(err => {
+                alert("Error saving image!");
+                btn.innerHTML = originalText;
+                btn.style.opacity = '1';
+            });
+        }
+    </script>
+</body>
+</html>
