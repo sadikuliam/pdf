@@ -3,9 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF N-Up Converter</title>
-    <!-- pdf-lib CDN Library -->
+    <title>PDF & Image N-Up Converter</title>
+    
+    <!-- PDF-Lib for generating PDFs -->
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    
+    <!-- PDF.js for rendering PDF to Image (PNG/JPG) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    
+    <!-- JSZip for downloading multiple images as a Zip file -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -41,12 +49,11 @@
             border: 1px solid var(--border);
             padding: 35px 30px;
             width: 100%;
-            max-width: 480px;
+            max-width: 500px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
             text-align: center;
         }
 
-        /* Header Layout & Home Button */
         .header {
             display: flex;
             flex-direction: column;
@@ -110,7 +117,6 @@
             font-size: 14px;
         }
 
-        /* Custom Drag & Drop File Upload Box */
         .upload-area {
             border: 2px dashed #CBD5E1;
             border-radius: 14px;
@@ -143,7 +149,6 @@
             word-break: break-all;
         }
 
-        /* Form Select Field */
         select {
             width: 100%;
             padding: 12px 14px;
@@ -161,7 +166,6 @@
             border-color: var(--primary);
         }
 
-        /* Main Action Button */
         button {
             width: 100%;
             background: linear-gradient(135deg, var(--primary), var(--violet));
@@ -192,7 +196,6 @@
 <body>
 
 <div class="container">
-    <!-- Header Section with Violet Home Button -->
     <div class="header">
         <a href="https://pdf.shmwb.in/" class="home-btn">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -202,58 +205,73 @@
             Home
         </a>
         <div class="header-text">
-            <h2>PDF N-Up Layout Generator</h2>
-            <p class="subtitle">একটি A4 পৃষ্ঠায় একাধিক পেজ বসিয়ে প্রিন্ট লেআউট তৈরি করুন।</p>
+            <h2>Multi-file N-Up Converter</h2>
+            <p class="subtitle">PDF ও ছবি আপলোড করে A4 পেজে লেআউট তৈরি করুন এবং PDF/PNG/JPG তে সেভ করুন।</p>
         </div>
     </div>
 
-    <!-- Custom File Selection -->
+    <!-- Custom File Selection (Multiple allowed) -->
     <div class="form-group">
-        <label>১. PDF ফাইল সিলেক্ট করুন:</label>
+        <label>১. ফাইল সিলেক্ট করুন (PDF, PNG, JPG):</label>
         <label for="pdfFile">
             <div class="upload-area" id="uploadArea">
-                <div class="upload-icon">📄</div>
-                <div id="uploadText" style="font-size: 14px; color: #475569;">PDF আপলোড করতে ক্লিক করুন</div>
+                <div class="upload-icon">📄🖼️</div>
+                <div id="uploadText" style="font-size: 14px; color: #475569;">ফাইল আপলোড করতে ক্লিক করুন</div>
                 <div class="file-name" id="fileName"></div>
             </div>
         </label>
-        <input type="file" id="pdfFile" accept="application/pdf">
+        <input type="file" id="pdfFile" accept="application/pdf, image/png, image/jpeg" multiple>
     </div>
 
     <!-- Layout Dropdown -->
     <div class="form-group">
-        <label for="layoutSelect">২. প্রতি A4 পৃষ্ঠায় কয়টি পেজ চান?</label>
+        <label for="layoutSelect">২. প্রতি A4 পৃষ্ঠায় কয়টি পেজ/ছবি চান?</label>
         <select id="layoutSelect">
             <option value="2">2 Pages in 1 A4 Page (Side-by-Side)</option>
             <option value="4">4 Pages in 1 A4 Page (2x2 Grid)</option>
         </select>
     </div>
+    
+    <!-- Output Format Dropdown -->
+    <div class="form-group">
+        <label for="formatSelect">৩. আউটপুট ফরম্যাট সিলেক্ট করুন:</label>
+        <select id="formatSelect">
+            <option value="pdf">PDF File (.pdf)</option>
+            <option value="png">Images as PNG (.zip)</option>
+            <option value="jpg">Images as JPG (.zip)</option>
+        </select>
+    </div>
 
-    <button onclick="processPDF()">Convert & Download PDF</button>
+    <button onclick="processFiles()">Convert & Download</button>
 
     <div id="status"></div>
 </div>
 
 <script>
-    const pdfFileInput = document.getElementById('pdfFile');
+    // Setup PDF.js Worker
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    const fileInput = document.getElementById('pdfFile');
     const fileNameDisplay = document.getElementById('fileName');
     const uploadText = document.getElementById('uploadText');
 
-    // UI File Selector listener
-    pdfFileInput.addEventListener('change', function() {
-        if (this.files && this.files[0]) {
-            fileNameDisplay.textContent = "Selected: " + this.files[0].name;
+    fileInput.addEventListener('change', function() {
+        if (this.files && this.files.length > 0) {
+            fileNameDisplay.textContent = `Selected: ${this.files.length} file(s)`;
             uploadText.style.display = 'none';
+        } else {
+            fileNameDisplay.textContent = "";
+            uploadText.style.display = 'block';
         }
     });
 
-    async function processPDF() {
-        const fileInput = document.getElementById('pdfFile');
+    async function processFiles() {
         const layoutSelect = document.getElementById('layoutSelect').value;
+        const formatSelect = document.getElementById('formatSelect').value;
         const status = document.getElementById('status');
 
         if (fileInput.files.length === 0) {
-            alert('অনুগ্রহ করে একটি PDF ফাইল সিলেক্ট করুন।');
+            alert('অনুগ্রহ করে অন্তত একটি ফাইল সিলেক্ট করুন।');
             return;
         }
 
@@ -261,95 +279,144 @@
         status.innerText = "কাজ চলছে, অনুগ্রহ করে অপেক্ষা করুন... ⏳";
 
         try {
-            const file = fileInput.files[0];
-            const arrayBuffer = await file.arrayBuffer();
-
-            // Load existing PDF
             const { PDFDocument, PageSizes } = PDFLib;
-            const srcDoc = await PDFDocument.load(arrayBuffer);
             const newDoc = await PDFDocument.create();
+            let allElements = []; // Store all extracted pages and images
 
-            const totalPages = srcDoc.getPageCount();
-            const pagesPerSheet = parseInt(layoutSelect);
+            // 1. Process all input files
+            for (let i = 0; i < fileInput.files.length; i++) {
+                const file = fileInput.files[i];
+                const arrayBuffer = await file.arrayBuffer();
 
-            // A4 dimensions in points (595.28 x 841.89)
+                if (file.type === 'application/pdf') {
+                    const srcDoc = await PDFDocument.load(arrayBuffer);
+                    const pageIndices = Array.from({ length: srcDoc.getPageCount() }, (_, i) => i);
+                    const embeddedPages = await newDoc.embedPdf(srcDoc, pageIndices);
+                    embeddedPages.forEach(p => allElements.push({ type: 'pdf', obj: p, width: p.width, height: p.height }));
+                } else if (file.type === 'image/png') {
+                    const img = await newDoc.embedPng(arrayBuffer);
+                    allElements.push({ type: 'image', obj: img, width: img.width, height: img.height });
+                } else if (file.type === 'image/jpeg' || file.type === 'image/jpg') {
+                    const img = await newDoc.embedJpg(arrayBuffer);
+                    allElements.push({ type: 'image', obj: img, width: img.width, height: img.height });
+                }
+            }
+
+            if (allElements.length === 0) {
+                throw new Error("No valid pages or images found.");
+            }
+
+            // 2. Generate N-Up Layout
+            const totalItems = allElements.length;
+            const itemsPerSheet = parseInt(layoutSelect);
             const a4Width = PageSizes.A4[0];
             const a4Height = PageSizes.A4[1];
 
-            for (let i = 0; i < totalPages; i += pagesPerSheet) {
-                // Add a new landscape/portrait A4 page
+            for (let i = 0; i < totalItems; i += itemsPerSheet) {
                 let newPage;
-                if (pagesPerSheet === 2) {
-                    newPage = newDoc.addPage([a4Height, a4Width]); 
+                if (itemsPerSheet === 2) {
+                    newPage = newDoc.addPage([a4Height, a4Width]); // Landscape
                 } else {
-                    newPage = newDoc.addPage([a4Width, a4Height]); 
+                    newPage = newDoc.addPage([a4Width, a4Height]); // Portrait
                 }
 
                 const { width: sheetWidth, height: sheetHeight } = newPage.getSize();
 
-                for (let j = 0; j < pagesPerSheet; j++) {
-                    if (i + j >= totalPages) break;
+                for (let j = 0; j < itemsPerSheet; j++) {
+                    if (i + j >= totalItems) break;
 
-                    const [embeddedPage] = await newDoc.embedPdf(srcDoc, [i + j]);
-                    
+                    const element = allElements[i + j];
                     let targetWidth, targetHeight, x, y;
 
-                    if (pagesPerSheet === 2) {
+                    if (itemsPerSheet === 2) {
                         targetWidth = sheetWidth / 2;
                         targetHeight = sheetHeight;
-                        
-                        const scale = Math.min(targetWidth / embeddedPage.width, targetHeight / embeddedPage.height);
-                        const scaledWidth = embeddedPage.width * scale;
-                        const scaledHeight = embeddedPage.height * scale;
-
+                        const scale = Math.min(targetWidth / element.width, targetHeight / element.height);
+                        const scaledWidth = element.width * scale;
+                        const scaledHeight = element.height * scale;
                         x = (j % 2) * targetWidth + (targetWidth - scaledWidth) / 2;
                         y = (targetHeight - scaledHeight) / 2;
-
-                        newPage.drawPage(embeddedPage, {
-                            x: x,
-                            y: y,
-                            width: scaledWidth,
-                            height: scaledHeight
-                        });
-                    } else if (pagesPerSheet === 4) {
+                        
+                        drawElement(newPage, element, x, y, scaledWidth, scaledHeight);
+                    } else if (itemsPerSheet === 4) {
                         targetWidth = sheetWidth / 2;
                         targetHeight = sheetHeight / 2;
-
-                        const scale = Math.min(targetWidth / embeddedPage.width, targetHeight / embeddedPage.height);
-                        const scaledWidth = embeddedPage.width * scale;
-                        const scaledHeight = embeddedPage.height * scale;
-
+                        const scale = Math.min(targetWidth / element.width, targetHeight / element.height);
+                        const scaledWidth = element.width * scale;
+                        const scaledHeight = element.height * scale;
                         const col = j % 2;
                         const row = Math.floor(j / 2);
-
                         x = col * targetWidth + (targetWidth - scaledWidth) / 2;
                         y = (1 - row) * targetHeight + (targetHeight - scaledHeight) / 2;
 
-                        newPage.drawPage(embeddedPage, {
-                            x: x,
-                            y: y,
-                            width: scaledWidth,
-                            height: scaledHeight
-                        });
+                        drawElement(newPage, element, x, y, scaledWidth, scaledHeight);
                     }
                 }
             }
 
-            // Save and download converted PDF
             const pdfBytes = await newDoc.save();
-            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'Converted_A4_Layout.pdf';
-            link.click();
+
+            // 3. Handle Output format (PDF or PNG/JPG via JSZip)
+            if (formatSelect === 'pdf') {
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'Converted_A4_Layout.pdf';
+                link.click();
+            } else {
+                status.innerText = "ইমেজ তৈরি করা হচ্ছে, অপেক্ষা করুন... ⏳";
+                await exportToImages(pdfBytes, formatSelect);
+            }
 
             status.style.color = "#10B981";
-            status.innerText = "✅ সফলভাবে পরিবর্তন করা হয়েছে!";
+            status.innerText = "✅ সফলভাবে তৈরি করা হয়েছে!";
         } catch (error) {
             console.error(error);
             status.style.color = "#EF4444";
             status.innerText = "❌ প্রসেসিং ব্যর্থ হয়েছে। ফাইলটি পরীক্ষা করে আবার চেষ্টা করুন।";
         }
+    }
+
+    function drawElement(page, element, x, y, width, height) {
+        if (element.type === 'pdf') {
+            page.drawPage(element.obj, { x, y, width, height });
+        } else {
+            page.drawImage(element.obj, { x, y, width, height });
+        }
+    }
+
+    async function exportToImages(pdfBytes, format) {
+        const loadingTask = pdfjsLib.getDocument({ data: pdfBytes });
+        const pdf = await loadingTask.promise;
+        const zip = new JSZip();
+
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+            const page = await pdf.getPage(pageNum);
+            const scale = 2.0; // High Quality
+            const viewport = page.getViewport({ scale: scale });
+
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+
+            // Render PDF page into canvas
+            await page.render({ canvasContext: context, viewport: viewport }).promise;
+
+            const mimeType = format === 'jpg' ? 'image/jpeg' : 'image/png';
+            const imgData = canvas.toDataURL(mimeType, 0.9);
+            const base64Data = imgData.split(',')[1];
+            
+            // Add image to ZIP
+            zip.file(`Page_${pageNum}.${format}`, base64Data, { base64: true });
+        }
+
+        // Generate Zip and Download
+        const zipContent = await zip.generateAsync({ type: "blob" });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(zipContent);
+        link.download = `Converted_Layout_Images.zip`;
+        link.click();
     }
 </script>
 
