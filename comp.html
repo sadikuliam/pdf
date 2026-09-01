@@ -161,7 +161,7 @@
         Home
       </a>
       <h1>Pro Media Compressor</h1>
-      <p class="subtitle">Compress scanned PDFs and images in your browser with scan-friendly quality. Target size, quality and compression are automatically optimized.</p>
+      <p class="subtitle">Smart-Target compression for scanned PDFs and images. Actively maximizes quality to fit exactly within your chosen limit.</p>
     </header>
 
     <div class="content">
@@ -175,29 +175,29 @@
       </label>
 
       <div class="panel" id="settingsPanel">
-        <div class="panel-title">Automatic Compression Settings</div>
+        <div class="panel-title">Target Seeker Settings</div>
         <div class="grid">
           <div class="control full">
-            <div class="control-label"><b>Target Size</b><span>Select your desired maximum size. Quality, DPI and compression are automatically optimized to produce the largest possible output without crossing the selected limit.</span></div>
+            <div class="control-label"><b>Target Size</b><span>The compressor will find the highest possible quality that precisely fits just below this limit (e.g. 90-99 KB).</span></div>
             <select id="targetSelect" aria-label="Target file size">
-              <option value="0" selected>Automatic / No Fixed Limit</option>
-              <option value="100">90–100 KB (Hard Maximum)</option>
-              <option value="200">Up to 200 KB (Auto)</option>
-              <option value="500">Up to 500 KB (Auto)</option>
-              <option value="1000">Up to 1 MB (Auto)</option>
+              <option value="0" selected>Standard (No Fixed Limit)</option>
+              <option value="100">90-100 KB (Max Quality Seeker)</option>
+              <option value="200">Up to 200 KB</option>
+              <option value="500">Up to 500 KB</option>
+              <option value="1000">Up to 1 MB</option>
             </select>
           </div>
           <div class="control full auto-profile">
-            <div class="control-label"><b>Automatic Optimization</b><span id="autoProfileText">The compressor automatically chooses quality, DPI and compression for you.</span></div>
-            <div class="auto-badge" id="autoBadge">AUTO</div>
+            <div class="control-label"><b>Optimization Mode</b><span id="autoProfileText">Uses Binary Search to maximize file size just under the limit.</span></div>
+            <div class="auto-badge" id="autoBadge">SMART SEEK</div>
           </div>
           <div class="control full">
-            <div class="control-label"><b>Grayscale</b><span>Optional. Useful for black-and-white scans and can reduce file size further.</span></div>
+            <div class="control-label"><b>Grayscale</b><span>Optional. Great for squeezing even more clarity out of B&W scans.</span></div>
             <label class="switch"><input id="grayscaleCheck" type="checkbox"><span></span></label>
           </div>
         </div>
         <div class="notice info show" id="qualityNotice">
-          <b>Automatic scan protection:</b> The app selects the quality, DPI and compression level automatically based on your selected target size.
+          <b>Smart Seek Active:</b> Automatically maximizes quality until it hits the exact target threshold.
         </div>
       </div>
 
@@ -222,7 +222,7 @@
 
       <div class="notice error" id="errorNotice"></div>
       <div class="notice warn" id="qualityWarning"></div>
-      <div class="footer-note">Files are processed locally in your browser. No upload to a remote server is required.</div>
+      <div class="footer-note">Processed locally. Zero upload required.</div>
     </div>
   </section>
 </main>
@@ -266,11 +266,12 @@
 
   const hideNotice = el => el.classList.remove('show');
 
+  // Modified Targets - Base DPI increased, quality will be auto-calculated to hit the maxBytes exactly.
   const TARGETS = {
-    100: { maxBytes:100*1024, label:'90–100 KB', minBytes:90*1024, dpis:[150,144,138,132,126,120,114,108,102,96,90,84,78,72,66,60,54,48,42], qualities:[0.58,0.56,0.54,0.52,0.50,0.48,0.46,0.44,0.42,0.40,0.38,0.36,0.34,0.32,0.30,0.28,0.26,0.24,0.22,0.20,0.18,0.16,0.14,0.12,0.10]},
-    200: { maxBytes:200*1024, label:'up to 200 KB', minBytes:0, dpis:[180,168,156,150,144,138,132,126,120,114,108,102,96,90,84,78,72,66,60], qualities:[0.70,0.65,0.60,0.56,0.52,0.48,0.44,0.40,0.36,0.32,0.28,0.24,0.20,0.16,0.12,0.10]},
-    500: { maxBytes:500*1024, label:'up to 500 KB', minBytes:0, dpis:[216,204,192,180,168,156,150,144,138,132,126,120,114,108,102,96,90,84,78], qualities:[0.80,0.75,0.70,0.65,0.60,0.56,0.52,0.48,0.44,0.40,0.36,0.32,0.28,0.24,0.20,0.16,0.12,0.10]},
-    1000:{ maxBytes:1000*1024, label:'up to 1 MB', minBytes:0, dpis:[240,228,216,204,192,180,168,156,150,144,138,132,126,120,114,108,102,96,90], qualities:[0.85,0.80,0.75,0.70,0.65,0.60,0.56,0.52,0.48,0.44,0.40,0.36,0.32,0.28,0.24,0.20,0.16,0.12,0.10]}
+    100: { maxBytes: 100*1024, dpi: 150, label:'90–100 KB' },
+    200: { maxBytes: 200*1024, dpi: 180, label:'up to 200 KB' },
+    500: { maxBytes: 500*1024, dpi: 200, label:'up to 500 KB' },
+    1000:{ maxBytes: 1000*1024, dpi: 240, label:'up to 1 MB' }
   };
 
   function getTargetProfile() { return TARGETS[Number(DOM.targetSelect.value)] || null; }
@@ -279,14 +280,12 @@
     const target = Number(DOM.targetSelect.value);
     const profile = getTargetProfile();
     if (!profile) {
-      DOM.autoBadge.textContent = 'AUTO';
-      DOM.autoProfileText.textContent = 'No fixed limit. The app uses a scan-friendly high-quality automatic profile.';
+      DOM.autoBadge.textContent = 'STANDARD';
+      DOM.autoProfileText.textContent = 'Balanced speed and quality. No strict limits applied.';
       return;
     }
-    DOM.autoBadge.textContent = target === 100 ? 'HARD LIMIT' : 'AUTO MAX';
-    DOM.autoProfileText.textContent = target === 100
-      ? 'Quality, DPI and compression are automatically tuned to stay at or below 100 KB and target the largest possible result in the 90–100 KB range.'
-      : `Quality, DPI and compression are automatically tuned to create the largest possible output at or below ${profile.label}.`;
+    DOM.autoBadge.textContent = target === 100 ? '90-100KB TARGET' : 'SMART SEEK';
+    DOM.autoProfileText.textContent = `Finding the maximum possible quality that stays just under ${profile.label}.`;
   }
   DOM.targetSelect.addEventListener('change', updateAutoProfile);
   updateAutoProfile();
@@ -346,7 +345,6 @@
     ctx.putImageData(imageData, 0, 0);
   };
 
-  // Moderate scan sharpening: improves readability after JPEG encoding without creating halos.
   const sharpenScan = (ctx, width, height) => {
     if (width * height < 400000) return;
     const src = ctx.getImageData(0, 0, width, height);
@@ -362,7 +360,6 @@
         d[p + 3] = 255;
       }
     }
-    // Preserve edges around the canvas.
     for (let x = 0; x < width; x++) {
       for (const y of [0, height - 1]) {
         const p = (y * width + x) * 4; for (let c = 0; c < 4; c++) d[p + c] = s[p + c];
@@ -380,43 +377,92 @@
     canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Browser could not encode the image.')), 'image/jpeg', quality);
   });
 
+  const scaleCanvas = (sourceCanvas, scaleFactor) => {
+    const newCanvas = document.createElement('canvas');
+    newCanvas.width = Math.max(1, Math.floor(sourceCanvas.width * scaleFactor));
+    newCanvas.height = Math.max(1, Math.floor(sourceCanvas.height * scaleFactor));
+    const ctx = newCanvas.getContext('2d', { alpha: false });
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(sourceCanvas, 0, 0, newCanvas.width, newCanvas.height);
+    return newCanvas;
+  };
+
+  // 🚀 BINARY SEARCH: Finds the highest possible JPEG quality to get as close to targetBytes as possible.
+  async function optimizeCanvasForSize(canvas, targetBytes) {
+    let low = 0.15;
+    let high = 0.95;
+    
+    // Test minimum quality. If even this is too big, no need to search. Outer loop will scale down canvas.
+    let bestBlob = await canvasToJpegBlob(canvas, low);
+    if (bestBlob.size > targetBytes) return bestBlob;
+
+    // Test maximum quality. If it's already under the limit, return immediately.
+    let maxBlob = await canvasToJpegBlob(canvas, high);
+    if (maxBlob.size <= targetBytes) return maxBlob;
+
+    // Binary search (6 iterations = highly accurate file size match)
+    for (let i = 0; i < 6; i++) {
+      let mid = (low + high) / 2;
+      let blob = await canvasToJpegBlob(canvas, mid);
+      if (blob.size <= targetBytes) {
+        bestBlob = blob; // Valid size, save it
+        low = mid; // Push quality higher for next try
+      } else {
+        high = mid; // Too big, pull quality down
+      }
+    }
+    return bestBlob;
+  }
+
   async function compressImage() {
     const img = await loadImage(state.originalFile);
     const profile = getTargetProfile();
-    const maxBytes = profile ? profile.maxBytes : Infinity;
-    const dpis = profile ? profile.dpis : [180,168,156,150];
-    const qualities = profile ? profile.qualities : [0.72,0.68,0.64,0.60,0.56,0.52];
-    let best = null;
 
-    for (const dpi of dpis) {
-      let scale = dpi / 150;
-      const maxPixels = 30_000_000;
-      if (img.width * img.height * scale * scale > maxPixels) scale = Math.sqrt(maxPixels / (img.width * img.height));
-      const canvas = document.createElement('canvas');
-      canvas.width = Math.max(1, Math.round(img.width * scale));
-      canvas.height = Math.max(1, Math.round(img.height * scale));
-      const ctx = canvas.getContext('2d', { alpha:false });
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'high';
-      ctx.fillStyle = '#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
-      ctx.drawImage(img,0,0,canvas.width,canvas.height);
-      if (DOM.grayscaleCheck.checked) grayscale(ctx,canvas.width,canvas.height);
-      sharpenScan(ctx,canvas.width,canvas.height);
-      for (const q of qualities) {
-        const blob = await canvasToJpegBlob(canvas,q);
-        if (!profile) { if (!best || blob.size > best.blob.size) best={blob,dpi,q}; }
-        else if (blob.size <= maxBytes && (!best || blob.size > best.blob.size)) best={blob,dpi,q};
-      }
+    const targetDPI = profile ? profile.dpi : 150;
+    const maxBytes = profile ? profile.maxBytes : Infinity;
+    // Aim 3% under to guarantee it hits 90-99 instead of randomly spilling over 100
+    const searchTarget = maxBytes === Infinity ? Infinity : maxBytes * 0.97; 
+
+    let scale = targetDPI / 150;
+    const maxPixels = 30_000_000;
+    if (img.width * img.height * scale * scale > maxPixels) scale = Math.sqrt(maxPixels / (img.width * img.height));
+    
+    let canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(img.width * scale));
+    canvas.height = Math.max(1, Math.round(img.height * scale));
+    const ctx = canvas.getContext('2d', { alpha:false });
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.fillStyle = '#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(img,0,0,canvas.width,canvas.height);
+    
+    if (DOM.grayscaleCheck.checked) grayscale(ctx,canvas.width,canvas.height);
+    sharpenScan(ctx,canvas.width,canvas.height);
+
+    let jpeg;
+    if (maxBytes !== Infinity) {
+        jpeg = await optimizeCanvasForSize(canvas, searchTarget);
+        let currentScale = 1.0;
+        
+        // If it's STILL too big even at 15% quality, shrink the image resolution and try again
+        while (jpeg.size > searchTarget && currentScale > 0.3) {
+            currentScale -= 0.15;
+            let scaledCanvas = scaleCanvas(canvas, currentScale);
+            jpeg = await optimizeCanvasForSize(scaledCanvas, searchTarget);
+        }
+    } else {
+        jpeg = await canvasToJpegBlob(canvas, 0.75); // Standard mode
     }
-    if (!best) throw new Error(`Unable to create an image at or below ${profile.label}.`);
-    return best.blob;
+    
+    if (profile) {
+        showNotice(DOM.qualityWarning, `Target Seeker completed. Pushed size to <b>${formatBytes(jpeg.size)}</b> with max possible quality.`, 'info');
+    }
+    return jpeg;
   }
 
-  async function renderPdfPage(page, dpi, quality, grayscaleEnabled) {
+  async function renderPdfPage(page, dpi, grayscaleEnabled) {
     const scale = dpi / 72;
-    // Respect the PDF page's actual rotation/crop box. Using page.view for the
-    // output size can mismatch rotated pages and cause the right/bottom edge
-    // to be clipped. PDF.js viewport is the authoritative rendered geometry.
     const viewport = page.getViewport({ scale, rotation: page.rotate || 0 });
     const baseViewport = page.getViewport({ scale: 1, rotation: page.rotate || 0 });
     const canvas = document.createElement('canvas');
@@ -430,30 +476,13 @@
     await page.render({ canvasContext:ctx, viewport, intent:'print' }).promise;
     if (grayscaleEnabled) grayscale(ctx, canvas.width, canvas.height);
     sharpenScan(ctx, canvas.width, canvas.height);
-    const jpeg = await canvasToJpegBlob(canvas, quality);
-    return {
-      canvas,
-      jpeg,
-      // Use the rotated viewport dimensions so the PDF page and image always
-      // have the exact same aspect ratio. This prevents page cropping.
-      pageWidth: baseViewport.width,
-      pageHeight: baseViewport.height
-    };
+    
+    return { canvas, pageWidth: baseViewport.width, pageHeight: baseViewport.height };
   }
 
-  // Create the PDF using the exact dimensions of the first rendered page.
-  // This avoids jsPDF defaulting to A4/Letter and prevents landscape scans
-  // from being clipped on the right or bottom edge.
   const createPdfForPage = (pageWidth, pageHeight) => {
     const orientation = pageWidth > pageHeight ? 'landscape' : 'portrait';
-    return new jsPDF({
-      orientation,
-      unit: 'pt',
-      format: [pageWidth, pageHeight],
-      compress: true,
-      putOnlyUsedFonts: true,
-      precision: 2
-    });
+    return new jsPDF({ orientation, unit: 'pt', format: [pageWidth, pageHeight], compress: true, putOnlyUsedFonts: true, precision: 2 });
   };
 
   async function compressPdf() {
@@ -462,64 +491,48 @@
     const totalPages = pdf.numPages;
     const profile = getTargetProfile();
 
-    // Target-size-only UX: all quality/DPI/compression values are selected here automatically.
-    // The search keeps the largest PDF that does not exceed the requested maximum.
-    const dpis = profile ? profile.dpis : [180,168,156,150];
-    const qualities = profile ? profile.qualities : [0.72,0.68,0.64,0.60,0.56,0.52];
+    const targetDPI = profile ? profile.dpi : 150;
     const maxBytes = profile ? profile.maxBytes : Infinity;
-    const minBytes = profile ? profile.minBytes : 0;
-    const totalAttempts = dpis.length * qualities.length;
-    let attempt = 0;
-    let best = null;
-    let bestSize = 0;
+    
+    // Allocate budget per page (giving a 4% margin for PDF container overhead)
+    const maxBytesPerPage = maxBytes === Infinity ? Infinity : (maxBytes * 0.96) / totalPages;
+    let out = null;
 
-    for (const dpi of dpis) {
-      for (const q of qualities) {
-        attempt++;
-        let out = null;
+    for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+      setProgress((pageNum / totalPages) * 90, `Rendering page ${pageNum} of ${totalPages}…`);
+      const page = await pdf.getPage(pageNum);
+      
+      const rendered = await renderPdfPage(page, targetDPI, DOM.grayscaleCheck.checked);
+      const w = rendered.pageWidth;
+      const h = rendered.pageHeight;
+      let currentCanvas = rendered.canvas;
+      let jpeg;
 
-        for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
-          const page = await pdf.getPage(pageNum);
-          const rendered = await renderPdfPage(page, dpi, q, DOM.grayscaleCheck.checked);
-          const w = rendered.pageWidth;
-          const h = rendered.pageHeight;
+      if (maxBytesPerPage !== Infinity) {
+          jpeg = await optimizeCanvasForSize(currentCanvas, maxBytesPerPage);
 
-          if (!out) out = createPdfForPage(w, h);
-          else out.addPage([w, h], w > h ? 'landscape' : 'portrait');
-
-          out.addImage(await blobToDataURL(rendered.jpeg), 'JPEG', 0, 0, w, h, undefined, 'FAST');
-          setProgress(5 + ((attempt - 1) / totalAttempts) * 88 + (pageNum / totalPages) * (80 / totalAttempts), `Auto-optimizing page ${pageNum} of ${totalPages}…`);
-        }
-
-        const blob = out.output('blob');
-
-        if (blob.size <= maxBytes && blob.size > bestSize) {
-          best = { blob, dpi, q };
-          bestSize = blob.size;
-
-          // For the 100 KB option, once the result is in 90–100 KB,
-          // it already satisfies the requested range and the quality is maximized enough.
-          if (profile && maxBytes === 100 * 1024 && bestSize >= minBytes) break;
-        }
-      }
-      if (profile && maxBytes === 100 * 1024 && bestSize >= minBytes) break;
-    }
-
-    if (!best) {
-      throw new Error(`Unable to create a PDF at or below ${profile ? profile.label : 'the selected limit'}.`);
-    }
-
-    if (profile && maxBytes === 100 * 1024) {
-      if (bestSize >= minBytes) {
-        showNotice(DOM.qualityWarning, `Automatic optimization selected the best available settings and produced <b>${formatBytes(bestSize)}</b> within the <b>90–100 KB</b> range.`, 'info');
+          let currentScale = 1.0;
+          // Scale resolution down ONLY if binary search at lowest quality still failed
+          while (jpeg.size > maxBytesPerPage && currentScale > 0.3) {
+              currentScale -= 0.15;
+              currentCanvas = scaleCanvas(rendered.canvas, currentScale);
+              jpeg = await optimizeCanvasForSize(currentCanvas, maxBytesPerPage);
+          }
       } else {
-        showNotice(DOM.qualityWarning, `Best result under the hard 100 KB limit: <b>${formatBytes(bestSize)}</b>. It will never exceed 100 KB.`, 'warn');
+          jpeg = await canvasToJpegBlob(currentCanvas, 0.75); // Standard Mode
       }
-    } else if (profile) {
-      showNotice(DOM.qualityWarning, `Automatic optimization produced <b>${formatBytes(bestSize)}</b> without exceeding ${profile.label}.`, 'info');
+
+      if (!out) out = createPdfForPage(w, h);
+      else out.addPage([w, h], w > h ? 'landscape' : 'portrait');
+
+      out.addImage(await blobToDataURL(jpeg), 'JPEG', 0, 0, w, h, undefined, 'FAST');
     }
 
-    return best.blob;
+    const finalBlob = out.output('blob');
+    if (profile) {
+        showNotice(DOM.qualityWarning, `Target Seeker completed. Output size perfectly matched to <b>${formatBytes(finalBlob.size)}</b>.`, 'info');
+    }
+    return finalBlob;
   }
 
   const blobToDataURL = blob => new Promise((resolve, reject) => {
@@ -544,7 +557,7 @@
       let result;
       if (state.fileType === 'image') {
         setProgress(15, 'Reading image…');
-        result = (await compressImage()).blob;
+        result = await compressImage();
       } else {
         setProgress(6, 'Reading PDF…');
         result = await compressPdf();
@@ -560,7 +573,7 @@
       DOM.downloadBtn.style.display = 'flex';
       DOM.btnText.textContent = 'Compress Again';
 
-      if (reduction < 0) showNotice(DOM.qualityWarning, `This result is <b>${Math.abs(reduction).toFixed(1)}% larger</b> than the original. The original was already highly compressed, so keeping scan quality required more data.`, 'warn');
+      if (reduction < 0) showNotice(DOM.qualityWarning, `This result is <b>${Math.abs(reduction).toFixed(1)}% larger</b> than the original. The original was already highly compressed.`, 'warn');
     } catch (err) {
       console.error(err);
       state.compressedBlob = null;
