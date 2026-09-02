@@ -86,15 +86,15 @@
         .upload-area {
             border: 2px dashed rgba(255, 255, 255, 0.6);
             border-radius: 15px;
-            padding: 40px 20px;
+            padding: 30px 20px;
             background: rgba(255, 255, 255, 0.1);
             transition: all 0.3s ease;
             cursor: pointer;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .upload-area:hover { background: rgba(255, 255, 255, 0.2); border-color: #fff; }
-        .upload-icon { font-size: 40px; margin-bottom: 15px; }
+        .upload-icon { font-size: 40px; margin-bottom: 10px; }
         input[type="file"] { display: none; }
 
         .btn {
@@ -122,7 +122,26 @@
             text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
         }
 
-        #fileName { margin-top: 15px; font-size: 13px; color: #fff; font-weight: bold; }
+        #fileList { 
+            margin-top: 15px; 
+            font-size: 13px; 
+            color: #fff; 
+            font-weight: bold; 
+            max-height: 120px; 
+            overflow-y: auto; 
+            text-align: left;
+            padding: 0 10px;
+        }
+
+        .file-item {
+            background: rgba(0, 0, 0, 0.15);
+            padding: 5px 10px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
@@ -139,18 +158,18 @@
             </a>
             <div class="header-text">
                 <h1>High-Quality Image to PDF</h1>
-                <p>ছবি নির্বাচন করুন এবং ক্রিস্টাল ক্লিয়ার ফুল-রেজোলিউশন PDF ডাউনলোড করুন।</p>
+                <p>একাধিক ছবি নির্বাচন করুন এবং ক্রিস্টাল ক্লিয়ার ফুল-রেজোলিউশন PDF তৈরি করুন।</p>
             </div>
         </div>
 
         <label for="fileInput">
             <div class="upload-area" id="uploadArea">
                 <div class="upload-icon">🖼️</div>
-                <h3 id="uploadText">ছবি নির্বাচন করতে ক্লিক করুন</h3>
-                <div id="fileName"></div>
+                <h3 id="uploadText">একাধিক ছবি নির্বাচন করতে ক্লিক করুন</h3>
+                <div id="fileList"></div>
             </div>
         </label>
-        <input type="file" id="fileInput" accept="image/png, image/jpeg, image/webp">
+        <input type="file" id="fileInput" accept="image/png, image/jpeg, image/webp" multiple>
 
         <button class="btn" id="convertBtn" disabled>Convert & Download PDF</button>
 
@@ -163,50 +182,97 @@
         const { jsPDF } = window.jspdf;
 
         const fileInput = document.getElementById('fileInput');
-        const fileNameDisplay = document.getElementById('fileName');
+        const fileListDisplay = document.getElementById('fileList');
         const convertBtn = document.getElementById('convertBtn');
         const successMessage = document.getElementById('successMessage');
         const uploadText = document.getElementById('uploadText');
 
+        let selectedFiles = [];
+
         fileInput.addEventListener('change', function() {
-            if (this.files && this.files[0]) {
-                fileNameDisplay.textContent = "Selected: " + this.files[0].name;
-                uploadText.style.display = 'none';
-                convertBtn.disabled = false;
-                successMessage.style.display = 'none';
+            if (this.files && this.files.length > 0) {
+                selectedFiles = Array.from(this.files);
+                updateFileListUI();
             }
         });
 
-        convertBtn.addEventListener('click', function() {
-            const file = fileInput.files[0];
-            if (!file) return;
+        function updateFileListUI() {
+            fileListDisplay.innerHTML = '';
+            if (selectedFiles.length > 0) {
+                uploadText.style.display = 'none';
+                convertBtn.disabled = false;
+                successMessage.style.display = 'none';
 
-            const reader = new FileReader();
+                selectedFiles.forEach((file, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'file-item';
+                    item.innerHTML = `<span>${index + 1}. ${file.name}</span>`;
+                    fileListDisplay.appendChild(item);
+                });
+            } else {
+                uploadText.style.display = 'block';
+                convertBtn.disabled = true;
+            }
+        }
 
-            reader.onload = function(e) {
-                const img = new Image();
-                img.src = e.target.result;
+        convertBtn.addEventListener('click', async function() {
+            if (selectedFiles.length === 0) return;
 
-                img.onload = function() {
-                    const orientation = img.width > img.height ? 'l' : 'p';
-                    const pdf = new jsPDF({
-                        orientation: orientation,
-                        unit: 'px',
-                        format: [img.width, img.height],
-                        compress: false
+            convertBtn.disabled = true;
+            convertBtn.textContent = 'Generating PDF...';
+
+            try {
+                let pdf = null;
+
+                for (let i = 0; i < selectedFiles.length; i++) {
+                    const file = selectedFiles[i];
+                    const dataUrl = await readFileAsDataURL(file);
+                    
+                    await new Promise((resolve, reject) => {
+                        const img = new Image();
+                        img.src = dataUrl;
+                        img.onload = function() {
+                            const orientation = img.width > img.height ? 'l' : 'p';
+                            
+                            if (i === 0) {
+                                // Initialize jsPDF with the dimensions of the first image
+                                pdf = new jsPDF({
+                                    orientation: orientation,
+                                    unit: 'px',
+                                    format: [img.width, img.height],
+                                    compress: false
+                                });
+                            } else {
+                                // Add a new page matching the dimensions of subsequent images
+                                pdf.addPage([img.width, img.height], orientation);
+                            }
+
+                            pdf.addImage(img, 'JPEG', 0, 0, img.width, img.height, undefined, 'NONE');
+                            resolve();
+                        };
+                        img.onerror = reject;
                     });
+                }
 
-                    pdf.addImage(img, 'JPEG', 0, 0, img.width, img.height, undefined, 'NONE');
-
-                    const originalName = file.name.split('.').slice(0, -1).join('.');
-                    pdf.save(originalName + ".pdf");
-
-                    successMessage.style.display = 'block';
-                };
-            };
-
-            reader.readAsDataURL(file);
+                pdf.save("converted-images.pdf");
+                successMessage.style.display = 'block';
+            } catch (error) {
+                console.error(error);
+                alert('PDF তৈরিতে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+            } finally {
+                convertBtn.disabled = false;
+                convertBtn.textContent = 'Convert & Download PDF';
+            }
         });
+
+        function readFileAsDataURL(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
     </script>
 </body>
 </html>
