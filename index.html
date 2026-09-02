@@ -116,29 +116,32 @@
             justify-content: flex-end;
         }
 
-        /* ===== Left PDF Logo ===== */
+        /* ===== Left PDF Logo (10 Sec Fade Out/In) ===== */
         .pdf-icon-logo {
             height: 100px;
             max-width: 100%;
             object-fit: contain;
             filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.2));
             transition: transform 0.3s ease;
+            animation: fadeOutIn 10s ease-in-out infinite; /* Changed to 10s */
         }
+        
         .pdf-icon-logo:hover {
             transform: scale(1.08) rotate(-3deg);
+        }
+
+        @keyframes fadeOutIn {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; } 
         }
 
         /* ===== 3D Colorful Text (Center) ===== */
         .title-line-1 {
             font-size: 1.8rem;
             font-weight: 700;
-            background: linear-gradient(90deg, #FF512F, #DD2476, #FF512F);
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0px 0px 15px rgba(221, 36, 118, 0.3);
-            /* 3 Second Blinking Animation */
-            animation: textShine 5s linear infinite, blink3Sec 3s infinite;
+            color: #000000; /* Changed to Solid Black */
+            text-shadow: 0px 2px 10px rgba(255, 255, 255, 0.8); /* Added white glow to make black stand out on colorful BG */
+            animation: blink3Sec 3s infinite; /* Kept 3 sec blink */
         }
 
         @keyframes blink3Sec {
@@ -150,12 +153,10 @@
             font-size: 3.6rem;
             font-weight: 900;
             line-height: 1.1;
-            /* Modern Mixed Color Gradient */
             background: linear-gradient(135deg, #00F2FE 0%, #4FACFE 40%, #00F2FE 100%);
             background-size: 200% auto;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            /* HD 3D Drop Shadow Effect */
             filter: drop-shadow(2px 2px 0px rgba(255, 255, 255, 0.4)) 
                     drop-shadow(4px 5px 8px rgba(0, 0, 0, 0.25)) 
                     drop-shadow(0px 15px 15px rgba(0, 0, 0, 0.15));
@@ -166,27 +167,31 @@
             to { background-position: 200% center; }
         }
 
-        /* ===== Right Logo (SHM Space) ===== */
-        .main-logo { 
-            height: 130px; 
-            max-width: 100%; 
-            object-fit: contain; 
-            border-radius: 20px; 
-            animation: floatLogo 3s ease-in-out infinite; 
-            transition: all 0.4s ease;
+        /* ===== Right Logo (SHM Space) - Kept Perfectly Still for Max Quality ===== */
+        .logo-box {
+            background-color: #ffffff;
+            padding: 4px; 
+            border-radius: 18px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15); 
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            transition: box-shadow 0.3s ease;
             cursor: pointer;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
         }
 
-        .main-logo:hover { 
-            animation-play-state: paused;
-            transform: scale(1.08); 
+        .logo-box:hover {
             box-shadow: 0 15px 35px rgba(79, 70, 229, 0.5), 0 0 40px rgba(236, 72, 153, 0.5);
         }
 
-        @keyframes floatLogo {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-8px); }
+        .main-logo { 
+            height: 120px; 
+            max-width: 100%; 
+            object-fit: contain; 
+            border-radius: 14px; 
+            display: block;
+            image-rendering: high-quality;
+            -webkit-font-smoothing: antialiased;
         }
 
         /* ===== Grid Layout: 6 per line on PC/Tab, 3 on Mobile ===== */
@@ -361,7 +366,8 @@
             .tool-card { padding: 1.5rem 0.5rem; }
             .title-line-1 { font-size: 1.4rem; }
             .title-line-2 { font-size: 2.8rem; }
-            .main-logo { height: 100px; }
+            .main-logo { height: 100px; } 
+            .logo-box { padding: 3px; }
             .pdf-icon-logo { height: 80px; }
         }
 
@@ -382,7 +388,8 @@
             .title-line-1 { font-size: 1.3rem; }
             .title-line-2 { font-size: 2.4rem; }
             .main-logo { height: 90px; } 
-            .pdf-icon-logo { height: 70px; display: none; } /* মোবাইলে স্পেস বাঁচাতে পিডিএফ লোগো হাইড করা যায়, প্রয়োজন হলে display: block করতে পারেন */
+            .logo-box { padding: 3px; }
+            .pdf-icon-logo { height: 70px; display: none; } 
 
             .tools-grid { 
                 grid-template-columns: repeat(3, 1fr); 
@@ -448,7 +455,7 @@
         
         <!-- Updated 3-Column Header Layout -->
         <div class="header">
-            <!-- Left PDF Logo -->
+            <!-- Left PDF Logo (Fades out and in every 10 seconds) -->
             <div class="header-left">
                 <img src="https://res.cloudinary.com/ewu5hckc/image/upload/v1788191332/pdf_editing.png" alt="PDF Tools Logo" class="pdf-icon-logo">
             </div>
@@ -459,9 +466,11 @@
                 <div class="title-line-2">Pdf Tools</div>
             </div>
 
-            <!-- Right SHM Space Logo -->
+            <!-- Right SHM Space Logo inside a static white box -->
             <div class="header-right">
-                <img src="https://res.cloudinary.com/ewu5hckc/image/upload/v1787501420/kzgmpoejurlvyvv3mmdk.png" alt="SHM Space Logo" class="main-logo">
+                <div class="logo-box">
+                    <img src="https://res.cloudinary.com/ewu5hckc/image/upload/v1788359548/space_shm.png" alt="SHM Space Logo" class="main-logo">
+                </div>
             </div>
         </div>
 
