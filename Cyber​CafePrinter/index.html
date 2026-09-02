@@ -1084,7 +1084,8 @@
             const gapX = 3 * MM_TO_PX;
             const gapY = 3 * MM_TO_PX;
 
-            let currentY = minMargin + (3 * MM_TO_PX);
+            // Updated to start exactly at minMargin to save space
+            let currentY = minMargin; 
             let rowHeight = 0;
             let lastSize = null;
             let currentX = 0;
