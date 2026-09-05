@@ -70,6 +70,7 @@
             justify-content: space-between;
             gap: 15px;
             border-bottom: 2px solid var(--primary);
+            position: relative;
         }
 
         .toolbar-title {
@@ -79,6 +80,22 @@
             display: flex;
             align-items: center;
             gap: 8px;
+        }
+
+        /* POWERED BY LINK STYLES */
+        .powered-by {
+            flex-grow: 1;
+            text-align: center;
+            color: var(--success); /* Green Color */
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.95rem;
+            transition: color 0.2s;
+        }
+
+        .powered-by:hover {
+            color: #059669; /* Darker green on hover */
+            text-decoration: underline;
         }
 
         select {
@@ -312,6 +329,7 @@
         @media (max-width: 768px) {
             .person-row { flex-direction: column; align-items: stretch; }
             .btn-remove { margin-left: 0; width: 100%; }
+            .powered-by { width: 100%; order: 3; margin-top: 10px; }
         }
     </style>
 </head>
@@ -322,6 +340,12 @@
             <div class="toolbar-title">
                 <i class="fa-solid fa-users-viewfinder"></i> Cyber Cafe Printer 🖨️
             </div>
+            
+            <!-- POWERED BY LINK ADDED HERE -->
+            <a href="http://shmwb.in/" target="_blank" class="powered-by">
+                Powered by: shmwb.in
+            </a>
+
             <select id="paper-size" onchange="drawLayout()">
                 <option value="A4">Paper: A4 Sheet</option>
                 <option value="Letter">Paper: US Letter</option>
@@ -630,7 +654,7 @@
 
             const minMargin = 3 * MM_TO_PX; 
             const gapX = 15; 
-            const idInnerGap = 120; // Front & Back gap
+            const idInnerGap = 120; 
 
             let currentY = minMargin;
             let rowHeight = 0;
@@ -651,8 +675,6 @@
                 const isId = (p.size === 'id_card_in');
                 const unitW = isId ? (pW * 2 + idInnerGap) : pW;
 
-                // ★ Dynamic Vertical Gap (gapY) ★
-                // আইডি কার্ড হলে উপর-নিচে ৬০ পিক্সেল গ্যাপ থাকবে, অন্যথায় ১২ পিক্সেল।
                 const gapY = isId ? 60 : 12;
 
                 let fitCount = Math.floor((canvas.width - (2 * minMargin) + gapX) / (unitW + gapX));
