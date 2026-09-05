@@ -408,7 +408,7 @@
                 qty: 6,
                 name: '',
                 date: '',
-                border: 1, // 1 = Thin by default
+                border: 1, 
                 img1: new Image(),
                 loaded1: false,
                 img2: new Image(),
@@ -628,11 +628,9 @@
         function drawLayout() {
             setCanvasSize();
 
-            // ★ ক্যানভাসের মার্জিন এবং গ্যাপ কমানো হয়েছে যাতে নিচে আরও একটি লাইন ধরে যায় ★
             const minMargin = 3 * MM_TO_PX; 
             const gapX = 15; 
-            const gapY = 12; 
-            const idInnerGap = 120; 
+            const idInnerGap = 120; // Front & Back gap
 
             let currentY = minMargin;
             let rowHeight = 0;
@@ -652,6 +650,10 @@
 
                 const isId = (p.size === 'id_card_in');
                 const unitW = isId ? (pW * 2 + idInnerGap) : pW;
+
+                // ★ Dynamic Vertical Gap (gapY) ★
+                // আইডি কার্ড হলে উপর-নিচে ৬০ পিক্সেল গ্যাপ থাকবে, অন্যথায় ১২ পিক্সেল।
+                const gapY = isId ? 60 : 12;
 
                 let fitCount = Math.floor((canvas.width - (2 * minMargin) + gapX) / (unitW + gapX));
                 if (p.size === 'job_form') fitCount = 6; 
@@ -681,7 +683,6 @@
                         currentY += rowHeight + gapY;
                     }
 
-                    // নিচের শর্তটি আরেকটু কমানো হয়েছে যাতে অনায়াসেই শেষ লাইনটি প্রিন্ট হয়ে যায়
                     if (currentY + pH > canvas.height - 5) {
                         return; 
                     }
