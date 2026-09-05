@@ -872,37 +872,20 @@ Tools: JIRA, Confluence, Microsoft Office Suite</textarea>
             }, 300);
         }
 
-        // Smart Share Trigger (Downloads file and triggers mobile Share sheet)
-        async function triggerShare() {
+        // PDF Share Trigger (Opens print dialog so user can select Save as PDF, which instantly enables easy PDF sharing)
+        function triggerShare() {
             const container = document.getElementById('mainContainer');
             container.classList.remove('show-form');
             container.classList.add('show-preview');
-
-            const docName = (document.getElementById('inpName').value || 'Document').replace(/[^a-zA-Z0-9]/g, '_');
-            const docType = document.getElementById('docTypeSelect').value.toUpperCase();
-            const activePage = document.querySelector('.template.active');
-
-            if (navigator.share && window.Blob) {
-                try {
-                    // Create a blob file of the active template content for native sharing
-                    const htmlContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${document.querySelector('style').innerHTML}</style></head><body style="background:white; display:flex; justify-content:center; padding:10mm;"><div class="a4-page" style="transform:none; box-shadow:none;">${activePage.outerHTML}</div></body></html>`;
-                    const file = new File([htmlContent], `${docName}_${docType}.html`, { type: 'text/html' });
-                    
-                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        await navigator.share({
-                            title: `${docName} - ${docType}`,
-                            text: `Here is my professional ${docType} generated via SHM DocuBuild.`,
-                            files: [file],
-                        });
-                        return;
-                    }
-                } catch (err) {
-                    console.log('File share fallback triggered', err);
-                }
+            
+            const btnForm = document.getElementById('btnTabForm');
+            const btnPreview = document.getElementById('btnTabPreview');
+            if(btnForm && btnPreview) {
+                btnForm.classList.remove('active');
+                btnPreview.classList.add('active');
             }
 
-            // Fallback: If direct file share is restricted, trigger print/save as PDF so user can easily share from downloads
-            alert('আপনার ডিভাইসে ডিরেক্ট ফাইল শেয়ার সমর্থিত নয়। পিডিএফ হিসেবে সেভ বা প্রিন্ট ডায়ালগ ওপেন হচ্ছে, সেখান থেকে শেয়ার করতে পারবেন।');
+            // Instructing the user and opening PDF print dialog
             setTimeout(() => {
                 window.print();
             }, 300);
