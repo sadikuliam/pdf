@@ -81,7 +81,7 @@
 
         .controls {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             align-items: center;
         }
 
@@ -112,6 +112,21 @@
 
         .btn-print:hover {
             background-color: #2980b9;
+        }
+
+        .btn-share {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s ease;
+            white-space: nowrap;
+            display: none; /* Mobile/Supported friendly */
+        }
+
+        .btn-share:hover {
+            background-color: #219653;
         }
 
         /* --- Mobile Tab Switcher --- */
@@ -397,6 +412,10 @@
             .main-container.show-preview .left-panel {
                 display: none;
             }
+            /* Show share button specifically on mobile/supported devices */
+            .btn-share {
+                display: inline-block;
+            }
         }
 
         @media (max-width: 480px) {
@@ -467,7 +486,8 @@
                 <option value="cv">CV</option>
                 <option value="biodata">Biodata</option>
             </select>
-            <button class="btn-print" onclick="triggerPrint()">🖨️ PDF</button>
+            <button class="btn-share" onclick="triggerShare()">📤 Share</button>
+            <button class="btn-print" onclick="triggerPrint()">🖨️ Print / PDF</button>
         </div>
     </div>
 
@@ -839,14 +859,12 @@ Tools: JIRA, Confluence, Microsoft Office Suite</textarea>
             }
         }
 
-        // Robust Print / PDF Trigger for both Mobile and Desktop
+        // Robust Print / PDF Trigger
         function triggerPrint() {
-            // Force show preview mode before calling print so mobile devices can capture it correctly
             const container = document.getElementById('mainContainer');
             container.classList.remove('show-form');
             container.classList.add('show-preview');
             
-            // Highlight the preview tab button if on mobile
             const btnForm = document.getElementById('btnTabForm');
             const btnPreview = document.getElementById('btnTabPreview');
             if(btnForm && btnPreview) {
@@ -854,10 +872,26 @@ Tools: JIRA, Confluence, Microsoft Office Suite</textarea>
                 btnPreview.classList.add('active');
             }
 
-            // Short delay to ensure DOM updates, then trigger print dialog
             setTimeout(() => {
                 window.print();
             }, 300);
+        }
+
+        // Web Share API for Mobile Sharing
+        function triggerShare() {
+            const docName = document.getElementById('inpName').value || 'Document';
+            const docType = document.getElementById('docTypeSelect').value.toUpperCase();
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: `${docName} - SHM DocuBuild`,
+                    text: `Check out this professional ${docType} generated via SHM DocuBuild!`,
+                    url: window.location.href,
+                })
+                .catch((error) => console.log('Sharing failed', error));
+            } else {
+                alert('Sharing is not supported on this browser/device. Please use the Print/PDF option instead.');
+            }
         }
 
         syncData();
