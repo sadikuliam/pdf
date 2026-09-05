@@ -29,40 +29,50 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
+            height: 100dvh;
             overflow: hidden;
         }
 
         /* --- Navbar --- */
         .navbar {
             background-color: var(--sidebar-bg);
-            padding: 12px 25px;
+            padding: 10px 20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             display: flex;
             justify-content: space-between;
             align-items: center;
             z-index: 10;
+            gap: 15px;
         }
 
         .navbar-left {
             display: flex;
             align-items: center;
             gap: 20px;
+            flex: 1;
         }
 
         .navbar h2 {
             color: var(--primary);
-            font-size: 1.4rem;
+            font-size: 1.3rem;
             white-space: nowrap;
         }
 
+        /* Full text info box for Desktop */
         .info-box {
             background-color: #e8f5e9;
             color: #1b5e20;
-            padding: 8px 15px;
+            padding: 6px 12px;
             border-radius: 6px;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             line-height: 1.4;
-            max-width: 500px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .info-box div {
+            white-space: nowrap;
         }
 
         .info-box span {
@@ -71,15 +81,15 @@
 
         .controls {
             display: flex;
-            gap: 15px;
+            gap: 10px;
             align-items: center;
         }
 
         select, button {
-            padding: 8px 12px;
+            padding: 6px 12px;
             border: 1px solid var(--border);
             border-radius: 5px;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             outline: none;
         }
 
@@ -97,10 +107,36 @@
             cursor: pointer;
             font-weight: 600;
             transition: background 0.3s ease;
+            white-space: nowrap;
         }
 
         .btn-print:hover {
             background-color: #2980b9;
+        }
+
+        /* --- Mobile Tab Switcher --- */
+        .mobile-tabs {
+            display: none;
+            background: #fff;
+            border-bottom: 1px solid var(--border);
+            padding: 0 15px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            background: none;
+            border: none;
+            font-weight: 600;
+            color: var(--text-light);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
         }
 
         /* --- Main Layout --- */
@@ -108,6 +144,7 @@
             display: flex;
             flex: 1;
             overflow: hidden;
+            position: relative;
         }
 
         /* --- Left Panel (Form) --- */
@@ -194,9 +231,11 @@
             min-height: 297mm;
             background: white;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            padding: 10mm 12mm; /* Reduced top/bottom padding to fit more content */
+            padding: 10mm 12mm;
             position: relative;
             box-sizing: border-box;
+            transform-origin: top center;
+            transition: transform 0.2s ease;
         }
 
         /* --- Templates Visibility --- */
@@ -205,8 +244,8 @@
 
         /* --- Global Output Styles --- */
         .body-text { 
-            font-size: 0.85rem; /* Reduced font size to save space */
-            line-height: 1.4; /* Tighter line spacing */
+            font-size: 0.85rem; 
+            line-height: 1.4; 
             color: var(--text-dark); 
             white-space: pre-wrap; 
             text-align: justify; 
@@ -286,7 +325,6 @@
             border-left: 4px solid var(--primary); 
         }
 
-        /* Tightened Personal Profile Table in CV */
         .cv-personal-table { width: 100%; font-size: 0.85rem; }
         .cv-personal-table td { padding: 2px 0; }
 
@@ -311,6 +349,64 @@
         
         .declaration { margin-top: 20px; font-style: italic; text-align: justify; font-size: 0.85rem; }
         .signature-area { margin-top: 30px; display: flex; justify-content: space-between; font-size: 0.85rem;}
+
+        /* --- Responsive Media Queries for Mobile --- */
+        @media (max-width: 1024px) {
+            body {
+                overflow: auto;
+                height: auto;
+            }
+            .navbar {
+                padding: 10px 15px;
+            }
+            /* Hide info-box on smaller/mobile screens */
+            .info-box {
+                display: none !important;
+            }
+            .mobile-tabs {
+                display: flex;
+            }
+            .main-container {
+                flex-direction: column;
+                overflow: visible;
+                height: auto;
+            }
+            .left-panel, .right-panel {
+                width: 100%;
+                min-width: 100%;
+                padding: 15px;
+            }
+            .left-panel {
+                border-right: none;
+                max-height: none;
+            }
+            .right-panel {
+                background-color: #e0e0e0;
+                padding: 10px 5px;
+                overflow-x: auto;
+                justify-content: flex-start;
+            }
+            .a4-page {
+                transform: scale(0.68);
+                transform-origin: top left;
+                margin-bottom: -32%;
+                margin-right: -32%;
+            }
+            .main-container.show-form .right-panel {
+                display: none;
+            }
+            .main-container.show-preview .left-panel {
+                display: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .a4-page {
+                transform: scale(0.52);
+                margin-bottom: -48%;
+                margin-right: -48%;
+            }
+        }
         
         /* --- Strict Print Rules to Force 1 Page --- */
         @page {
@@ -327,7 +423,7 @@
                 background: white;
                 display: block; 
             }
-            .navbar, .left-panel { 
+            .navbar, .left-panel, .mobile-tabs, .info-box { 
                 display: none !important; 
             }
             .main-container, .right-panel {
@@ -348,6 +444,7 @@
                 position: absolute !important; 
                 top: 0 !important;
                 left: 0 !important;
+                transform: none !important;
                 page-break-after: avoid !important;
                 page-break-inside: avoid !important;
             }
@@ -360,22 +457,28 @@
         <div class="navbar-left">
             <h2>SHM DocuBuild</h2>
             <div class="info-box">
-                <span>Resume:</span> সাধারণত কাজের অভিজ্ঞতা ও স্কিল ফোকাস করা হয়। <br>
-                <span>CV (Curriculum Vitae):</span> বিস্তারিত শিক্ষাগত যোগ্যতা ও পেশাগত তথ্য থাকে। <br>
-                <span>Biodata:</span> সাধারণত ব্যক্তিগত ও পারিবারিক বিবরণ থাকে।
+                <div><span>Resume:</span> সাধারণত কাজের অভিজ্ঞতা ও স্কিল ফোকাস করা হয়।</div>
+                <div><span>CV:</span> বিস্তারিত শিক্ষাগত যোগ্যতা ও পেশাগত তথ্য থাকে।</div>
+                <div><span>Biodata:</span> সাধারণত ব্যক্তিগত ও পারিবারিক বিবরণ থাকে।</div>
             </div>
         </div>
         <div class="controls">
             <select id="docTypeSelect">
-                <option value="resume">Resume (Modern)</option>
-                <option value="cv">Curriculum Vitae (CV)</option>
-                <option value="biodata">Biodata (Traditional)</option>
+                <option value="resume">Resume</option>
+                <option value="cv">CV</option>
+                <option value="biodata">Biodata</option>
             </select>
-            <button class="btn-print" onclick="window.print()">🖨️ Download PDF / Print</button>
+            <button class="btn-print" onclick="window.print()">🖨️ PDF</button>
         </div>
     </div>
 
-    <div class="main-container">
+    <!-- Mobile View Switcher Tabs -->
+    <div class="mobile-tabs" id="mobileTabs">
+        <button class="tab-btn active" id="btnTabForm" onclick="switchMobileTab('form')">✏️ Edit Details</button>
+        <button class="tab-btn" id="btnTabPreview" onclick="switchMobileTab('preview')">👁️ Live Preview</button>
+    </div>
+
+    <div class="main-container show-form" id="mainContainer">
         <!-- Input Panel -->
         <div class="left-panel">
             
@@ -718,6 +821,24 @@ Tools: JIRA, Confluence, Microsoft Office Suite</textarea>
             
             syncData();
         });
+
+        function switchMobileTab(tab) {
+            const container = document.getElementById('mainContainer');
+            const btnForm = document.getElementById('btnTabForm');
+            const btnPreview = document.getElementById('btnTabPreview');
+
+            if (tab === 'form') {
+                container.classList.add('show-form');
+                container.classList.remove('show-preview');
+                btnForm.classList.add('active');
+                btnPreview.classList.remove('active');
+            } else {
+                container.classList.remove('show-form');
+                container.classList.add('show-preview');
+                btnPreview.classList.add('active');
+                btnForm.classList.remove('active');
+            }
+        }
 
         syncData();
     </script>
