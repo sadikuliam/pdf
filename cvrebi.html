@@ -359,7 +359,6 @@
             .navbar {
                 padding: 10px 15px;
             }
-            /* Hide info-box on smaller/mobile screens */
             .info-box {
                 display: none !important;
             }
@@ -421,7 +420,7 @@
                 margin: 0;
                 padding: 0;
                 background: white;
-                display: block; 
+                display: block !important; 
             }
             .navbar, .left-panel, .mobile-tabs, .info-box { 
                 display: none !important; 
@@ -468,7 +467,7 @@
                 <option value="cv">CV</option>
                 <option value="biodata">Biodata</option>
             </select>
-            <button class="btn-print" onclick="window.print()">🖨️ PDF</button>
+            <button class="btn-print" onclick="triggerPrint()">🖨️ PDF</button>
         </div>
     </div>
 
@@ -838,6 +837,27 @@ Tools: JIRA, Confluence, Microsoft Office Suite</textarea>
                 btnPreview.classList.add('active');
                 btnForm.classList.remove('active');
             }
+        }
+
+        // Robust Print / PDF Trigger for both Mobile and Desktop
+        function triggerPrint() {
+            // Force show preview mode before calling print so mobile devices can capture it correctly
+            const container = document.getElementById('mainContainer');
+            container.classList.remove('show-form');
+            container.classList.add('show-preview');
+            
+            // Highlight the preview tab button if on mobile
+            const btnForm = document.getElementById('btnTabForm');
+            const btnPreview = document.getElementById('btnTabPreview');
+            if(btnForm && btnPreview) {
+                btnForm.classList.remove('active');
+                btnPreview.classList.add('active');
+            }
+
+            // Short delay to ensure DOM updates, then trigger print dialog
+            setTimeout(() => {
+                window.print();
+            }, 300);
         }
 
         syncData();
