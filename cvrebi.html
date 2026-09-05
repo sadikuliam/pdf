@@ -114,20 +114,6 @@
             background-color: #2980b9;
         }
 
-        .btn-share {
-            background-color: #27ae60;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-            transition: background 0.3s ease;
-            white-space: nowrap;
-        }
-
-        .btn-share:hover {
-            background-color: #219653;
-        }
-
         /* --- Mobile Tab Switcher --- */
         .mobile-tabs {
             display: none;
@@ -481,7 +467,6 @@
                 <option value="cv">CV</option>
                 <option value="biodata">Biodata</option>
             </select>
-            <button class="btn-share" onclick="triggerShare()">📤 Share</button>
             <button class="btn-print" onclick="triggerPrint()">🖨️ Print</button>
         </div>
     </div>
@@ -854,7 +839,7 @@ Tools: JIRA, Confluence, Microsoft Office Suite</textarea>
             }
         }
 
-        // Print Trigger
+        // Print Trigger for both Mobile and Desktop
         function triggerPrint() {
             const container = document.getElementById('mainContainer');
             container.classList.remove('show-form');
@@ -867,25 +852,6 @@ Tools: JIRA, Confluence, Microsoft Office Suite</textarea>
                 btnPreview.classList.add('active');
             }
 
-            setTimeout(() => {
-                window.print();
-            }, 300);
-        }
-
-        // PDF Share Trigger (Opens print dialog so user can select Save as PDF, which instantly enables easy PDF sharing)
-        function triggerShare() {
-            const container = document.getElementById('mainContainer');
-            container.classList.remove('show-form');
-            container.classList.add('show-preview');
-            
-            const btnForm = document.getElementById('btnTabForm');
-            const btnPreview = document.getElementById('btnTabPreview');
-            if(btnForm && btnPreview) {
-                btnForm.classList.remove('active');
-                btnPreview.classList.add('active');
-            }
-
-            // Instructing the user and opening PDF print dialog
             setTimeout(() => {
                 window.print();
             }, 300);
