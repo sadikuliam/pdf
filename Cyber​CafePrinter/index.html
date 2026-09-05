@@ -585,7 +585,6 @@
                     `;
                 }
 
-                // ★ BORDER OPTIONS DROPDOWN ★
                 const borderSelect = `
                     <select class="text-input" style="width: auto; padding: 7px;" onchange="updatePersonText(${index}, 'border', this.value)">
                         <option value="0" ${p.border == '0' ? 'selected' : ''}>No Border</option>
@@ -629,10 +628,11 @@
         function drawLayout() {
             setCanvasSize();
 
-            const minMargin = 5 * MM_TO_PX;
+            // ★ ক্যানভাসের মার্জিন এবং গ্যাপ কমানো হয়েছে যাতে নিচে আরও একটি লাইন ধরে যায় ★
+            const minMargin = 3 * MM_TO_PX; 
             const gapX = 15; 
-            const gapY = 20;
-            const idInnerGap = 120; // Extra Space added here for folding
+            const gapY = 12; 
+            const idInnerGap = 120; 
 
             let currentY = minMargin;
             let rowHeight = 0;
@@ -648,7 +648,7 @@
                 const pW = dim.w * MM_TO_PX;
                 const pH = dim.h * MM_TO_PX;
                 
-                const borderVal = parseInt(p.border); // Get selected border value
+                const borderVal = parseInt(p.border); 
 
                 const isId = (p.size === 'id_card_in');
                 const unitW = isId ? (pW * 2 + idInnerGap) : pW;
@@ -681,7 +681,8 @@
                         currentY += rowHeight + gapY;
                     }
 
-                    if (currentY + pH > canvas.height - minMargin) {
+                    // নিচের শর্তটি আরেকটু কমানো হয়েছে যাতে অনায়াসেই শেষ লাইনটি প্রিন্ট হয়ে যায়
+                    if (currentY + pH > canvas.height - 5) {
                         return; 
                     }
 
@@ -711,7 +712,6 @@
                                 ctx.strokeRect(currentX, currentY, pW, pH);
                             }
                             
-                            // Name & Date Print
                             if (dim.hasDetails && (p.name || p.date)) {
                                 const barHeight = Math.min(45, pH * 0.25);
                                 const barY = currentY + pH - barHeight;
