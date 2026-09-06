@@ -661,6 +661,9 @@
             let lastSize = null;
             let currentX = 0;
             let currentGridStartX = 0;
+            
+            // Track the global column position across all persons
+            let currentCol = 0; 
 
             persons.forEach(p => {
                 if (!p.loaded1 && p.size !== 'id_card_in') return;
@@ -691,22 +694,23 @@
                         currentY += rowHeight + gapY;
                         rowHeight = pH;
                         currentGridStartX = gridStartX;
+                        currentCol = 0; // Reset column on size change
                     } else if (lastSize === null) {
                         currentX = gridStartX;
                         rowHeight = pH;
                         currentGridStartX = gridStartX;
+                        currentCol = 0; // Initialize column
                     }
 
-                    if (i > 0 && i % fitCount === 0) {
+                    // Use the global column tracker to wrap to the next line
+                    if (currentCol >= fitCount) {
                         currentX = currentGridStartX;
                         currentY += rowHeight + gapY;
-                    } else if (p.size !== 'job_form' && !isId && currentX + unitW > canvas.width - currentGridStartX + 1) { 
-                        currentX = currentGridStartX;
-                        currentY += rowHeight + gapY;
+                        currentCol = 0;
                     }
 
                     if (currentY + pH > canvas.height - 5) {
-                        return; 
+                        return; // Stop drawing if we run out of page space
                     }
 
                     if (isId) {
@@ -769,6 +773,7 @@
                     }
 
                     currentX += unitW + gapX;
+                    currentCol++; // Increment column counter after placing a photo
                     rowHeight = pH;
                     lastSize = p.size;
                 }
