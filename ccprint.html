@@ -82,20 +82,38 @@
             gap: 8px;
         }
 
-        /* POWERED BY LINK STYLES */
-        .powered-by {
+        /* MORE TOOLS BUTTON STYLES */
+        .more-tools-btn {
             flex-grow: 1;
+            max-width: fit-content;
+            margin: 0 auto;
             text-align: center;
-            color: var(--success); /* Green Color */
+            background: linear-gradient(145deg, #ff1493, #ff007f); /* Deep Pink */
+            color: white !important;
             text-decoration: none;
             font-weight: 700;
             font-size: 0.95rem;
-            transition: color 0.2s;
+            padding: 8px 24px;
+            border-radius: 25px;
+            border: none;
+            box-shadow: 0 5px 0 #c70066, 0 8px 15px rgba(255, 20, 147, 0.6); /* 3D and glow */
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .powered-by:hover {
-            color: #059669; /* Darker green on hover */
-            text-decoration: underline;
+        .more-tools-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 0 #c70066, 0 10px 20px rgba(255, 20, 147, 0.8);
+        }
+
+        .more-tools-btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 0px 0 #c70066, 0 2px 5px rgba(255, 20, 147, 0.6);
         }
 
         select {
@@ -329,7 +347,7 @@
         @media (max-width: 768px) {
             .person-row { flex-direction: column; align-items: stretch; }
             .btn-remove { margin-left: 0; width: 100%; }
-            .powered-by { width: 100%; order: 3; margin-top: 10px; }
+            .more-tools-btn { max-width: 100%; order: 3; margin-top: 10px; }
         }
     </style>
 </head>
@@ -341,9 +359,9 @@
                 <i class="fa-solid fa-users-viewfinder"></i> Cyber Cafe Printer 🖨️
             </div>
             
-            <!-- POWERED BY LINK ADDED HERE -->
-            <a href="http://shmwb.in/" target="_blank" class="powered-by">
-                Powered by: shmwb.in
+            <!-- MORE TOOLS LINK ADDED HERE -->
+            <a href="https://pdf.shmwb.in/" target="_blank" class="more-tools-btn">
+                <i class="fa-solid fa-toolbox"></i> More Tools
             </a>
 
             <select id="paper-size" onchange="drawLayout()">
@@ -429,7 +447,7 @@
             }
             persons.push({
                 size: 'job_form',
-                qty: 1, // <--- ডিফল্ট প্রিন্ট কোয়ান্টিটি ৬ থেকে ১ করা হয়েছে
+                qty: 1, // <--- ডিফল্ট প্রিন্ট কোয়ান্টিটি ৬ থেকে ১ করা হয়েছে
                 name: '',
                 date: '',
                 border: 1, 
