@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF to PVC PNG Generator</title>
+    <!-- PDF.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <style>
+        :root {
+            --pvc-width: 85.6mm;
+            --pvc-height: 54mm;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        button, input[type="file"]::file-selector-button {
+            background: #0056b3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        button:hover, input[type="file"]::file-selector-button:hover {
+            background: #004494;
+        }
+        
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .btn-success {
+            background: #198754;
+        }
+        
+        .btn-success:hover {
+            background: #146c43;
+        }
+
+        /* A4 Page Preview Container */
+        .a4-page {
+            width: 210mm;
+            min-height: 297mm;
+            background: white;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            padding: 20mm;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10mm;
+        }
+
+        /* PVC Card Preview Container */
+        .pvc-card {
+            width: var(--pvc-width);
+            height: var(--pvc-height);
+            border: 1px dashed #999;
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+            background: #fff;
+        }
+
+        .pvc-card canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: fill; 
+        }
+
+        .card-label {
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .card-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls no-print">
+        <input type="file" id="pdfInput" accept="application/pdf">
+        <button onclick="downloadPNG()" id="pngBtn" class="btn-success" disabled>Download as PNG</button>
+    </div>
+
+    <!-- This acts as a preview area -->
+    <div class="a4-page" id="printArea">
+        <div class="card-wrapper">
+            <div class="card-label">Front Side Preview</div>
+            <div class="pvc-card">
+                <canvas id="canvasFront"></canvas>
+            </div>
+        </div>
+        
+        <div class="card-wrapper">
+            <div class="card-label">Back Side Preview</div>
+            <div class="pvc-card">
+                <canvas id="canvasBack"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Set up PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+        document.getElementById('pdfInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const fileReader = new FileReader();
+            fileReader.onload = async function() {
+                const typedarray = new Uint8Array(this.result);
+                
+                try {
+                    const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                    
+                    // Render Page 1
+                    if (pdf.numPages >= 1) {
+                        const page1 = await pdf.getPage(1);
+                        await renderPageToCanvas(page1, 'canvasFront');
+                    }
+
+                    // Render Page 2
+                    if (pdf.numPages >= 2) {
+                        const page2 = await pdf.getPage(2);
+                        await renderPageToCanvas(page2, 'canvasBack');
+                    } else {
+                        const canvas = document.getElementById('canvasBack');
+                        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+                    }
+
+                    // Enable PNG button
+                    document.getElementById('pngBtn').disabled = false;
+
+                } catch (error) {
+                    console.error("Error rendering PDF: ", error);
+                    alert("Could not process the PDF. Ensure it is a valid file.");
+                }
+            };
+            fileReader.readAsArrayBuffer(file);
+        });
+
+        async function renderPageToCanvas(page, canvasId) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            
+            // Render at high scale to capture raw detail
+            const viewport = page.getViewport({ scale: 4.0 }); 
+            
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            
+            const renderContext = {
+                canvasContext: ctx,
+                viewport: viewport
+            };
+            
+            await page.render(renderContext).promise;
+        }
+
+        // --- NEW LOGIC: GENERATE A4 PNG AT 300 DPI ---
+        function downloadPNG() {
+            // A4 dimensions at 300 DPI
+            const a4Width = 2480; 
+            const a4Height = 3508;
+            
+            // PVC dimensions (85.6mm x 54mm) at 300 DPI
+            const cardWidth = 1011; 
+            const cardHeight = 638;
+
+            // Create offscreen master canvas
+            const masterCanvas = document.createElement('canvas');
+            masterCanvas.width = a4Width;
+            masterCanvas.height = a4Height;
+            const ctx = masterCanvas.getContext('2d');
+
+            // 1. Fill A4 with White background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, a4Width, a4Height);
+
+            // Fetch the rendered PDF pages
+            const frontCanvas = document.getElementById('canvasFront');
+            const backCanvas = document.getElementById('canvasBack');
+
+            // Calculate layout positions (Centered with top margin and gap)
+            const xOffset = (a4Width - cardWidth) / 2; // Center horizontally
+            const topMargin = 400; // Distance from top of A4
+            const gap = 200;       // Gap between Front and Back card
+
+            // Border styling for cutting guidelines
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 3;
+
+            // 2. Draw Front Card
+            if (frontCanvas.width > 0) {
+                // Draw Image scaled perfectly to PVC dimensions
+                ctx.drawImage(frontCanvas, xOffset, topMargin, cardWidth, cardHeight);
+                // Draw cut border
+                ctx.strokeRect(xOffset, topMargin, cardWidth, cardHeight);
+            }
+
+            // 3. Draw Back Card
+            if (backCanvas.width > 0) {
+                const backYOffset = topMargin + cardHeight + gap;
+                // Draw Image scaled perfectly to PVC dimensions
+                ctx.drawImage(backCanvas, xOffset, backYOffset, cardWidth, cardHeight);
+                // Draw cut border
+                ctx.strokeRect(xOffset, backYOffset, cardWidth, cardHeight);
+            }
+
+            // 4. Trigger PNG Download
+            const link = document.createElement('a');
+            link.download = 'PVC_A4_Layout.png';
+            link.href = masterCanvas.toDataURL('image/png');
+            link.click();
+        }
+    </script>
+</body>
+</html>
