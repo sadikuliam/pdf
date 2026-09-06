@@ -191,34 +191,33 @@
             await page.render(renderContext).promise;
         }
 
-        // --- NEW LOGIC: GENERATE A4 PNG AT 300 DPI ---
+        // --- UPDATED LOGIC: GENERATE CROPPED PNG AT 300 DPI ---
         function downloadPNG() {
-            // A4 dimensions at 300 DPI
-            const a4Width = 2480; 
-            const a4Height = 3508;
-            
             // PVC dimensions (85.6mm x 54mm) at 300 DPI
             const cardWidth = 1011; 
             const cardHeight = 638;
 
+            // Layout settings based on your reference image
+            const padding = 120; // White space around the cards
+            const gap = 150;     // Space between Front and Back
+
+            // Calculate the exact size needed for the canvas, no extra A4 white space
+            const finalWidth = cardWidth + (padding * 2);
+            const finalHeight = (cardHeight * 2) + gap + (padding * 2);
+
             // Create offscreen master canvas
             const masterCanvas = document.createElement('canvas');
-            masterCanvas.width = a4Width;
-            masterCanvas.height = a4Height;
+            masterCanvas.width = finalWidth;
+            masterCanvas.height = finalHeight;
             const ctx = masterCanvas.getContext('2d');
 
-            // 1. Fill A4 with White background
+            // 1. Fill with White background
             ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, a4Width, a4Height);
+            ctx.fillRect(0, 0, finalWidth, finalHeight);
 
             // Fetch the rendered PDF pages
             const frontCanvas = document.getElementById('canvasFront');
             const backCanvas = document.getElementById('canvasBack');
-
-            // Calculate layout positions (Centered with top margin and gap)
-            const xOffset = (a4Width - cardWidth) / 2; // Center horizontally
-            const topMargin = 400; // Distance from top of A4
-            const gap = 200;       // Gap between Front and Back card
 
             // Border styling for cutting guidelines
             ctx.strokeStyle = '#000000';
@@ -227,23 +226,23 @@
             // 2. Draw Front Card
             if (frontCanvas.width > 0) {
                 // Draw Image scaled perfectly to PVC dimensions
-                ctx.drawImage(frontCanvas, xOffset, topMargin, cardWidth, cardHeight);
+                ctx.drawImage(frontCanvas, padding, padding, cardWidth, cardHeight);
                 // Draw cut border
-                ctx.strokeRect(xOffset, topMargin, cardWidth, cardHeight);
+                ctx.strokeRect(padding, padding, cardWidth, cardHeight);
             }
 
             // 3. Draw Back Card
             if (backCanvas.width > 0) {
-                const backYOffset = topMargin + cardHeight + gap;
+                const backYOffset = padding + cardHeight + gap;
                 // Draw Image scaled perfectly to PVC dimensions
-                ctx.drawImage(backCanvas, xOffset, backYOffset, cardWidth, cardHeight);
+                ctx.drawImage(backCanvas, padding, backYOffset, cardWidth, cardHeight);
                 // Draw cut border
-                ctx.strokeRect(xOffset, backYOffset, cardWidth, cardHeight);
+                ctx.strokeRect(padding, backYOffset, cardWidth, cardHeight);
             }
 
             // 4. Trigger PNG Download
             const link = document.createElement('a');
-            link.download = 'PVC_A4_Layout.png';
+            link.download = 'PVC_Print_Layout.png';
             link.href = masterCanvas.toDataURL('image/png');
             link.click();
         }
