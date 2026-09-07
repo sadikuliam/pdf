@@ -607,26 +607,28 @@
             }
         }
 
-        function applyCrop() {
-            if (!cropper || activeCropIndex === null) return;
-            const dim = photoDimensions[activeCropIndex].size;
+       function applyCrop() {
+    if (!cropper || activeCropIndex === null) return;
+    
+    // এই লাইনটি ঠিক করা হয়েছে
+    const dim = photoDimensions[persons[activeCropIndex].size];
 
-            const canvasCropped = cropper.getCroppedCanvas({
-                width: dim.w * 15, 
-                height: dim.h * 15
-            });
+    const canvasCropped = cropper.getCroppedCanvas({
+        width: dim.w * 15, 
+        height: dim.h * 15
+    });
 
-            const dataUrl = canvasCropped.toDataURL('image/jpeg', 1.0);
+    const dataUrl = canvasCropped.toDataURL('image/jpeg', 1.0);
 
-            if (activeCropImgNum === 1) {
-                persons[activeCropIndex].img1.src = dataUrl;
-                persons[activeCropIndex].img1.onload = () => { drawLayout(); renderRows(); };
-            } else {
-                persons[activeCropIndex].img2.src = dataUrl;
-                persons[activeCropIndex].img2.onload = () => { drawLayout(); renderRows(); };
-            }
-            closeCropModal();
-        }
+    if (activeCropImgNum === 1) {
+        persons[activeCropIndex].img1.src = dataUrl;
+        persons[activeCropIndex].img1.onload = () => { drawLayout(); renderRows(); };
+    } else {
+        persons[activeCropIndex].img2.src = dataUrl;
+        persons[activeCropIndex].img2.onload = () => { drawLayout(); renderRows(); };
+    }
+    closeCropModal();
+}
 
         function renderRows() {
             const container = document.getElementById('persons-container');
