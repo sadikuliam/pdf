@@ -168,7 +168,7 @@ button, input, select { font: inherit; outline: none; border: none; }
     <img src="https://res.cloudinary.com/ewu5hckc/image/upload/v1787488201/ChatGPT_Image_Aug_23_2026_05_58_28_PM.png" alt="SHM Logo">
 </a>
       </div>
-      <div class="brand-text">SHM PDF Editor Pro<small>Smart Text & OCR Engine</small></div>
+      <div class="brand-text">SHM PDF Editor Pro<small>Smart Digital & OCR Engine</small></div>
     </div>
     <div class="top-actions">
       <span id="statusIndicator" class="status-chip"><i class="fa-solid fa-check-circle" style="color:var(--success)"></i> Ready</span>
@@ -209,7 +209,7 @@ button, input, select { font: inherit; outline: none; border: none; }
       <div id="emptyStateContainer" class="empty-state">
         <i class="fa-solid fa-file-pdf empty-icon"></i>
         <h2>SHM PDF Engine Pro</h2>
-        <p>Drop a standard digital PDF or scanned PDF here.<br>Smart engine automatically applies native layer or OCR.</p>
+        <p>Drop a standard digital PDF or scanned PDF here.<br>Engine applies native text for digital PDFs and OCR only for scanned images.</p>
         <button class="btn primary" style="padding: 0 24px; height: 44px; margin-top: 20px;" onclick="document.getElementById('hiddenFileInput').click()">Choose File</button>
       </div>
       <div id="documentPagesContainer" style="display: flex; flex-direction: column; align-items: center; margin: 0 auto; width: 100%;"></div>
@@ -359,13 +359,13 @@ const DocumentManager = {
     UI.get('thumbnailContainer').innerHTML = '';
     AppState.pages = []; 
     AppState.currentPageIndex = 0; 
-    UI.log('Parsing Document Data...');
+    UI.log('Analyzing Document Structure...');
 
     try {
       const buffer = await file.arrayBuffer(); 
       AppState.document = await pdfjsLib.getDocument({ data: buffer }).promise;
       const totalPages = AppState.document.numPages;
-      UI.log(`Total Pages: ${totalPages}. Smart Engine Active...`);
+      UI.log(`Total Pages: ${totalPages}. Processing...`);
 
       for(let n = 1; n <= totalPages; n++) {
         try {
@@ -387,12 +387,14 @@ const DocumentManager = {
             interactNode: null 
           };
 
-          // Step 1: Try reading native text layer first (Best for Digital PDFs)
+          // Step 1: Extract Native Digital Text Layer
+          let validNativeItems = 0;
           try {
             const textContent = await page.getTextContent();
             if(textContent?.items?.length) {
               for(const item of textContent.items) {
                 if(!item.str?.trim()) continue;
+                validNativeItems++;
                 const tx = pdfjsLib.Util.transform(viewport.transform, item.transform);
                 const fontSize = Math.abs(tx[3]) || 14; 
 
@@ -432,12 +434,13 @@ const DocumentManager = {
               }
             }
           } catch(errLayer) {
-             UI.log(`Native layer scan skipped on page ${n}`);
+             UI.log(`Native text extraction warning on page ${n}`);
           }
 
-          // Step 2: If no native text found, ONLY THEN fallback to Tesseract OCR (For Scanned PDFs)
-          if(pDef.elements.length === 0) {
-            UI.log(`No native text layer. Running OCR on page ${n}...`);
+          // Step 2: Strict check - ONLY run OCR if valid native items are less than 10 (True Scanned PDF)
+          if(validNativeItems < 10) {
+            UI.log(`Page ${n} is scanned/image-based. Running Tesseract OCR...`);
+            pDef.elements = []; // Clear weak native items if any
             try {
               const ocrWorker = await Tesseract.createWorker(['eng', 'ben']);
               const ocrResult = await ocrWorker.recognize(canvas.toDataURL());
@@ -465,25 +468,25 @@ const DocumentManager = {
                   });
                 }
               }
-              UI.log(`OCR successfully parsed page ${n}`);
+              UI.log(`OCR completed successfully on page ${n}`);
             } catch(ocrErr) {
-              UI.log(`OCR error on page ${n}`);
+              UI.log(`OCR processing error on page ${n}`);
             }
           } else {
-            UI.log(`Native text layer detected on page ${n}. OCR bypassed.`);
+            UI.log(`Page ${n} identified as Digital PDF. OCR skipped.`);
           }
 
           AppState.pages.push(pDef); 
           Renderer.buildPageDOM(pDef);
         } catch(errPage) {
-           UI.log(`Error on page ${n}`);
+           UI.log(`Error parsing page ${n}`);
         }
       }
 
       Renderer.buildThumbs(); 
       Navigation.goToPage(0);
       UI.get('btnExportTop').disabled = false; 
-      UI.toast('Success', 'PDF Loaded Successfully.');
+      UI.toast('Success', 'PDF Loaded & Processed.');
     } catch(err) { 
       UI.log(`CRITICAL ERROR`);
       UI.toast('Error', 'Failed to read PDF document'); 
