@@ -1,283 +1,745 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SHM Pro Magic Photo Editor</title>
-    <style>
-        body { font-family: sans-serif; max-width: 750px; margin: 20px auto; padding: 15px; text-align: center; background: #f4f4f9; }
-        .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .toolbar { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 15px 0; align-items: center; background: #eee; padding: 15px; border-radius: 6px; }
-        input, button, select { padding: 8px; font-size: 14px; }
-        canvas { max-width: 100%; height: auto; border: 1px dashed #bbb; margin-top: 10px; cursor: crosshair; background: #fff; background-image: linear-gradient(45deg, #ddd 25%, transparent 25%), linear-gradient(-45deg, #ddd 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ddd 75%), linear-gradient(-45deg, transparent 75%, #ddd 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px; position: relative; }
-        #downloadBtn { display: none; background: #28a745; color: white; text-decoration: none; padding: 10px 20px; border-radius: 4px; margin-top: 15px; display: inline-block; font-weight: bold; }
-        .tip { font-size: 13px; color: #d9534f; margin: 5px 0; font-weight: bold; }
-        
-        /* Brush Preview Cursor Settings */
-        #brushPreview {
-            position: fixed;
-            border: 1px solid #000;
-            outline: 1px solid #fff;
-            border-radius: 50%;
-            pointer-events: none;
-            display: none;
-            z-index: 9999;
-            transform: translate(-50%, -50%);
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retouch — Background Remover & Spot Fixer</title>
+<style>
+  :root{
+    --bg: #17181c;
+    --panel: #1f2126;
+    --panel-2: #26282e;
+    --border: #34373f;
+    --text: #e7e8ec;
+    --muted: #93979f;
+    --accent: #4da3ff;
+    --accent-dim: #2c5a8a;
+    --accent-2: #6ee7b7;
+    --danger: #ef6a6a;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  *{ box-sizing: border-box; }
+  html, body{ height: 100%; }
+  body{
+    margin: 0;
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+  }
+
+  header{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .brand{ display: flex; align-items: baseline; gap: 8px; }
+  .brand-mark{ width: 9px; height: 9px; border-radius: 50%; background: var(--accent); display: inline-block; }
+  .brand h1{ font-size: 15px; font-weight: 600; margin: 0; letter-spacing: 0.01em; }
+  .brand span{ font-size: 12px; color: var(--muted); }
+  .header-actions{ display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  button.icon-btn{
+    display: flex; align-items: center; gap: 6px;
+    background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
+    padding: 7px 11px; border-radius: 6px; font-size: 12.5px; cursor: pointer; font-family: var(--sans);
+  }
+  button.icon-btn:hover:not(:disabled){ border-color: #4a4e58; background: #2c2f36; }
+  button.icon-btn:disabled{ opacity: 0.35; cursor: not-allowed; }
+  button.icon-btn svg{ width: 15px; height: 15px; flex-shrink: 0; }
+  #autoRemoveBtn{ background: var(--accent-2); border-color: var(--accent-2); color: #0a1a14; font-weight: 600; }
+  #autoRemoveBtn:hover:not(:disabled){ background: #8ff0c4; }
+  #downloadBtn{ background: var(--accent); border-color: var(--accent); color: #0d1520; font-weight: 600; }
+  #downloadBtn:hover:not(:disabled){ background: #67b3ff; }
+  #resetBtn{ color: var(--danger); }
+  #resetBtn:hover:not(:disabled){ border-color: var(--danger); }
+  .vdiv{ width: 1px; height: 22px; background: var(--border); margin: 0 2px; }
+
+  .workspace{ flex: 1; display: flex; min-height: 0; }
+
+  .rail{
+    width: 58px; background: var(--panel); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; align-items: center; padding: 12px 0; gap: 6px; flex-shrink: 0;
+  }
+  .tool-btn{
+    width: 40px; height: 40px; border-radius: 8px; border: 1px solid transparent; background: transparent;
+    color: var(--muted); display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative;
+  }
+  .tool-btn svg{ width: 19px; height: 19px; }
+  .tool-btn:hover{ background: var(--panel-2); color: var(--text); }
+  .tool-btn.active{ background: rgba(77,163,255,0.14); border-color: var(--accent-dim); color: var(--accent); }
+  .tool-btn .tt{
+    position: absolute; left: 50px; top: 50%; transform: translateY(-50%);
+    background: #101114; border: 1px solid var(--border); color: var(--text);
+    padding: 4px 8px; border-radius: 5px; font-size: 11.5px; white-space: nowrap;
+    opacity: 0; pointer-events: none; transition: opacity .1s; z-index: 20;
+  }
+  .tool-btn:hover .tt{ opacity: 1; }
+  .rail-divider{ width: 28px; height: 1px; background: var(--border); margin: 4px 0; }
+
+  .center{ flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .context-bar{
+    display: flex; align-items: center; gap: 22px; padding: 10px 18px; background: var(--panel);
+    border-bottom: 1px solid var(--border); flex-wrap: wrap; min-height: 20px;
+  }
+  .ctl{ display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); }
+  .ctl input[type="range"]{ width: 100px; accent-color: var(--accent); }
+  .ctl input[type="color"]{ width: 28px; height: 22px; border: 1px solid var(--border); border-radius: 4px; padding: 0; background: none; cursor: pointer; }
+  .ctl .val{ font-family: var(--mono); color: var(--text); font-size: 12px; min-width: 2.2em; }
+  .hint{ font-size: 12px; color: var(--muted); margin-left: auto; }
+
+  .canvas-wrap{
+    flex: 1; position: relative; overflow: auto; display: flex; align-items: center; justify-content: center;
+    background:
+      linear-gradient(45deg, #202226 25%, transparent 25%),
+      linear-gradient(-45deg, #202226 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #202226 75%),
+      linear-gradient(-45deg, transparent 75%, #202226 75%);
+    background-size: 22px 22px;
+    background-position: 0 0, 0 11px, 11px -11px, -11px 0px;
+    background-color: #101114;
+    padding: 24px;
+  }
+  #canvas{ box-shadow: 0 6px 28px rgba(0,0,0,0.5); background: transparent; display: none; }
+  .dropzone{
+    width: min(520px, 90%); border: 1.5px dashed #454951; border-radius: 12px; padding: 56px 24px;
+    text-align: center; color: var(--muted); cursor: pointer; transition: border-color .12s, color .12s;
+  }
+  .dropzone:hover, .dropzone.drag{ border-color: var(--accent); color: var(--text); }
+  .dropzone svg{ width: 30px; height: 30px; margin-bottom: 14px; opacity: 0.7; }
+  .dropzone .dz-title{ font-size: 14px; color: var(--text); margin-bottom: 4px; }
+  .dropzone .dz-sub{ font-size: 12.5px; }
+
+  #brushPreview{
+    position: fixed; border: 1px solid rgba(255,255,255,0.85); outline: 1px solid rgba(0,0,0,0.5);
+    border-radius: 50%; pointer-events: none; display: none; z-index: 40; transform: translate(-50%, -50%);
+  }
+  #busyOverlay{
+    position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
+    background: rgba(16,17,20,0.55); backdrop-filter: blur(1px); z-index: 30; border-radius: 4px; color: var(--text);
+    font-size: 12.5px; font-family: var(--mono); letter-spacing: 0.02em;
+  }
+
+  .status-bar{
+    display: flex; align-items: center; gap: 16px; padding: 7px 18px; border-top: 1px solid var(--border);
+    background: var(--panel); font-size: 11.5px; color: var(--muted); font-family: var(--mono); flex-shrink: 0;
+  }
+  .status-bar .spacer{ flex: 1; }
+  .zoom-ctl{ display: flex; align-items: center; gap: 6px; }
+  .zoom-ctl input[type="range"]{ width: 100px; accent-color: var(--accent); }
+  .zoom-ctl button{
+    background: none; border: 1px solid var(--border); color: var(--muted);
+    width: 20px; height: 20px; border-radius: 4px; cursor: pointer; line-height: 1; font-family: var(--sans);
+  }
+
+  input[type="file"]{ display: none; }
+</style>
 </head>
 <body>
 
-<div class="card">
-    <h2>Pro Background Remover & Spot Fixer</h2>
-    <input type="file" id="upload" accept="image/*"><br>
-    <p class="tip">Tip: Select a Magic tool, adjust tolerance, and CLICK on the image background to apply!</p>
+<header>
+  <div class="brand">
+    <span class="brand-mark"></span>
+    <h1>Retouch</h1>
+    <span>background remover &amp; spot fixer</span>
+  </div>
+  <div class="header-actions">
+    <button class="icon-btn" id="autoRemoveBtn" title="One-click background removal" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 4 1.5 1.5L18 4l-1.5-1.5Z"/><path d="M19 9l1 1"/><path d="M3 21 14 10"/><path d="M14 10a2 2 0 1 1 3 3"/></svg>
+      Auto-remove background
+    </button>
+    <div class="vdiv"></div>
+    <button class="icon-btn" id="undoBtn" title="Undo (Ctrl+Z)" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+      Undo
+    </button>
+    <button class="icon-btn" id="redoBtn" title="Redo (Ctrl+Shift+Z)" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>
+      Redo
+    </button>
+    <button class="icon-btn" id="resetBtn" title="Reset to original" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+      Reset
+    </button>
+    <button class="icon-btn" id="downloadBtn" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><path d="m7 11 5 5 5-5"/><path d="M5 21h14"/></svg>
+      Download
+    </button>
+  </div>
+</header>
 
-    <div class="toolbar">
-        <label>Tool: 
-            <select id="toolMode">
-                <option value="magic_remove">Magic Wand (Remove BG)</option>
-                <option value="magic_fill">Magic Wand (Fill New Color)</option>
-                <option value="brush">Manual Color Brush</option>
-                <option value="eraser">Manual Eraser / Rubber</option>
-            </select>
-        </label>
-        
-        <span id="magicControls">
-            <span id="fillColorContainer" style="display:none;">
-                <label>New BG Color: <input type="color" id="fillColor" value="#ff0000"></label>
-            </span>
-            <label>Tolerance: <input type="range" id="tolerance" min="0" max="150" value="40"></label>
+<div class="workspace">
+
+  <div class="rail" id="rail">
+    <button class="tool-btn active" data-tool="magic_remove">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 4 1.5 1.5L18 4l-1.5-1.5Z"/><path d="M19 9l1 1"/><path d="M3 21 14 10"/><path d="M14 10a2 2 0 1 1 3 3"/></svg>
+      <span class="tt">Magic wand — remove</span>
+    </button>
+    <button class="tool-btn" data-tool="magic_fill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 11 9 1 3 7c-1 1-1 2.6 0 3.6l7.4 7.4c1 1 2.6 1 3.6 0Z"/><path d="M5 9h9"/><path d="M18 15c0 1.7-1.3 3-2 4.5 0 1.4 1 2.5 2 2.5s2-1.1 2-2.5c-.7-1.5-2-2.8-2-4.5Z"/></svg>
+      <span class="tt">Magic wand — fill color</span>
+    </button>
+    <div class="rail-divider"></div>
+    <button class="tool-btn" data-tool="brush">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.4 2.6a2 2 0 0 1 2.8 2.8L10 16.6 6 17.7l1.1-4Z"/><path d="M9 20c-1.5 1-3.5 1-5 0 1-1 1-3 0-4"/></svg>
+      <span class="tt">Brush</span>
+    </button>
+    <button class="tool-btn" data-tool="eraser">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H8l-6-6a2 2 0 0 1 0-2.8l9-9a2 2 0 0 1 2.8 0l6.2 6.2a2 2 0 0 1 0 2.8L13.5 18"/></svg>
+      <span class="tt">Eraser</span>
+    </button>
+    <button class="tool-btn" data-tool="eyedropper">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 22 1-4 12-12"/><path d="M15 3l6 6-3 3-6-6Z"/></svg>
+      <span class="tt">Eyedropper</span>
+    </button>
+  </div>
+
+  <div class="center">
+    <div class="context-bar" id="contextBar">
+      <span id="magicSettings" style="display:flex; gap:22px; flex-wrap: wrap;">
+        <span class="ctl">Tolerance
+          <input type="range" id="tolerance" min="0" max="150" value="38">
+          <span class="val" id="toleranceVal">38</span>
         </span>
-
-        <span id="brushControls" style="display:none;">
-            <label>Brush Color: <input type="color" id="brushColor" value="#ffffff"></label>
+        <span class="ctl">Edge protection
+          <input type="range" id="edgeGuard" min="0" max="100" value="55">
+          <span class="val" id="edgeGuardVal">55</span>
         </span>
-
-        <label id="sizeControl" style="display:none;">Size: <input type="range" id="brushSize" min="1" max="200" value="20"></label>
+        <span class="ctl">Feather
+          <input type="range" id="feather" min="0" max="8" value="2">
+          <span class="val" id="featherVal">2px</span>
+        </span>
+      </span>
+      <span id="fillColorCtl" class="ctl" style="display:none;">
+        Fill color <input type="color" id="fillColor" value="#ff0055">
+      </span>
+      <span id="brushColorCtl" class="ctl" style="display:none;">
+        Color <input type="color" id="brushColor" value="#ffffff">
+      </span>
+      <span id="sizeCtl" class="ctl" style="display:none;">
+        Size <input type="range" id="brushSize" min="1" max="200" value="24">
+        <span class="val" id="brushSizeVal">24</span>
+      </span>
+      <span id="pickedColorCtl" class="ctl" style="display:none;">
+        Picked <span id="pickedSwatch" style="width:16px;height:16px;border-radius:3px;border:1px solid var(--border); display:inline-block;"></span>
+        <span class="val" id="pickedVal">—</span>
+      </span>
+      <span class="hint" id="hintText">Click a background region to remove it — edges are protected automatically.</span>
     </div>
 
-    <!-- The brush preview circle -->
-    <div id="brushPreview"></div>
-    <canvas id="canvas"></canvas><br>
-    <a id="downloadBtn" download="edited-image.png">Download Edited Image</a>
+    <div class="canvas-wrap" id="canvasWrap">
+      <div class="dropzone" id="dropzone">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+        <div class="dz-title">Drop an image, or click to choose one</div>
+        <div class="dz-sub">PNG, JPG or WEBP · edited entirely in your browser</div>
+      </div>
+      <canvas id="canvas"></canvas>
+      <div id="brushPreview"></div>
+      <div id="busyOverlay">Processing…</div>
+    </div>
+
+    <div class="status-bar">
+      <span id="dimsText">No image loaded</span>
+      <span id="historyText"></span>
+      <span class="spacer"></span>
+      <div class="zoom-ctl">
+        <button id="zoomOut">–</button>
+        <input type="range" id="zoomRange" min="25" max="300" value="100">
+        <button id="zoomIn">+</button>
+        <span class="val" id="zoomVal" style="min-width:3.4em;">100%</span>
+      </div>
+    </div>
+  </div>
 </div>
 
+<input type="file" id="upload" accept="image/*">
+
 <script>
-const upload = document.getElementById('upload');
-const toolMode = document.getElementById('toolMode');
-const magicControls = document.getElementById('magicControls');
-const brushControls = document.getElementById('brushControls');
-const sizeControl = document.getElementById('sizeControl');
-const fillColorContainer = document.getElementById('fillColorContainer');
-const fillColorInput = document.getElementById('fillColor');
-const toleranceInput = document.getElementById('tolerance');
-const brushColorInput = document.getElementById('brushColor');
-const brushSizeInput = document.getElementById('brushSize');
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-const downloadBtn = document.getElementById('downloadBtn');
-const brushPreview = document.getElementById('brushPreview');
+(() => {
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  const canvasWrap = document.getElementById('canvasWrap');
+  const dropzone = document.getElementById('dropzone');
+  const upload = document.getElementById('upload');
+  const busyOverlay = document.getElementById('busyOverlay');
 
-let img = new Image();
-let isDrawing = false;
+  const rail = document.getElementById('rail');
+  const toolBtns = [...rail.querySelectorAll('.tool-btn')];
+  const magicSettings = document.getElementById('magicSettings');
+  const fillColorCtl = document.getElementById('fillColorCtl');
+  const brushColorCtl = document.getElementById('brushColorCtl');
+  const sizeCtl = document.getElementById('sizeCtl');
+  const pickedColorCtl = document.getElementById('pickedColorCtl');
+  const pickedSwatch = document.getElementById('pickedSwatch');
+  const pickedVal = document.getElementById('pickedVal');
+  const hintText = document.getElementById('hintText');
 
-// UI Switcher
-toolMode.addEventListener('change', () => {
-    const mode = toolMode.value;
-    magicControls.style.display = (mode === 'magic_remove' || mode === 'magic_fill') ? 'inline-block' : 'none';
-    fillColorContainer.style.display = (mode === 'magic_fill') ? 'inline-block' : 'none';
-    brushControls.style.display = (mode === 'brush') ? 'inline-block' : 'none';
-    sizeControl.style.display = (mode === 'brush' || mode === 'eraser') ? 'inline-block' : 'none';
-    
-    // Hide preview if tool changed to magic wand
-    if (mode === 'magic_remove' || mode === 'magic_fill') {
-        brushPreview.style.display = 'none';
-        canvas.style.cursor = 'crosshair';
-    } else {
-        canvas.style.cursor = 'none'; // Hide default mouse cursor when using brush
-    }
-});
+  const toleranceInput = document.getElementById('tolerance');
+  const toleranceVal = document.getElementById('toleranceVal');
+  const edgeGuardInput = document.getElementById('edgeGuard');
+  const edgeGuardVal = document.getElementById('edgeGuardVal');
+  const featherInput = document.getElementById('feather');
+  const featherVal = document.getElementById('featherVal');
+  const fillColorInput = document.getElementById('fillColor');
+  const brushColorInput = document.getElementById('brushColor');
+  const brushSizeInput = document.getElementById('brushSize');
+  const brushSizeVal = document.getElementById('brushSizeVal');
+  const brushPreview = document.getElementById('brushPreview');
 
-// Image Upload
-upload.addEventListener('change', (e) => {
+  const autoRemoveBtn = document.getElementById('autoRemoveBtn');
+  const undoBtn = document.getElementById('undoBtn');
+  const redoBtn = document.getElementById('redoBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const downloadBtn = document.getElementById('downloadBtn');
+
+  const dimsText = document.getElementById('dimsText');
+  const historyText = document.getElementById('historyText');
+  const zoomRange = document.getElementById('zoomRange');
+  const zoomVal = document.getElementById('zoomVal');
+  const zoomIn = document.getElementById('zoomIn');
+  const zoomOut = document.getElementById('zoomOut');
+
+  const hints = {
+    magic_remove: 'Click a background region to remove it — edges are protected automatically.',
+    magic_fill: 'Click a region to swap it for the fill color below — edges stay protected.',
+    brush: 'Click and drag to paint with the brush color.',
+    eraser: 'Click and drag to erase to transparency.',
+    eyedropper: 'Click anywhere on the image to sample that pixel\u2019s color.'
+  };
+
+  let tool = 'magic_remove';
+  let isDrawing = false;
+  let originalDataURL = null;
+  let history = [];
+  let historyIndex = -1;
+  const MAX_HISTORY = 25;
+  let currentZoom = 1;
+  let hasImage = false;
+
+  // ---------- Tool switching ----------
+  function setTool(t){
+    tool = t;
+    toolBtns.forEach(b => b.classList.toggle('active', b.dataset.tool === t));
+    magicSettings.style.display = (t === 'magic_remove' || t === 'magic_fill') ? 'flex' : 'none';
+    fillColorCtl.style.display = (t === 'magic_fill') ? 'flex' : 'none';
+    brushColorCtl.style.display = (t === 'brush') ? 'flex' : 'none';
+    sizeCtl.style.display = (t === 'brush' || t === 'eraser') ? 'flex' : 'none';
+    pickedColorCtl.style.display = (t === 'eyedropper') ? 'flex' : 'none';
+    hintText.textContent = hints[t];
+    canvas.style.cursor = (t === 'brush' || t === 'eraser') ? 'none' : 'crosshair';
+    if (t !== 'brush' && t !== 'eraser') brushPreview.style.display = 'none';
+  }
+  toolBtns.forEach(b => b.addEventListener('click', () => setTool(b.dataset.tool)));
+  setTool('magic_remove');
+
+  toleranceInput.addEventListener('input', () => toleranceVal.textContent = toleranceInput.value);
+  edgeGuardInput.addEventListener('input', () => edgeGuardVal.textContent = edgeGuardInput.value);
+  featherInput.addEventListener('input', () => featherVal.textContent = featherInput.value + 'px');
+  brushSizeInput.addEventListener('input', () => brushSizeVal.textContent = brushSizeInput.value);
+
+  // ---------- Upload / drag & drop ----------
+  function loadFile(file){
+    if (!file || !file.type.startsWith('image/')) return;
     const reader = new FileReader();
-    reader.onload = (event) => {
-        img.src = event.target.result;
-        img.onload = () => {
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-            downloadBtn.style.display = 'inline-block';
-        }
-    }
-    reader.readAsDataURL(e.target.files[0]);
-});
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        originalDataURL = e.target.result;
+        history = [ctx.getImageData(0, 0, canvas.width, canvas.height)];
+        historyIndex = 0;
+        hasImage = true;
+        dropzone.style.display = 'none';
+        canvas.style.display = 'block';
+        dimsText.textContent = `${img.width} × ${img.height}px`;
+        fitToView();
+        applyZoom();
+        updateHistoryButtons();
+        updateDownload();
+        downloadBtn.disabled = false;
+        resetBtn.disabled = false;
+        autoRemoveBtn.disabled = false;
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+  dropzone.addEventListener('click', () => upload.click());
+  upload.addEventListener('change', (e) => loadFile(e.target.files[0]));
+  ['dragenter','dragover'].forEach(evt =>
+    dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.add('drag'); })
+  );
+  ['dragleave','drop'].forEach(evt =>
+    dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.remove('drag'); })
+  );
+  dropzone.addEventListener('drop', (e) => loadFile(e.dataTransfer.files[0]));
 
-// Helper for Canvas Coordinates
-function getPos(e) {
+  function fitToView(){
+    const availW = canvasWrap.clientWidth - 48;
+    const availH = canvasWrap.clientHeight - 48;
+    const scale = Math.min(1, availW / canvas.width, availH / canvas.height);
+    currentZoom = Math.max(0.1, scale);
+    zoomRange.value = Math.round(currentZoom * 100);
+  }
+
+  // ---------- History (undo/redo) ----------
+  function pushHistory(){
+    history = history.slice(0, historyIndex + 1);
+    history.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+    if (history.length > MAX_HISTORY) history.shift();
+    historyIndex = history.length - 1;
+    updateHistoryButtons();
+    updateDownload();
+  }
+  function restore(index){
+    ctx.putImageData(history[index], 0, 0);
+    historyIndex = index;
+    updateHistoryButtons();
+    updateDownload();
+  }
+  function undo(){ if (historyIndex > 0) restore(historyIndex - 1); }
+  function redo(){ if (historyIndex < history.length - 1) restore(historyIndex + 1); }
+  function updateHistoryButtons(){
+    undoBtn.disabled = historyIndex <= 0;
+    redoBtn.disabled = historyIndex >= history.length - 1;
+    historyText.textContent = hasImage ? `step ${historyIndex + 1} / ${history.length}` : '';
+  }
+  function updateDownload(){
+    if (!hasImage) return;
+    downloadBtn.dataset.href = canvas.toDataURL('image/png');
+  }
+  undoBtn.addEventListener('click', undo);
+  redoBtn.addEventListener('click', redo);
+  resetBtn.addEventListener('click', () => {
+    if (!originalDataURL) return;
+    const img = new Image();
+    img.onload = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+      pushHistory();
+    };
+    img.src = originalDataURL;
+  });
+  downloadBtn.addEventListener('click', () => {
+    if (!downloadBtn.dataset.href) return;
+    const a = document.createElement('a');
+    a.href = downloadBtn.dataset.href;
+    a.download = 'retouched-image.png';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (!hasImage) return;
+    const mod = e.ctrlKey || e.metaKey;
+    if (mod && e.key.toLowerCase() === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
+    else if (mod && (e.key.toLowerCase() === 'y' || (e.key.toLowerCase() === 'z' && e.shiftKey))) { e.preventDefault(); redo(); }
+  });
+
+  // ---------- Zoom ----------
+  function applyZoom(){
+    canvas.style.width = (canvas.width * currentZoom) + 'px';
+    canvas.style.height = (canvas.height * currentZoom) + 'px';
+    zoomVal.textContent = Math.round(currentZoom * 100) + '%';
+  }
+  zoomRange.addEventListener('input', () => { currentZoom = zoomRange.value / 100; applyZoom(); });
+  zoomIn.addEventListener('click', () => { zoomRange.value = Math.min(300, Number(zoomRange.value) + 10); currentZoom = zoomRange.value / 100; applyZoom(); });
+  zoomOut.addEventListener('click', () => { zoomRange.value = Math.max(25, Number(zoomRange.value) - 10); currentZoom = zoomRange.value / 100; applyZoom(); });
+
+  // ---------- Coordinates ----------
+  function getPos(e){
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
     return {
-        x: Math.floor((e.clientX - rect.left) * scaleX),
-        y: Math.floor((e.clientY - rect.top) * scaleY)
+      x: Math.min(canvas.width - 1, Math.max(0, Math.floor((e.clientX - rect.left) * scaleX))),
+      y: Math.min(canvas.height - 1, Math.max(0, Math.floor((e.clientY - rect.top) * scaleY)))
     };
-}
+  }
 
-// Magic Wand (Flood Fill Algorithm)
-function floodFill(startX, startY, mode) {
-    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imgData.data;
-    const w = canvas.width;
-    const h = canvas.height;
-    const tolerance = parseInt(toleranceInput.value);
-    
+  // =========================================================================
+  // Strong background removal: edge-aware region growing + feathered alpha
+  //
+  // 1. Build a luminance map and a Sobel gradient-magnitude map once per run.
+  // 2. Flood-fill from one or more seed points, but a pixel can only join the
+  //    region if it is BOTH close in color to its seed AND sits on a low
+  //    gradient (i.e. not across a strong edge). That second condition is
+  //    what keeps the fill from leaking onto the subject even when tolerance
+  //    is set generously.
+  // 3. The resulting binary mask is box-blurred to produce a soft alpha
+  //    ramp a few pixels wide at the boundary, instead of a hard jagged cutout.
+  // =========================================================================
+
+  function computeGradientMagnitude(data, w, h){
+    const gray = new Float32Array(w * h);
+    for (let i = 0, p = 0; i < gray.length; i++, p += 4) {
+      gray[i] = 0.299 * data[p] + 0.587 * data[p + 1] + 0.114 * data[p + 2];
+    }
+    const grad = new Float32Array(w * h);
+    for (let y = 1; y < h - 1; y++) {
+      const row = y * w;
+      for (let x = 1; x < w - 1; x++) {
+        const i = row + x;
+        const gx =
+          -gray[i - w - 1] + gray[i - w + 1] +
+          -2 * gray[i - 1] + 2 * gray[i + 1] +
+          -gray[i + w - 1] + gray[i + w + 1];
+        const gy =
+          -gray[i - w - 1] - 2 * gray[i - w] - gray[i - w + 1] +
+           gray[i + w - 1] + 2 * gray[i + w] + gray[i + w + 1];
+        grad[i] = Math.sqrt(gx * gx + gy * gy);
+      }
+    }
+    return grad;
+  }
+
+  // Scanline flood fill guarded by color distance + gradient; ORs matches into `mask`.
+  function growRegion(data, w, h, startX, startY, tol2, gradMag, edgeThresh, mask){
     const startPos = (startY * w + startX) * 4;
-    const targetR = data[startPos];
-    const targetG = data[startPos + 1];
-    const targetB = data[startPos + 2];
-    const targetA = data[startPos + 3];
+    const targetR = data[startPos], targetG = data[startPos + 1], targetB = data[startPos + 2];
 
-    let fillR = 0, fillG = 0, fillB = 0, fillA = 0;
-    if (mode === 'magic_fill') {
-        const hex = fillColorInput.value;
-        fillR = parseInt(hex.slice(1, 3), 16);
-        fillG = parseInt(hex.slice(3, 5), 16);
-        fillB = parseInt(hex.slice(5, 7), 16);
-        fillA = 255;
+    function matches(x, y){
+      const idx = y * w + x;
+      if (mask[idx]) return false; // already claimed by this or an earlier seed
+      if (gradMag[idx] > edgeThresh) return false;
+      const p = idx * 4;
+      const dr = data[p] - targetR, dg = data[p + 1] - targetG, db = data[p + 2] - targetB;
+      return (dr * dr + dg * dg + db * db) <= tol2;
     }
 
-    function matchColor(pos) {
-        const r = data[pos], g = data[pos + 1], b = data[pos + 2], a = data[pos + 3];
-        if (a === 0 && targetA === 0) return true;
-        const distance = Math.sqrt(Math.pow(r - targetR, 2) + Math.pow(g - targetG, 2) + Math.pow(b - targetB, 2));
-        return distance <= tolerance * 4.41;
-    }
+    const stack = [[startX, startY]];
+    while (stack.length) {
+      let [x, y] = stack.pop();
+      if (mask[y * w + x]) continue;
+      if (!matches(x, y)) continue;
 
-    const pixelStack = [[startX, startY]];
-    const visited = new Uint8Array(w * h);
+      // walk to top of the matching run
+      while (y >= 0 && matches(x, y)) y--;
+      y++;
 
-    while (pixelStack.length) {
-        let newPos = pixelStack.pop();
-        let x = newPos[0];
-        let y = newPos[1];
-        let pixelPos = (y * w + x) * 4;
-        
-        while (y >= 0 && matchColor(pixelPos)) {
-            y--;
-            pixelPos -= w * 4;
+      let reachLeft = false, reachRight = false;
+      while (y < h && matches(x, y)) {
+        mask[y * w + x] = 1;
+
+        if (x > 0) {
+          if (matches(x - 1, y)) { if (!reachLeft) { stack.push([x - 1, y]); reachLeft = true; } }
+          else reachLeft = false;
         }
-        pixelPos += w * 4;
+        if (x < w - 1) {
+          if (matches(x + 1, y)) { if (!reachRight) { stack.push([x + 1, y]); reachRight = true; } }
+          else reachRight = false;
+        }
         y++;
-
-        let reachLeft = false;
-        let reachRight = false;
-
-        while (y < h && matchColor(pixelPos)) {
-            if (visited[y * w + x]) break;
-            visited[y * w + x] = 1;
-
-            data[pixelPos] = fillR;
-            data[pixelPos + 1] = fillG;
-            data[pixelPos + 2] = fillB;
-            data[pixelPos + 3] = fillA;
-
-            if (x > 0) {
-                if (matchColor(pixelPos - 4)) {
-                    if (!reachLeft) { pixelStack.push([x - 1, y]); reachLeft = true; }
-                } else if (reachLeft) { reachLeft = false; }
-            }
-            if (x < w - 1) {
-                if (matchColor(pixelPos + 4)) {
-                    if (!reachRight) { pixelStack.push([x + 1, y]); reachRight = true; }
-                } else if (reachRight) { reachRight = false; }
-            }
-            y++;
-            pixelPos += w * 4;
-        }
+      }
     }
-    
-    ctx.putImageData(imgData, 0, 0);
-    downloadBtn.href = canvas.toDataURL('image/png');
-}
+  }
 
-// Brush Size Preview Update Function
-function updateBrushPreview(e) {
-    if (toolMode.value === 'brush' || toolMode.value === 'eraser') {
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = rect.width / canvas.width;
-        const size = parseInt(brushSizeInput.value);
-        const visualSize = size * scaleX; // Adjusts preview to match display zoom
+  // Separable box blur, used to feather the binary mask into a soft alpha ramp.
+  function boxBlur(src, w, h, radius){
+    if (radius <= 0) return src;
+    const tmp = new Float32Array(w * h);
+    const out = new Float32Array(w * h);
+    const size = radius * 2 + 1;
 
-        brushPreview.style.display = 'block';
-        brushPreview.style.width = visualSize + 'px';
-        brushPreview.style.height = visualSize + 'px';
-        brushPreview.style.left = e.clientX + 'px';
-        brushPreview.style.top = e.clientY + 'px';
-        
-        if (toolMode.value === 'brush') {
-            brushPreview.style.backgroundColor = brushColorInput.value + '40'; // Transparent color
-        } else {
-            brushPreview.style.backgroundColor = 'rgba(255, 255, 255, 0.5)'; // Transparent white for eraser
-        }
+    for (let y = 0; y < h; y++) {
+      const row = y * w;
+      let sum = 0;
+      for (let x = -radius; x <= radius; x++) sum += src[row + Math.min(w - 1, Math.max(0, x))];
+      for (let x = 0; x < w; x++) {
+        tmp[row + x] = sum / size;
+        const addX = Math.min(w - 1, x + radius + 1);
+        const remX = Math.max(0, x - radius);
+        sum += src[row + addX] - src[row + remX];
+      }
+    }
+    for (let x = 0; x < w; x++) {
+      let sum = 0;
+      for (let y = -radius; y <= radius; y++) sum += tmp[Math.min(h - 1, Math.max(0, y)) * w + x];
+      for (let y = 0; y < h; y++) {
+        out[y * w + x] = sum / size;
+        const addY = Math.min(h - 1, y + radius + 1);
+        const remY = Math.max(0, y - radius);
+        sum += tmp[addY * w + x] - tmp[remY * w + x];
+      }
+    }
+    return out;
+  }
+
+  function edgeThresholdFromGuard(guard){
+    // guard 0 -> very permissive (floods across weak edges too)
+    // guard 100 -> very strict (stops at the faintest edge)
+    return 420 - guard * 3.8;
+  }
+
+  function withBusy(fn){
+    busyOverlay.style.display = 'flex';
+    // let the overlay paint before the (synchronous) heavy work starts
+    setTimeout(() => {
+      try { fn(); } finally { busyOverlay.style.display = 'none'; }
+    }, 10);
+  }
+
+  function applyMask(mask, mode){
+    const w = canvas.width, h = canvas.height;
+    const featherPx = parseInt(featherInput.value, 10);
+    const soft = boxBlur(mask, w, h, featherPx); // 0 = untouched, 1 = fully matched, in between at edges
+
+    const imgData = ctx.getImageData(0, 0, w, h);
+    const data = imgData.data;
+
+    if (mode === 'magic_remove') {
+      for (let i = 0, p = 3; i < soft.length; i++, p += 4) {
+        const strength = Math.min(1, Math.max(0, soft[i]));
+        data[p] = Math.round(data[p] * (1 - strength));
+      }
     } else {
-        brushPreview.style.display = 'none';
+      const hex = fillColorInput.value;
+      const fr = parseInt(hex.slice(1, 3), 16), fg = parseInt(hex.slice(3, 5), 16), fb = parseInt(hex.slice(5, 7), 16);
+      for (let i = 0, p = 0; i < soft.length; i++, p += 4) {
+        const strength = Math.min(1, Math.max(0, soft[i]));
+        data[p]     = Math.round(data[p]     * (1 - strength) + fr * strength);
+        data[p + 1] = Math.round(data[p + 1] * (1 - strength) + fg * strength);
+        data[p + 2] = Math.round(data[p + 2] * (1 - strength) + fb * strength);
+      }
     }
-}
+    ctx.putImageData(imgData, 0, 0);
+  }
 
-// Mouse Events
-canvas.addEventListener('mousedown', (e) => {
-    const mode = toolMode.value;
+  function removeAtPoint(x, y, mode){
+    withBusy(() => {
+      const w = canvas.width, h = canvas.height;
+      const imgData = ctx.getImageData(0, 0, w, h);
+      const data = imgData.data;
+      const tolerance = parseInt(toleranceInput.value, 10);
+      const tol2 = (tolerance * 4.41) * (tolerance * 4.41);
+      const edgeThresh = edgeThresholdFromGuard(parseInt(edgeGuardInput.value, 10));
+      const gradMag = computeGradientMagnitude(data, w, h);
+
+      const mask = new Uint8Array(w * h);
+      growRegion(data, w, h, x, y, tol2, gradMag, edgeThresh, mask);
+      applyMask(mask, mode);
+      pushHistory();
+    });
+  }
+
+  function autoRemoveBackground(){
+    withBusy(() => {
+      const w = canvas.width, h = canvas.height;
+      const imgData = ctx.getImageData(0, 0, w, h);
+      const data = imgData.data;
+      const tolerance = parseInt(toleranceInput.value, 10);
+      const tol2 = (tolerance * 4.41) * (tolerance * 4.41);
+      const edgeThresh = edgeThresholdFromGuard(parseInt(edgeGuardInput.value, 10));
+      const gradMag = computeGradientMagnitude(data, w, h);
+
+      // Seed from a ring of points around the border — handles backgrounds
+      // that aren't perfectly uniform corner-to-corner (gradients, vignettes).
+      const seeds = [];
+      const stepsX = Math.max(2, Math.floor(w / 40));
+      const stepsY = Math.max(2, Math.floor(h / 40));
+      for (let i = 0; i <= stepsX; i++) {
+        const x = Math.min(w - 1, Math.round((i / stepsX) * (w - 1)));
+        seeds.push([x, 0]);
+        seeds.push([x, h - 1]);
+      }
+      for (let i = 0; i <= stepsY; i++) {
+        const y = Math.min(h - 1, Math.round((i / stepsY) * (h - 1)));
+        seeds.push([0, y]);
+        seeds.push([w - 1, y]);
+      }
+
+      const mask = new Uint8Array(w * h);
+      for (const [sx, sy] of seeds) {
+        growRegion(data, w, h, sx, sy, tol2, gradMag, edgeThresh, mask);
+      }
+      applyMask(mask, 'magic_remove');
+      pushHistory();
+    });
+  }
+
+  autoRemoveBtn.addEventListener('click', autoRemoveBackground);
+
+  // ---------- Brush preview ----------
+  function updateBrushPreview(e){
+    if (tool !== 'brush' && tool !== 'eraser') { brushPreview.style.display = 'none'; return; }
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = rect.width / canvas.width;
+    const size = parseInt(brushSizeInput.value, 10) * scaleX;
+    brushPreview.style.display = 'block';
+    brushPreview.style.width = size + 'px';
+    brushPreview.style.height = size + 'px';
+    brushPreview.style.left = e.clientX + 'px';
+    brushPreview.style.top = e.clientY + 'px';
+    brushPreview.style.backgroundColor = tool === 'brush' ? brushColorInput.value + '55' : 'rgba(255,255,255,0.35)';
+  }
+
+  // ---------- Draw ----------
+  function draw(e){
     const pos = getPos(e);
-    
-    if (mode === 'magic_remove' || mode === 'magic_fill') {
-        floodFill(pos.x, pos.y, mode);
-        return;
-    }
-    
-    isDrawing = true;
-    draw(e);
-});
-
-canvas.addEventListener('mousemove', (e) => {
-    updateBrushPreview(e);
-    if (!isDrawing) return;
-    const mode = toolMode.value;
-    if (mode === 'brush' || mode === 'eraser') draw(e);
-});
-
-canvas.addEventListener('mouseup', () => { isDrawing = false; ctx.beginPath(); });
-canvas.addEventListener('mouseleave', () => { 
-    isDrawing = false; 
-    ctx.beginPath(); 
-    brushPreview.style.display = 'none'; // Hide preview when mouse leaves image
-});
-canvas.addEventListener('mouseenter', (e) => { updateBrushPreview(e); });
-
-// Manual Draw
-function draw(e) {
-    const pos = getPos(e);
-    const size = parseInt(brushSizeInput.value);
-
+    const size = parseInt(brushSizeInput.value, 10);
     ctx.lineWidth = size;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-
-    if (toolMode.value === 'brush') {
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.strokeStyle = brushColorInput.value;
-    } else if (toolMode.value === 'eraser') {
-        ctx.globalCompositeOperation = 'destination-out';
-        ctx.strokeStyle = 'rgba(0,0,0,1)';
+    if (tool === 'brush') {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.strokeStyle = brushColorInput.value;
+    } else {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.strokeStyle = 'rgba(0,0,0,1)';
     }
-
     ctx.lineTo(pos.x, pos.y);
     ctx.stroke();
     ctx.beginPath();
     ctx.moveTo(pos.x, pos.y);
-    downloadBtn.href = canvas.toDataURL('image/png');
-}
+  }
+
+  // ---------- Eyedropper ----------
+  function pickColor(e){
+    const pos = getPos(e);
+    const d = ctx.getImageData(pos.x, pos.y, 1, 1).data;
+    const hex = '#' + [d[0], d[1], d[2]].map(v => v.toString(16).padStart(2, '0')).join('');
+    pickedSwatch.style.background = hex;
+    pickedVal.textContent = hex;
+    brushColorInput.value = hex;
+    fillColorInput.value = hex;
+  }
+
+  // ---------- Mouse events ----------
+  canvas.addEventListener('mousedown', (e) => {
+    if (!hasImage) return;
+    if (tool === 'magic_remove' || tool === 'magic_fill') {
+      const pos = getPos(e);
+      removeAtPoint(pos.x, pos.y, tool);
+      return;
+    }
+    if (tool === 'eyedropper') { pickColor(e); return; }
+    isDrawing = true;
+    draw(e);
+  });
+  canvas.addEventListener('mousemove', (e) => {
+    updateBrushPreview(e);
+    if (!isDrawing) return;
+    if (tool === 'brush' || tool === 'eraser') draw(e);
+  });
+  window.addEventListener('mouseup', () => {
+    if (isDrawing) { isDrawing = false; ctx.beginPath(); pushHistory(); }
+  });
+  canvas.addEventListener('mouseleave', () => { brushPreview.style.display = 'none'; });
+  canvas.addEventListener('mouseenter', (e) => { updateBrushPreview(e); });
+
+  updateHistoryButtons();
+})();
 </script>
 
 </body>
