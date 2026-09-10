@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHM Pro Magic Photo Editor</title>
+    <style>
+        body { font-family: sans-serif; max-width: 750px; margin: 20px auto; padding: 15px; text-align: center; background: #f4f4f9; }
+        .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .toolbar { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 15px 0; align-items: center; background: #eee; padding: 15px; border-radius: 6px; }
+        input, button, select { padding: 8px; font-size: 14px; }
+        canvas { max-width: 100%; height: auto; border: 1px dashed #bbb; margin-top: 10px; cursor: crosshair; background: #fff; background-image: linear-gradient(45deg, #ddd 25%, transparent 25%), linear-gradient(-45deg, #ddd 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ddd 75%), linear-gradient(-45deg, transparent 75%, #ddd 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px; position: relative; }
+        #downloadBtn { display: none; background: #28a745; color: white; text-decoration: none; padding: 10px 20px; border-radius: 4px; margin-top: 15px; display: inline-block; font-weight: bold; }
+        .tip { font-size: 13px; color: #d9534f; margin: 5px 0; font-weight: bold; }
+        
+        /* Brush Preview Cursor Settings */
+        #brushPreview {
+            position: fixed;
+            border: 1px solid #000;
+            outline: 1px solid #fff;
+            border-radius: 50%;
+            pointer-events: none;
+            display: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Pro Background Remover & Spot Fixer</h2>
+    <input type="file" id="upload" accept="image/*"><br>
+    <p class="tip">Tip: Select a Magic tool, adjust tolerance, and CLICK on the image background to apply!</p>
+
+    <div class="toolbar">
+        <label>Tool: 
+            <select id="toolMode">
+                <option value="magic_remove">Magic Wand (Remove BG)</option>
+                <option value="magic_fill">Magic Wand (Fill New Color)</option>
+                <option value="brush">Manual Color Brush</option>
+                <option value="eraser">Manual Eraser / Rubber</option>
+            </select>
+        </label>
+        
+        <span id="magicControls">
+            <span id="fillColorContainer" style="display:none;">
+                <label>New BG Color: <input type="color" id="fillColor" value="#ff0000"></label>
+            </span>
+            <label>Tolerance: <input type="range" id="tolerance" min="0" max="150" value="40"></label>
+        </span>
+
+        <span id="brushControls" style="display:none;">
+            <label>Brush Color: <input type="color" id="brushColor" value="#ffffff"></label>
+        </span>
+
+        <label id="sizeControl" style="display:none;">Size: <input type="range" id="brushSize" min="1" max="200" value="20"></label>
+    </div>
+
+    <!-- The brush preview circle -->
+    <div id="brushPreview"></div>
+    <canvas id="canvas"></canvas><br>
+    <a id="downloadBtn" download="edited-image.png">Download Edited Image</a>
+</div>
+
+<script>
+const upload = document.getElementById('upload');
+const toolMode = document.getElementById('toolMode');
+const magicControls = document.getElementById('magicControls');
+const brushControls = document.getElementById('brushControls');
+const sizeControl = document.getElementById('sizeControl');
+const fillColorContainer = document.getElementById('fillColorContainer');
+const fillColorInput = document.getElementById('fillColor');
+const toleranceInput = document.getElementById('tolerance');
+const brushColorInput = document.getElementById('brushColor');
+const brushSizeInput = document.getElementById('brushSize');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const downloadBtn = document.getElementById('downloadBtn');
+const brushPreview = document.getElementById('brushPreview');
+
+let img = new Image();
+let isDrawing = false;
+
+// UI Switcher
+toolMode.addEventListener('change', () => {
+    const mode = toolMode.value;
+    magicControls.style.display = (mode === 'magic_remove' || mode === 'magic_fill') ? 'inline-block' : 'none';
+    fillColorContainer.style.display = (mode === 'magic_fill') ? 'inline-block' : 'none';
+    brushControls.style.display = (mode === 'brush') ? 'inline-block' : 'none';
+    sizeControl.style.display = (mode === 'brush' || mode === 'eraser') ? 'inline-block' : 'none';
+    
+    // Hide preview if tool changed to magic wand
+    if (mode === 'magic_remove' || mode === 'magic_fill') {
+        brushPreview.style.display = 'none';
+        canvas.style.cursor = 'crosshair';
+    } else {
+        canvas.style.cursor = 'none'; // Hide default mouse cursor when using brush
+    }
+});
+
+// Image Upload
+upload.addEventListener('change', (e) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        img.src = event.target.result;
+        img.onload = () => {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            downloadBtn.style.display = 'inline-block';
+        }
+    }
+    reader.readAsDataURL(e.target.files[0]);
+});
+
+// Helper for Canvas Coordinates
+function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    return {
+        x: Math.floor((e.clientX - rect.left) * scaleX),
+        y: Math.floor((e.clientY - rect.top) * scaleY)
+    };
+}
+
+// Magic Wand (Flood Fill Algorithm)
+function floodFill(startX, startY, mode) {
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imgData.data;
+    const w = canvas.width;
+    const h = canvas.height;
+    const tolerance = parseInt(toleranceInput.value);
+    
+    const startPos = (startY * w + startX) * 4;
+    const targetR = data[startPos];
+    const targetG = data[startPos + 1];
+    const targetB = data[startPos + 2];
+    const targetA = data[startPos + 3];
+
+    let fillR = 0, fillG = 0, fillB = 0, fillA = 0;
+    if (mode === 'magic_fill') {
+        const hex = fillColorInput.value;
+        fillR = parseInt(hex.slice(1, 3), 16);
+        fillG = parseInt(hex.slice(3, 5), 16);
+        fillB = parseInt(hex.slice(5, 7), 16);
+        fillA = 255;
+    }
+
+    function matchColor(pos) {
+        const r = data[pos], g = data[pos + 1], b = data[pos + 2], a = data[pos + 3];
+        if (a === 0 && targetA === 0) return true;
+        const distance = Math.sqrt(Math.pow(r - targetR, 2) + Math.pow(g - targetG, 2) + Math.pow(b - targetB, 2));
+        return distance <= tolerance * 4.41;
+    }
+
+    const pixelStack = [[startX, startY]];
+    const visited = new Uint8Array(w * h);
+
+    while (pixelStack.length) {
+        let newPos = pixelStack.pop();
+        let x = newPos[0];
+        let y = newPos[1];
+        let pixelPos = (y * w + x) * 4;
+        
+        while (y >= 0 && matchColor(pixelPos)) {
+            y--;
+            pixelPos -= w * 4;
+        }
+        pixelPos += w * 4;
+        y++;
+
+        let reachLeft = false;
+        let reachRight = false;
+
+        while (y < h && matchColor(pixelPos)) {
+            if (visited[y * w + x]) break;
+            visited[y * w + x] = 1;
+
+            data[pixelPos] = fillR;
+            data[pixelPos + 1] = fillG;
+            data[pixelPos + 2] = fillB;
+            data[pixelPos + 3] = fillA;
+
+            if (x > 0) {
+                if (matchColor(pixelPos - 4)) {
+                    if (!reachLeft) { pixelStack.push([x - 1, y]); reachLeft = true; }
+                } else if (reachLeft) { reachLeft = false; }
+            }
+            if (x < w - 1) {
+                if (matchColor(pixelPos + 4)) {
+                    if (!reachRight) { pixelStack.push([x + 1, y]); reachRight = true; }
+                } else if (reachRight) { reachRight = false; }
+            }
+            y++;
+            pixelPos += w * 4;
+        }
+    }
+    
+    ctx.putImageData(imgData, 0, 0);
+    downloadBtn.href = canvas.toDataURL('image/png');
+}
+
+// Brush Size Preview Update Function
+function updateBrushPreview(e) {
+    if (toolMode.value === 'brush' || toolMode.value === 'eraser') {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = rect.width / canvas.width;
+        const size = parseInt(brushSizeInput.value);
+        const visualSize = size * scaleX; // Adjusts preview to match display zoom
+
+        brushPreview.style.display = 'block';
+        brushPreview.style.width = visualSize + 'px';
+        brushPreview.style.height = visualSize + 'px';
+        brushPreview.style.left = e.clientX + 'px';
+        brushPreview.style.top = e.clientY + 'px';
+        
+        if (toolMode.value === 'brush') {
+            brushPreview.style.backgroundColor = brushColorInput.value + '40'; // Transparent color
+        } else {
+            brushPreview.style.backgroundColor = 'rgba(255, 255, 255, 0.5)'; // Transparent white for eraser
+        }
+    } else {
+        brushPreview.style.display = 'none';
+    }
+}
+
+// Mouse Events
+canvas.addEventListener('mousedown', (e) => {
+    const mode = toolMode.value;
+    const pos = getPos(e);
+    
+    if (mode === 'magic_remove' || mode === 'magic_fill') {
+        floodFill(pos.x, pos.y, mode);
+        return;
+    }
+    
+    isDrawing = true;
+    draw(e);
+});
+
+canvas.addEventListener('mousemove', (e) => {
+    updateBrushPreview(e);
+    if (!isDrawing) return;
+    const mode = toolMode.value;
+    if (mode === 'brush' || mode === 'eraser') draw(e);
+});
+
+canvas.addEventListener('mouseup', () => { isDrawing = false; ctx.beginPath(); });
+canvas.addEventListener('mouseleave', () => { 
+    isDrawing = false; 
+    ctx.beginPath(); 
+    brushPreview.style.display = 'none'; // Hide preview when mouse leaves image
+});
+canvas.addEventListener('mouseenter', (e) => { updateBrushPreview(e); });
+
+// Manual Draw
+function draw(e) {
+    const pos = getPos(e);
+    const size = parseInt(brushSizeInput.value);
+
+    ctx.lineWidth = size;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    if (toolMode.value === 'brush') {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.strokeStyle = brushColorInput.value;
+    } else if (toolMode.value === 'eraser') {
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.strokeStyle = 'rgba(0,0,0,1)';
+    }
+
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+    downloadBtn.href = canvas.toDataURL('image/png');
+}
+</script>
+
+</body>
+</html>
