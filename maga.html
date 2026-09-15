@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ম্যাগাজিন - Flipbook</title>
     
+    <!-- CDN-এর সাথে দ্রুত কানেকশনের জন্য Preconnect -->
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
     
+    <!-- dFlip CSS -->
     <link href="https://cdn.jsdelivr.net/npm/dflip/css/dflip.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/dflip/css/themify-icons.min.css" rel="stylesheet">
     
@@ -15,30 +17,33 @@
         body {
             margin: 0;
             padding: 0;
-            background-color: #333;
+            background-color: #333; /* ব্যাকগ্রাউন্ড কালার */
         }
+        /* Flipbook-এর আকার নির্ধারণ */
         .df-container {
-            height: 100vh;
+            height: 100vh; /* পুরো স্ক্রিন জুড়ে দেখাবে */
             width: 100%;
         }
     </style>
 </head>
 <body>
 
+    <!-- PDF লোড হওয়ার কন্টেইনার (হালকা পারফরম্যান্সের জন্য data-webgl="false" ব্যবহার করা হয়েছে) -->
     <div class="_df_book df-container" source="magazine.pdf" id="df_manual_book" data-webgl="false"></div>
 
-    <!-- স্ক্রিপ্টগুলো ক্রমানুসারে লোড করতে হবে -->
+    <!-- jQuery স্ক্রিপ্ট -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     
-    <!-- dFlip-এর রেন্ডার কোয়ালিটি বাড়ানোর সেটিংস -->
+    <!-- dFlip-এর কনফিগারেশন: জুম করার পর লেখা স্পষ্ট দেখানোর জন্য pdfRenderQuality বাড়ানো হলো -->
     <script>
         var dFlipLocation = "https://cdn.jsdelivr.net/npm/dflip/"; 
         var dFlip = dFlip || {};
         dFlip.defaults = {
-            pdfRenderQuality: 2 // জুম করার পর লেখা স্পষ্ট দেখানোর জন্য (আপনি চাইলে 2.5 বা 3 দিয়েও দেখতে পারেন)
+            pdfRenderQuality: 2 // জুম করার পর কোয়ালিটি বাড়াতে এটি ব্যবহার করা হয়েছে। প্রয়োজন হলে 2.5 বা 3 দিয়ে দেখতে পারেন।
         };
     </script>
 
+    <!-- dFlip JS স্ক্রিপ্ট -->
     <script src="https://cdn.jsdelivr.net/npm/dflip/js/dflip.min.js"></script>
     
 </body>
