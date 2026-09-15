@@ -13,6 +13,7 @@
     <link href="https://cdn.jsdelivr.net/npm/dflip/css/themify-icons.min.css" rel="stylesheet">
     
     <style>
+        /* বডির কোড একই থাকবে, এটি গ্লাস কন্টেইনারকে স্ক্রিনের মাঝে রাখবে */
         body {
             margin: 0;
             padding: 0;
@@ -33,6 +34,7 @@
             100% { background-position: 0% 50%; }
         }
 
+        /* গ্লাস কন্টেইনার (ফ্লেক্সবক্স সরানো হয়েছে) */
         .glass-container {
             width: 95vw;
             height: 95vh;
@@ -43,9 +45,7 @@
             border-radius: 20px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
             position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            display: block; /* <--- এটি ঠিক করা হয়েছে */
             overflow: hidden;
             transition: all 0.3s ease;
         }
@@ -64,21 +64,20 @@
             border: none;
         }
 
+        /* dFlip কন্টেইনার (ফ্লেক্সবক্স সরানো হয়েছে) */
         .df-container {
             width: 100%;
             height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            display: block; /* <--- এটি ঠিক করা হয়েছে */
         }
 
-        /* বাটনটি নিচে মাঝখানে রাখার জন্য আপডেট করা CSS */
+        /* ফুলস্ক্রিন বাটন */
         #fullscreen-btn {
             position: absolute;
-            bottom: 20px; /* বাটন নিচে নিয়ে আসা হলো */
-            left: 50%;    /* একদম মাঝখানে রাখার জন্য */
+            bottom: 20px;
+            left: 50%;
             transform: translateX(-50%);
-            z-index: 999;
+            z-index: 9999;
             background: rgba(255, 255, 255, 0.15);
             border: 1px solid rgba(255, 255, 255, 0.4);
             color: #fff;
@@ -116,10 +115,10 @@
             backgroundColor: "transparent",
             pageMode: 1, 
             paddingTop: 30,
-            paddingBottom: 60 /* বাটনের জন্য নিচে একটু বেশি জায়গা রাখা হলো যাতে লেখা ঢেকে না যায় */
+            paddingBottom: 70 /* বাটনের জন্য নিচে জায়গা */
         };
 
-        // ফুলস্ক্রিন এবং অটো-সেন্টার লজিক
+        // ফুলস্ক্রিন লজিক এবং রি-সাইজ ফিক্স
         document.getElementById('fullscreen-btn').addEventListener('click', function() {
             let elem = document.documentElement; 
             
@@ -135,9 +134,9 @@
                 this.innerHTML = "🔍 Fullscreen";
             }
 
-            // ম্যাগাজিন বাঁদিকে সরে যাওয়ার সমস্যাটি ঠিক করার জন্য ডাবল ট্রিগার 
-            setTimeout(function() { window.dispatchEvent(new Event('resize')); }, 100);
-            setTimeout(function() { window.dispatchEvent(new Event('resize')); }, 500);
+            // ব্রাউজারকে পেজ রিসাইজ করার সিগন্যাল (যাতে dFlip নিজে থেকে মাঝে আসে)
+            setTimeout(function() { window.dispatchEvent(new Event('resize')); }, 200);
+            setTimeout(function() { window.dispatchEvent(new Event('resize')); }, 600);
         });
     </script>
 </body>
