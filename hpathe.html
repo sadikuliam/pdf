@@ -13,7 +13,6 @@
     <link href="https://cdn.jsdelivr.net/npm/dflip/css/themify-icons.min.css" rel="stylesheet">
     
     <style>
-        /* বডির কোড একই থাকবে, এটি গ্লাস কন্টেইনারকে স্ক্রিনের মাঝে রাখবে */
         body {
             margin: 0;
             padding: 0;
@@ -34,7 +33,7 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* গ্লাস কন্টেইনার (ফ্লেক্সবক্স সরানো হয়েছে) */
+        /* ক্রিস্টাল গ্লাস ইফেক্ট */
         .glass-container {
             width: 95vw;
             height: 95vh;
@@ -45,66 +44,22 @@
             border-radius: 20px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
             position: relative;
-            display: block; /* <--- এটি ঠিক করা হয়েছে */
+            display: block; 
             overflow: hidden;
-            transition: all 0.3s ease;
         }
 
-        /* ফুলস্ক্রিন অবস্থায় গ্লাস কন্টেইনার স্ক্রিনের ১০০% জায়গা নেবে */
-        :fullscreen .glass-container {
-            width: 100vw;
-            height: 100vh;
-            border-radius: 0;
-            border: none;
-        }
-        :-webkit-full-screen .glass-container {
-            width: 100vw;
-            height: 100vh;
-            border-radius: 0;
-            border: none;
-        }
-
-        /* dFlip কন্টেইনার (ফ্লেক্সবক্স সরানো হয়েছে) */
         .df-container {
             width: 100%;
             height: 100%;
-            display: block; /* <--- এটি ঠিক করা হয়েছে */
-        }
-
-        /* ফুলস্ক্রিন বাটন */
-        #fullscreen-btn {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 9999;
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            color: #fff;
-            padding: 10px 25px;
-            border-radius: 30px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-
-        #fullscreen-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateX(-50%) translateY(-2px);
+            display: block;
         }
     </style>
 </head>
 <body>
 
-    <div class="glass-container" id="main-wrapper">
+    <div class="glass-container">
         <!-- PDF লোড হবে এখানে -->
         <div class="_df_book df-container" source="HajerPathe.pdf" id="df_manual_book"></div>
-        
-        <!-- ফুলস্ক্রিন বাটন -->
-        <button id="fullscreen-btn">🔍 Fullscreen</button>
     </div>
 
     <!-- dFlip JS -->
@@ -115,29 +70,8 @@
             backgroundColor: "transparent",
             pageMode: 1, 
             paddingTop: 30,
-            paddingBottom: 70 /* বাটনের জন্য নিচে জায়গা */
+            paddingBottom: 30
         };
-
-        // ফুলস্ক্রিন লজিক এবং রি-সাইজ ফিক্স
-        document.getElementById('fullscreen-btn').addEventListener('click', function() {
-            let elem = document.documentElement; 
-            
-            if (!document.fullscreenElement) {
-                if (elem.requestFullscreen) { elem.requestFullscreen(); }
-                else if (elem.webkitRequestFullscreen) { elem.webkitRequestFullscreen(); } 
-                else if (elem.msRequestFullscreen) { elem.msRequestFullscreen(); } 
-                this.innerHTML = "✖ Exit Fullscreen";
-            } else {
-                if (document.exitFullscreen) { document.exitFullscreen(); }
-                else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
-                else if (document.msExitFullscreen) { document.msExitFullscreen(); }
-                this.innerHTML = "🔍 Fullscreen";
-            }
-
-            // ব্রাউজারকে পেজ রিসাইজ করার সিগন্যাল (যাতে dFlip নিজে থেকে মাঝে আসে)
-            setTimeout(function() { window.dispatchEvent(new Event('resize')); }, 200);
-            setTimeout(function() { window.dispatchEvent(new Event('resize')); }, 600);
-        });
     </script>
 </body>
 </html>
