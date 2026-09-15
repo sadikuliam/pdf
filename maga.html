@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ম্যাগাজিন - Flipbook</title>
     
-    <!-- jQuery (dFlip-এর জন্য প্রয়োজন) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- CDN-এর সাথে দ্রুত কানেকশনের জন্য Preconnect -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
     
     <!-- dFlip CSS -->
     <link href="https://cdn.jsdelivr.net/npm/dflip/css/dflip.min.css" rel="stylesheet">
@@ -20,18 +21,20 @@
         }
         /* Flipbook-এর আকার নির্ধারণ */
         .df-container {
-            height: 100vh; /* পুরো স্ক্রিন জুড়ে দেখাবে */
+            height: 100vh; /* পুরো স্ক্রিন জুড়ে দেখাবে */
             width: 100%;
         }
     </style>
 </head>
 <body>
 
-    <!-- এখানেই আপনার PDF লোড হবে -->
-    <div class="_df_book df-container" source="magazine.pdf" id="df_manual_book"></div>
+    <!-- PDF লোড হওয়ার কন্টেইনার -->
+    <!-- data-webgl="false" ব্যবহার করা হয়েছে যাতে পুরোনো ডিভাইস ও মোবাইলেও এটি না আটকে দ্রুত লোড হয় -->
+    <div class="_df_book df-container" source="magazine.pdf" id="df_manual_book" data-webgl="false"></div>
 
-    <!-- dFlip JS -->
-    <script src="https://cdn.jsdelivr.net/npm/dflip/js/dflip.min.js"></script>
+    <!-- স্ক্রিপ্টগুলো defer সহ লোড করা হলো যাতে পেজ লোডিং ব্লক না হয় -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/dflip/js/dflip.min.js" defer></script>
     
 </body>
 </html>
