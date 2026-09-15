@@ -43,7 +43,9 @@
             border-radius: 20px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
             position: relative;
-            display: block; /* Flexbox সরানো হয়েছে যাতে ক্যানভাস না চাপে */
+            display: flex;
+            justify-content: center;
+            align-items: center;
             overflow: hidden;
             transition: all 0.3s ease;
         }
@@ -65,12 +67,17 @@
         .df-container {
             width: 100%;
             height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
+        /* বাটনটি নিচে মাঝখানে রাখার জন্য আপডেট করা CSS */
         #fullscreen-btn {
             position: absolute;
-            top: 20px;
-            right: 20px;
+            bottom: 20px; /* বাটন নিচে নিয়ে আসা হলো */
+            left: 50%;    /* একদম মাঝখানে রাখার জন্য */
+            transform: translateX(-50%);
             z-index: 999;
             background: rgba(255, 255, 255, 0.15);
             border: 1px solid rgba(255, 255, 255, 0.4);
@@ -87,16 +94,18 @@
 
         #fullscreen-btn:hover {
             background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
+            transform: translateX(-50%) translateY(-2px);
         }
     </style>
 </head>
 <body>
 
     <div class="glass-container" id="main-wrapper">
-        <button id="fullscreen-btn">🔍 Fullscreen</button>
         <!-- PDF লোড হবে এখানে -->
         <div class="_df_book df-container" source="HajerPathe.pdf" id="df_manual_book"></div>
+        
+        <!-- ফুলস্ক্রিন বাটন -->
+        <button id="fullscreen-btn">🔍 Fullscreen</button>
     </div>
 
     <!-- dFlip JS -->
@@ -107,10 +116,10 @@
             backgroundColor: "transparent",
             pageMode: 1, 
             paddingTop: 30,
-            paddingBottom: 30
+            paddingBottom: 60 /* বাটনের জন্য নিচে একটু বেশি জায়গা রাখা হলো যাতে লেখা ঢেকে না যায় */
         };
 
-        // ফুলস্ক্রিন এবং অটো-সেন্টার ফিক্স
+        // ফুলস্ক্রিন এবং অটো-সেন্টার লজিক
         document.getElementById('fullscreen-btn').addEventListener('click', function() {
             let elem = document.documentElement; 
             
@@ -126,10 +135,9 @@
                 this.innerHTML = "🔍 Fullscreen";
             }
 
-            // ম্যাজিক ট্রিক: ফুলস্ক্রিন হওয়ার পর ম্যাগাজিনটিকে ঠিক মাঝে আনার জন্য
-            setTimeout(function() {
-                window.dispatchEvent(new Event('resize'));
-            }, 300); // ৩০০ মিলিসেকেন্ড পর পেজ রিসাইজ ট্রিগার করবে
+            // ম্যাগাজিন বাঁদিকে সরে যাওয়ার সমস্যাটি ঠিক করার জন্য ডাবল ট্রিগার 
+            setTimeout(function() { window.dispatchEvent(new Event('resize')); }, 100);
+            setTimeout(function() { window.dispatchEvent(new Event('resize')); }, 500);
         });
     </script>
 </body>
