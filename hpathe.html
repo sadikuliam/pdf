@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ম্যাগাজিন - Flipbook</title>
+    
+    <!-- jQuery (dFlip-এর জন্য প্রয়োজন) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    
+    <!-- dFlip CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/dflip/css/dflip.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/dflip/css/themify-icons.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #333; /* ব্যাকগ্রাউন্ড কালার */
+        }
+        /* Flipbook-এর আকার নির্ধারণ */
+        .df-container {
+            height: 100vh; /* পুরো স্ক্রিন জুড়ে দেখাবে */
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- এখানেই আপনার PDF লোড হবে -->
+    <div class="_df_book df-container" source="HajerPathe.pdf" id="df_manual_book"></div>
+
+    <!-- dFlip JS -->
+    <script src="https://cdn.jsdelivr.net/npm/dflip/js/dflip.min.js"></script>
+    
+</body>
+</html>
