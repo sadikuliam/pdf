@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ম্যাগাজিন - Flipbook</title>
     
-    <!-- jQuery (dFlip-এর জন্য প্রয়োজন) -->
+    <!-- jQuery (dFlip-এর জন্য প্রয়োজন) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     
     <!-- dFlip CSS -->
@@ -13,25 +13,114 @@
     <link href="https://cdn.jsdelivr.net/npm/dflip/css/themify-icons.min.css" rel="stylesheet">
     
     <style>
+        /* 1. মডার্ন অ্যানিমেটেড ব্যাকগ্রাউন্ড (গ্লাস ইফেক্ট ফোটানোর জন্য) */
         body {
             margin: 0;
             padding: 0;
-            background-color: #333; /* ব্যাকগ্রাউন্ড কালার */
+            min-height: 100vh;
+            background: linear-gradient(45deg, #0f2027, #203a43, #2c5364); /* প্রিমিয়াম ডার্ক-ব্লু থিম */
+            background-size: 200% 200%;
+            animation: gradientBG 10s ease infinite;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
         }
-        /* Flipbook-এর আকার নির্ধারণ */
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 2. ক্রিস্টাল ক্লিয়ার গ্লাস ইফেক্ট (Glassmorphism) */
+        .glass-container {
+            width: 95vw;  /* স্ক্রিনের ৯৫% জায়গা নেবে */
+            height: 95vh; /* স্ক্রিনের ৯৫% জায়গা নেবে */
+            background: rgba(255, 255, 255, 0.05); /* হালকা স্বচ্ছ সাদা */
+            backdrop-filter: blur(15px); /* পেছনের ব্যাকগ্রাউন্ড ব্লার করবে */
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2); /* গ্লাসের বর্ডার */
+            border-radius: 20px; /* চারপাশ গোলাকার */
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4); /* গ্লাসের ছায়া */
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Flipbook কন্টেইনার ফুল সাইজ করা */
         .df-container {
-            height: 100vh; /* পুরো স্ক্রিন জুড়ে দেখাবে */
+            flex-grow: 1;
             width: 100%;
+            height: 100%;
+        }
+
+        /* 3. গ্লাস ইফেক্ট ফুলস্ক্রিন বাটন */
+        #fullscreen-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 999;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: #fff;
+            padding: 10px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        #fullscreen-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
         }
     </style>
 </head>
 <body>
 
-    <!-- এখানেই আপনার PDF লোড হবে -->
-    <div class="_df_book df-container" source="HajerPathe.pdf" id="df_manual_book"></div>
+    <!-- গ্লাস কন্টেইনার -->
+    <div class="glass-container" id="main-wrapper">
+        <!-- কাস্টম ফুলস্ক্রিন বাটন -->
+        <button id="fullscreen-btn">🔍 Fullscreen</button>
+
+        <!-- এখানেই আপনার PDF লোড হবে -->
+        <div class="_df_book df-container" source="HajerPathe.pdf" id="df_manual_book"></div>
+    </div>
 
     <!-- dFlip JS -->
     <script src="https://cdn.jsdelivr.net/npm/dflip/js/dflip.min.js"></script>
     
+    <script>
+        // 4. dFlip কাস্টম কনফিগারেশন (বইটিকে আরও পরিষ্কার দেখানোর জন্য)
+        var option_df_manual_book = {
+            backgroundColor: "transparent", // গ্লাস ইফেক্ট দেখানোর জন্য পেছনের রং স্বচ্ছ করা হয়েছে
+            pageMode: 1, // মোবাইল স্ক্রিনে ১ পাতা এবং কম্পিউটারে ২ পাতা অটোমেটিক দেখাবে
+            paddingTop: 30,
+            paddingBottom: 30
+        };
+
+        // 5. ফুলস্ক্রিন বাটনের কাজ (Full Screen Toggle Logic)
+        document.getElementById('fullscreen-btn').addEventListener('click', function() {
+            let elem = document.documentElement; // পুরো পেজ ফুলস্ক্রিন করবে
+            
+            if (!document.fullscreenElement) {
+                if (elem.requestFullscreen) { elem.requestFullscreen(); }
+                else if (elem.webkitRequestFullscreen) { elem.webkitRequestFullscreen(); } /* Safari */
+                else if (elem.msRequestFullscreen) { elem.msRequestFullscreen(); } /* IE11 */
+                this.innerHTML = "✖ Exit Fullscreen";
+            } else {
+                if (document.exitFullscreen) { document.exitFullscreen(); }
+                else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
+                else if (document.msExitFullscreen) { document.msExitFullscreen(); }
+                this.innerHTML = "🔍 Fullscreen";
+            }
+        });
+    </script>
 </body>
 </html>
