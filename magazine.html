@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SHM কিশোর দিগন্ত - Flipbook</title>
+    <title>SHM Magazine- Flipbook</title>
     
-    <!-- CDN-এর সাথে দ্রুত কানেকশনের জন্য Preconnect -->
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
     
@@ -25,7 +24,7 @@
             font-family: Arial, sans-serif;
         }
         
-        /* ম্যাগাজিন পড়ার বাটনের ডিজাইন */
+        /* বাটনের ডিজাইন */
         .read-btn {
             padding: 12px 24px;
             background-color: #007bff;
@@ -35,7 +34,6 @@
             border-radius: 5px;
             cursor: pointer;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            display: inline-block;
         }
 
         /* Light Theme Design */
@@ -48,30 +46,37 @@
 </head>
 <body>
 
-    <!-- ১. ছবির লিস্ট (এটি গ্লোবাল ভেরিয়েবল হিসেবে সবার উপরে রাখতে হবে) -->
-    <script>
-        var myMagazineImages = [
-            "magazine/1.png", 
-            "magazine/2.png", 
-            "magazine/3.png"
-        ];
-        
-        // dFlip-এর ডিফল্ট সেটিংস
-        var dFlipLocation = "https://cdn.jsdelivr.net/npm/dflip/"; 
-        var dFlip = dFlip || {};
-        dFlip.defaults = {
-            webgl: false, // ফাস্ট পারফরম্যান্স
-            backgroundColor: "#f4f4f4", // লাইট থিম
-            pageMode: 1 // মোবাইলে অটো সিঙ্গেল পেজ
-        };
-    </script>
+    <!-- ১. লক্ষ্য করুন: এখানে কোনো _df_button ক্লাস বা source ট্যাগ নেই, শুধু id দেওয়া আছে -->
+    <div class="read-btn" id="shm_magazine_btn">ম্যাগাজিন পড়ুন</div>
 
-    <!-- ২. বাটন (source="myMagazineImages" দেওয়ায় এটি অটোমেটিক পপ-আপ হবে) -->
-    <div class="_df_button read-btn" source="myMagazineImages">ম্যাগাজিন পড়ুন</div>
-
-    <!-- ৩. স্ক্রিপ্ট ফাইলগুলো সবার নিচে থাকবে -->
+    <!-- ২. স্ক্রিপ্ট ফাইল -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dflip/js/dflip.min.js"></script>
+    
+    <!-- ৩. জাভাস্ক্রিপ্ট দিয়ে ফ্লিপবুক তৈরি -->
+    <script>
+        jQuery(document).ready(function () {
+            
+            // ইমেজের লিস্ট (Array হিসেবে)
+            var imageList = [
+                "magazine/1.png", 
+                "magazine/2.png", 
+                "magazine/3.png"
+            ];
+
+            // সেটিংস
+            var flipOptions = {
+                lightBox: true, // এটি বাটন ক্লিক করলে পপ-আপ খুলবে
+                webgl: false,
+                backgroundColor: "#f4f4f4",
+                pageMode: 1
+            };
+
+            // বাটনটির আইডি ধরে তার সাথে ইমেজ ও সেটিংস কানেক্ট করা হলো
+            $("#shm_magazine_btn").flipBook(imageList, flipOptions);
+            
+        });
+    </script>
     
 </body>
 </html>
