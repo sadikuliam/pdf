@@ -5,10 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SHM কিশোর দিগন্ত - Flipbook</title>
     
-    <!-- CDN-এর সাথে দ্রুত কানেকশনের জন্য Preconnect -->
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-    <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    
     <!-- dFlip CSS -->
     <link href="https://cdn.jsdelivr.net/npm/dflip/css/dflip.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/dflip/css/themify-icons.min.css" rel="stylesheet">
@@ -48,10 +44,9 @@
 </head>
 <body>
 
-    <!-- ১. ছবির লিস্ট (এটি সবার ওপরে রাখতে হবে যাতে স্ক্রিপ্ট লোড হওয়ার আগেই ব্রাউজার ছবিগুলো চিনে নেয়) -->
+    <!-- ১. ছবির লিস্ট (অফিশিয়াল নিয়ম অনুযায়ী ভেরিয়েবলের নাম df_shm_book দেওয়া হলো) -->
     <script>
-        // ভেরিয়েবলের নাম shm_images দেওয়া হলো
-        var pdf = [
+        var df_shm_book = [
             "magazine/1.png", 
             "magazine/2.png", 
             "magazine/3.png"
@@ -67,8 +62,8 @@
         };
     </script>
 
-    <!-- ২. বাটন (এখানে _df_button ক্লাস এবং source="shm_images" থাকায় এটি নিখুঁতভাবে পপ-আপ হবে) -->
-    <div class="_df_button read-btn" source="shm_images">ম্যাগাজিন পড়ুন</div>
+    <!-- ২. বাটন (খেয়াল করুন: এখানে কোনো source ট্যাগ নেই, শুধু id="shm_book" আছে যা উপরের নামের সাথে লিংক করা) -->
+    <div class="_df_button read-btn" id="shm_book">ম্যাগাজিন পড়ুন</div>
 
     <!-- ৩. সবার শেষে স্ক্রিপ্ট ফাইল -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
