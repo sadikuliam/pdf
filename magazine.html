@@ -21,7 +21,7 @@
             font-family: Arial, sans-serif;
         }
         
-        /* বাটনের সুন্দর ডিজাইন */
+        /* বাটনের ডিজাইন */
         .read-btn {
             padding: 12px 24px;
             background-color: #007bff;
@@ -31,43 +31,45 @@
             border-radius: 5px;
             cursor: pointer;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            display: inline-block;
         }
 
-        /* Light Theme Design */
+        /* Lightbox Theme */
         .df-lightbox-wrapper, .df-container { background-color: #f4f4f4 !important; }
-        .df-ui-controls { background-color: #f4f4f4 !important; box-shadow: 0 -2px 10px rgba(0,0,0,0.05) !important;}
-        .df-ui-btn, .df-ui-page-info { color: #333333 !important; }
-        .df-ui-btn:hover { background-color: #e6e6e6 !important; }
-        .df-ui-btn.df-ui-close { color: #333333 !important; background-color: transparent !important; }
     </style>
 </head>
 <body>
 
-    <!-- ১. ছবির লিস্ট (অফিশিয়াল নিয়ম অনুযায়ী ভেরিয়েবলের নাম df_shm_book দেওয়া হলো) -->
-    <script>
-        var df_shm_book = [
-            "magazine/1.png", 
-            "magazine/2.png", 
-            "magazine/3.png"
-        ];
+    <!-- লক্ষ্য করুন: এখানে _df_button ক্লাসটি পুরোপুরি মুছে দেওয়া হয়েছে। শুধু একটি ID রাখা হয়েছে। -->
+    <div class="read-btn" id="shm_magazine_btn">ম্যাগাজিন পড়ুন</div>
 
-        // dFlip-এর থিম সেটিংস
-        var dFlipLocation = "https://cdn.jsdelivr.net/npm/dflip/"; 
-        var dFlip = dFlip || {};
-        dFlip.defaults = {
-            webgl: false,
-            backgroundColor: "#f4f4f4",
-            pageMode: 1
-        };
-    </script>
-
-    <!-- ২. বাটন (খেয়াল করুন: এখানে কোনো source ট্যাগ নেই, শুধু id="shm_book" আছে যা উপরের নামের সাথে লিংক করা) -->
-    <div class="_df_button read-btn" id="shm_book">ম্যাগাজিন পড়ুন</div>
-
-    <!-- ৩. সবার শেষে স্ক্রিপ্ট ফাইল -->
+    <!-- jQuery এবং dFlip JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dflip/js/dflip.min.js"></script>
+    
+    <script>
+        jQuery(document).ready(function () {
+            
+            // ১. আপনার ম্যাগাজিনের ছবিগুলো
+            var magImages = [
+                "magazine/1.png", 
+                "magazine/2.png", 
+                "magazine/3.png"
+            ];
+
+            // ২. সেটিংস (WebGL এবং 3D জোর করে বন্ধ করা হয়েছে)
+            var options = {
+                lightBox: true,       // পপ-আপ আকারে খুলবে
+                webgl: false,         // WebGL বন্ধ
+                is3D: false,          // 3D ইঞ্জিন পুরোপুরি বন্ধ (যাতে Loading WEBGL 3D না দেখায়)
+                backgroundColor: "#f4f4f4",
+                pageMode: 1
+            };
+
+            // ৩. বাটনের সাথে ফ্লিপবুক কানেক্ট করা
+            $("#shm_magazine_btn").flipBook(magImages, options);
+            
+        });
+    </script>
     
 </body>
 </html>
