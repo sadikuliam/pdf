@@ -16,61 +16,48 @@
         body {
             margin: 0;
             padding: 0;
-            background-color: #ffffff; 
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            font-family: Arial, sans-serif;
+            background-color: #f4f4f4; /* লাইট থিম ব্যাকগ্রাউন্ড */
+            overflow: hidden; /* স্ক্রলবার বন্ধ করার জন্য */
         }
         
-        /* বাটনের ডিজাইন */
-        .read-btn {
-            padding: 12px 24px;
-            background-color: #007bff;
-            color: #fff;
-            text-decoration: none;
-            font-size: 18px;
-            border-radius: 5px;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            display: inline-block;
+        /* ফুল স্ক্রিন কন্টেইনার */
+        .full-screen-container {
+            height: 100vh;
+            width: 100vw;
         }
-
-        /* Lightbox (পপ-আপ) থিম */
-        .df-lightbox-wrapper, .df-container { background-color: #f4f4f4 !important; }
-        .df-ui-controls { background-color: #f4f4f4 !important; box-shadow: 0 -2px 10px rgba(0,0,0,0.05) !important;}
-        .df-ui-btn, .df-ui-page-info { color: #333333 !important; }
-        .df-ui-btn:hover { background-color: #e6e6e6 !important; }
-        .df-ui-btn.df-ui-close { color: #333333 !important; background-color: transparent !important; }
     </style>
-
-    <!-- ১. লক্ষ্য করুন: ছবির লিস্ট এবার একদম ওপরে <head>-এর ভেতরে রাখা হয়েছে, যাতে প্লাগইন লোড হওয়ার আগেই এটি রেডি থাকে -->
-    <script>
-        window.shm_magazine_images = [
-            "magazine/1.png",
-            "magazine/2.png",
-            "magazine/3.png"
-        ];
-
-        // dFlip-এর সেটিংস
-        var dFlipLocation = "https://cdn.jsdelivr.net/npm/dflip/"; 
-        var dFlip = dFlip || {};
-        dFlip.defaults = {
-            webgl: false, // ফাস্ট পারফরম্যান্স
-            backgroundColor: "#f4f4f4", // লাইট থিম
-            pageMode: 1 // মোবাইলে অটো সিঙ্গেল পেজ
-        };
-    </script>
 </head>
 <body>
 
-    <!-- ২. কোনো কাস্টম জাভাস্ক্রিপ্ট নেই। শুধু অফিশিয়াল _df_button ক্লাস এবং source ব্যবহার করা হয়েছে -->
-    <div class="_df_button read-btn" source="shm_magazine_images">ম্যাগাজিন পড়ুন</div>
+    <!-- কোনো বাটন নেই, সরাসরি এই কন্টেইনারের ভেতরে ম্যাগাজিন খুলবে -->
+    <div id="shm_flipbook" class="full-screen-container"></div>
 
-    <!-- ৩. সবার নিচে jQuery এবং dFlip JS -->
+    <!-- স্ক্রিপ্ট ফাইল -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dflip/js/dflip.min.js"></script>
+    
+    <!-- জাভাস্ক্রিপ্ট দিয়ে সরাসরি কন্টেইনারে ম্যাগাজিন তৈরি -->
+    <script>
+        jQuery(document).ready(function () {
+            
+            // আপনার ইমেজের লিস্ট
+            var magImages = [
+                "magazine/1.png",
+                "magazine/2.png",
+                "magazine/3.png"
+            ];
+
+            // ফ্লিপবুক সেটিংস
+            var options = {
+                webgl: false, // ফাস্ট লোডিংয়ের জন্য
+                backgroundColor: "#f4f4f4" // ব্যাকগ্রাউন্ড কালার
+            };
+
+            // কন্টেইনারের আইডি ধরে ফ্লিপবুক বসিয়ে দেওয়া হলো
+            $("#shm_flipbook").flipBook(magImages, options);
+            
+        });
+    </script>
     
 </body>
 </html>
