@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="bn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SHM কিশোর দিগন্ত - Digital Flipbook</title>
+
+    <!-- dFlip CSS -->
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/dflip/css/dflip.min.css"
+    >
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            background: #f4f4f4;
+            overflow: hidden;
+        }
+
+        #shm_flipbook {
+            width: 100%;
+            height: 100vh;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Flipbook Container -->
+    <div id="shm_flipbook"></div>
+
+    <!-- jQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+    <!-- dFlip -->
+    <script src="https://cdn.jsdelivr.net/npm/dflip/js/dflip.min.js"></script>
+
+    <script>
+        jQuery(function ($) {
+
+            /* =====================================
+               PDF IN MAIN REPOSITORY
+            ===================================== */
+
+            var magazinePDF = "magazine.pdf";
+
+
+            /* =====================================
+               FLIPBOOK SETTINGS
+            ===================================== */
+
+            var options = {
+
+                /* 2D rendering */
+                webgl: false,
+
+                /* Background */
+                backgroundColor: "#f4f4f4",
+
+                /* Flip speed */
+                duration: 800,
+
+                /* Fit page to screen */
+                forceFit: true,
+
+                /* Responsive page mode */
+                pageMode: DFLIP.PAGE_MODE.AUTO,
+
+                /* PDF quality */
+                pdfRenderQuality: 0.90,
+
+                /* Texture size */
+                maxTextureSize: 1600,
+
+                /* Controls */
+                showDownloadControl: true,
+                showPrintControl: true,
+                showSearchControl: true,
+
+                /* Thumbnail */
+                autoEnableThumbnail: false
+            };
+
+
+            /* =====================================
+               START FLIPBOOK
+            ===================================== */
+
+            $("#shm_flipbook").flipBook(
+                magazinePDF,
+                options
+            );
+
+        });
+    </script>
+
+</body>
+
+</html>
