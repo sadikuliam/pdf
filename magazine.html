@@ -35,6 +35,7 @@
             border-radius: 5px;
             cursor: pointer;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: inline-block;
         }
 
         /* Light Theme Design */
@@ -47,38 +48,30 @@
 </head>
 <body>
 
-    <!-- HTML-এ কোনো source ট্যাগ থাকবে না, শুধু ID থাকবে -->
-    <div class="read-btn" id="open_magazine_btn">ম্যাগাজিন পড়ুন</div>
-
-    <!-- jQuery স্ক্রিপ্ট -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <!-- dFlip JS স্ক্রিপ্ট -->
-    <script src="https://cdn.jsdelivr.net/npm/dflip/js/dflip.min.js"></script>
-    
-    <!-- ছবি এবং dFlip-এর সেটিংস -->
+    <!-- ১. ছবির লিস্ট (এটি গ্লোবাল ভেরিয়েবল হিসেবে সবার উপরে রাখতে হবে) -->
     <script>
-        jQuery(document).ready(function () {
-            
-            // ছবির লিংকগুলোর অ্যারে
-            var magazineImages = [
-                "magazine/1.png", // কভার পেজ
-                "magazine/2.png", // দ্বিতীয় পেজ
-                "magazine/3.png"  // তৃতীয় পেজ
-            ];
-
-            // dFlip-এর অপশন সেটিংস
-            var flipbookOptions = {
-                webgl: false, // ফাস্ট পারফরম্যান্সের জন্য
-                backgroundColor: "#f4f4f4", // লাইট থিম
-                pageMode: 1, // মোবাইলে অটো সিঙ্গেল পেজ
-                lightBox: true // <--- এই অপশনটিই বাটন ক্লিক করলে পপ-আপ (Lightbox) তৈরি করবে
-            };
-
-            // বাটনটির সাথে ফ্লিপবুক কানেক্ট করা হলো
-            $("#open_magazine_btn").flipBook(magazineImages, flipbookOptions);
-            
-        });
+        var myMagazineImages = [
+            "magazine/1.png", 
+            "magazine/2.png", 
+            "magazine/3.png"
+        ];
+        
+        // dFlip-এর ডিফল্ট সেটিংস
+        var dFlipLocation = "https://cdn.jsdelivr.net/npm/dflip/"; 
+        var dFlip = dFlip || {};
+        dFlip.defaults = {
+            webgl: false, // ফাস্ট পারফরম্যান্স
+            backgroundColor: "#f4f4f4", // লাইট থিম
+            pageMode: 1 // মোবাইলে অটো সিঙ্গেল পেজ
+        };
     </script>
+
+    <!-- ২. বাটন (source="myMagazineImages" দেওয়ায় এটি অটোমেটিক পপ-আপ হবে) -->
+    <div class="_df_button read-btn" source="myMagazineImages">ম্যাগাজিন পড়ুন</div>
+
+    <!-- ৩. স্ক্রিপ্ট ফাইলগুলো সবার নিচে থাকবে -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dflip/js/dflip.min.js"></script>
     
 </body>
 </html>
