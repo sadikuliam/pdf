@@ -14,7 +14,7 @@
     <link href="https://cdn.jsdelivr.net/npm/dflip/css/themify-icons.min.css" rel="stylesheet">
     
     <style>
-        /* ওয়েবসাইটের মূল বডি ব্যাকগ্রাউন্ড */
+        /* ওয়েবসাইটের মূল বডি ব্যাকগ্রাউন্ড */
         body {
             margin: 0;
             padding: 0;
@@ -26,7 +26,7 @@
             font-family: Arial, sans-serif;
         }
         
-        /* ম্যাগাজিন পড়ার বাটন */
+        /* ম্যাগাজিন পড়ার বাটন */
         .read-btn {
             padding: 12px 24px;
             background-color: #007bff;
@@ -39,7 +39,7 @@
         }
 
         /* =========================================
-           dFlip Light Theme (হুবহু আগের মতো ডিজাইন) 
+           dFlip Light Theme (হুবহু আপনার পছন্দের ডিজাইন) 
            ========================================= */
         .df-lightbox-wrapper, .df-container { background-color: #f4f4f4 !important; }
         .df-ui-controls { background-color: #f4f4f4 !important; box-shadow: 0 -2px 10px rgba(0,0,0,0.05) !important;}
@@ -51,7 +51,7 @@
 <body>
 
     <!-- এই বাটনে ক্লিক করলে ম্যাগাজিন খুলবে -->
-    <div class="read-btn" id="open_magazine_btn">ম্যাগাজিন পড়ুন</div>
+    <div class="read-btn" id="open_magazine_btn">ম্যাগাজিন পড়ুন</div>
 
     <!-- jQuery স্ক্রিপ্ট -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -59,17 +59,16 @@
     <!-- dFlip JS স্ক্রিপ্ট -->
     <script src="https://cdn.jsdelivr.net/npm/dflip/js/dflip.min.js"></script>
 
-    <!-- ইমেজ দিয়ে ফ্লিপবুক তৈরি করার স্ক্রিপ্ট -->
+    <!-- ইমেজ দিয়ে ফ্লিপবুক তৈরি করার স্ক্রিপ্ট -->
     <script>
         jQuery(document).ready(function () {
             
-            // এখানে আপনার ম্যাগাজিনের পেজগুলোর ছবির লিংক পরপর দিতে হবে
+            // আপনার গিটহাবের ফোল্ডার অনুযায়ী পাথ এবং .png এক্সটেনশন দেওয়া হলো
             var magazineImages = [
-                "magazine/1.png", // কভার পেজ
-                "magazine/2.png", // দ্বিতীয় পেজ
-                "magazine/3.png", // তৃতীয় পেজ
-                "magazine/4.png"  // চতুর্থ পেজ
-                // আপনার যতগুলো পেজ আছে, এভাবে কমা (,) দিয়ে লিংক বসিয়ে যাবেন। শেষ লাইনে কমা দেবেন না।
+                "pdf/magazine/1.png", // কভার পেজ
+                "pdf/magazine/2.png", // দ্বিতীয় পেজ
+                "pdf/magazine/3.png"  // তৃতীয় পেজ
+                // পরবর্তীতে ম্যাগাজিনে আরও পেজ যোগ করলে ঠিক একইভাবে কমা (,) দিয়ে "pdf/magazine/4.png" লিখে দেবেন
             ];
 
             // dFlip অপশন সেটিংস
