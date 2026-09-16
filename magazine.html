@@ -1,63 +1,188 @@
 <!DOCTYPE html>
 <html lang="bn">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <meta name="description"
+          content="SHM কিশোর দিগন্ত - Interactive Digital Flipbook">
+
     <title>SHM কিশোর দিগন্ত - Flipbook</title>
-    
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-    <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    
-    <!-- dFlip CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/dflip/css/dflip.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/dflip/css/themify-icons.min.css" rel="stylesheet">
-    
+
+
+    <!-- =========================================
+         dFlip / DearFlip CSS
+    ========================================== -->
+
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/dflip/css/dflip.min.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/dflip/css/themify-icons.min.css"
+    >
+
+
+    <!-- =========================================
+         CUSTOM STYLE
+    ========================================== -->
+
     <style>
-        body {
+
+        * {
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4; /* লাইট থিম ব্যাকগ্রাউন্ড */
-            overflow: hidden; /* স্ক্রলবার বন্ধ করার জন্য */
+            box-sizing: border-box;
         }
-        
-        /* ফুল স্ক্রিন কন্টেইনার */
-        .full-screen-container {
+
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+        }
+
+
+        body {
+            background: #f4f4f4;
+            overflow: hidden;
+        }
+
+
+        /* =========================================
+           Full Screen Flipbook
+        ========================================== */
+
+        #shm_flipbook {
+
+            width: 100%;
             height: 100vh;
-            width: 100vw;
+
+            min-width: 100%;
+            min-height: 100vh;
+
+            background: #f4f4f4;
         }
+
+
+        /* =========================================
+           Mobile Adjustment
+        ========================================== */
+
+        @media (max-width: 768px) {
+
+            #shm_flipbook {
+                width: 100%;
+                height: 100vh;
+            }
+
+        }
+
     </style>
+
 </head>
+
+
 <body>
 
-    <!-- কোনো বাটন নেই, সরাসরি এই কন্টেইনারের ভেতরে ম্যাগাজিন খুলবে -->
-    <div id="shm_flipbook" class="full-screen-container"></div>
 
-    <!-- স্ক্রিপ্ট ফাইল -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dflip/js/dflip.min.js"></script>
-    
-    <!-- জাভাস্ক্রিপ্ট দিয়ে সরাসরি কন্টেইনারে ম্যাগাজিন তৈরি -->
+    <!-- =========================================
+         SHM FLIPBOOK CONTAINER
+    ========================================== -->
+
+    <div id="shm_flipbook"></div>
+
+
+    <!-- =========================================
+         jQuery
+    ========================================== -->
+
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js">
+    </script>
+
+
+    <!-- =========================================
+         dFlip / DearFlip JavaScript
+    ========================================== -->
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/dflip/js/dflip.min.js">
+    </script>
+
+
+    <!-- =========================================
+         FLIPBOOK SCRIPT
+    ========================================== -->
+
     <script>
-        jQuery(document).ready(function () {
-            
-            // আপনার ইমেজের লিস্ট
+
+        jQuery(document).ready(function ($) {
+
+
+            /* =====================================
+               MAGAZINE PAGE LIST
+            ===================================== */
+
             var magImages = [
+
                 "magazine/page1.png",
+
                 "magazine/page2.png",
+
                 "magazine/page3.png"
+
             ];
 
-            // ফ্লিপবুক সেটিংস
+
+            /* =====================================
+               FLIPBOOK OPTIONS
+            ===================================== */
+
             var options = {
-                webgl: false, // ফাস্ট লোডিংয়ের জন্য
-                backgroundColor: "#f4f4f4" // ব্যাকগ্রাউন্ড কালার
+
+                /* Disable WebGL
+                   for better compatibility */
+                webgl: false,
+
+
+                /* Background */
+                backgroundColor: "#f4f4f4",
+
+
+                /* Page flip speed */
+                duration: 800,
+
+
+                /* Responsive height */
+                autoHeight: true
+
             };
 
-            // কন্টেইনারের আইডি ধরে ফ্লিপবুক বসিয়ে দেওয়া হলো
-            $("#shm_flipbook").flipBook(magImages, options);
-            
+
+            /* =====================================
+               CREATE FLIPBOOK
+            ===================================== */
+
+            $("#shm_flipbook").flipBook(
+
+                magImages,
+
+                options
+
+            );
+
+
         });
+
     </script>
-    
+
+
 </body>
+
 </html>
