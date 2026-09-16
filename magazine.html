@@ -3,43 +3,22 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <title>SHM কিশোর দিগন্ত - Digital Flipbook</title>
 
-    <meta name="description"
-          content="SHM কিশোর দিগন্ত - Interactive Digital Flipbook">
-
-    <title>SHM কিশোর দিগন্ত - Flipbook</title>
-
-
-    <!-- =========================================
-         dFlip / DearFlip CSS
-    ========================================== -->
-
+    <!-- dFlip CSS -->
     <link
         rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/dflip/css/dflip.min.css"
     >
 
-    <link
-        rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/dflip/css/themify-icons.min.css"
-    >
-
-
-    <!-- =========================================
-         CUSTOM STYLE
-    ========================================== -->
-
     <style>
-
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
 
         html,
         body {
@@ -47,141 +26,87 @@
             height: 100%;
         }
 
-
         body {
             background: #f4f4f4;
             overflow: hidden;
         }
 
-
-        /* =========================================
-           Full Screen Flipbook
-        ========================================== */
-
         #shm_flipbook {
-
             width: 100%;
             height: 100vh;
-
-            min-width: 100%;
-            min-height: 100vh;
-
-            background: #f4f4f4;
         }
-
-
-        /* =========================================
-           Mobile Adjustment
-        ========================================== */
-
-        @media (max-width: 768px) {
-
-            #shm_flipbook {
-                width: 100%;
-                height: 100vh;
-            }
-
-        }
-
     </style>
-
 </head>
-
 
 <body>
 
-
-    <!-- =========================================
-         SHM FLIPBOOK CONTAINER
-    ========================================== -->
-
+    <!-- Flipbook Container -->
     <div id="shm_flipbook"></div>
 
+    <!-- jQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
-    <!-- =========================================
-         jQuery
-    ========================================== -->
-
-    <script
-        src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js">
-    </script>
-
-
-    <!-- =========================================
-         dFlip / DearFlip JavaScript
-    ========================================== -->
-
-    <script
-        src="https://cdn.jsdelivr.net/npm/dflip/js/dflip.min.js">
-    </script>
-
-
-    <!-- =========================================
-         FLIPBOOK SCRIPT
-    ========================================== -->
+    <!-- dFlip -->
+    <script src="https://cdn.jsdelivr.net/npm/dflip/js/dflip.min.js"></script>
 
     <script>
-
-        jQuery(document).ready(function ($) {
-
+        jQuery(function ($) {
 
             /* =====================================
-               MAGAZINE PAGE LIST
+               PDF IN MAIN REPOSITORY
             ===================================== */
 
-            var magImages = [
-
-                "magazine/page1.png",
-
-                "magazine/page2.png",
-
-                "magazine/page3.png"
-
-            ];
+            var magazinePDF = "magazine.pdf";
 
 
             /* =====================================
-               FLIPBOOK OPTIONS
+               FLIPBOOK SETTINGS
             ===================================== */
 
             var options = {
 
-                /* Disable WebGL
-                   for better compatibility */
+                /* 2D rendering */
                 webgl: false,
-
 
                 /* Background */
                 backgroundColor: "#f4f4f4",
 
-
-                /* Page flip speed */
+                /* Flip speed */
                 duration: 800,
 
+                /* Fit page to screen */
+                forceFit: true,
 
-                /* Responsive height */
-                autoHeight: true
+                /* Responsive page mode */
+                pageMode: DFLIP.PAGE_MODE.AUTO,
 
+                /* PDF quality */
+                pdfRenderQuality: 0.90,
+
+                /* Texture size */
+                maxTextureSize: 1600,
+
+                /* Controls */
+                showDownloadControl: true,
+                showPrintControl: true,
+                showSearchControl: true,
+
+                /* Thumbnail */
+                autoEnableThumbnail: false
             };
 
 
             /* =====================================
-               CREATE FLIPBOOK
+               START FLIPBOOK
             ===================================== */
 
             $("#shm_flipbook").flipBook(
-
-                magImages,
-
+                magazinePDF,
                 options
-
             );
 
-
         });
-
     </script>
-
 
 </body>
 
