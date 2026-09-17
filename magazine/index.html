@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Maga Flipbook</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4/turn.min.css">
+  <style>
+    body {
+      background: #f4f4f4;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    #flipbook {
+      width: 800px;
+      height: 500px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      border-radius: 8px;
+      overflow: hidden;
+      background: white;
+    }
+    .page {
+      background: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 18px;
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="flipbook"></div>
+
+  <!-- PDF.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <!-- Turn.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4/turn.min.js"></script>
+
+  <script>
+    const url = 'maga123.pdf'; // Your PDF file in repo
+
+    const flipbook = document.getElementById('flipbook');
+    pdfjsLib.getDocument(url).promise.then(pdf => {
+      const totalPages = pdf.numPages;
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.getPage(i).then(page => {
+          const viewport = page.getViewport({ scale: 1.5 });
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+          canvas.height = viewport.height;
+          canvas.width = viewport.width;
+
+          page.render({ canvasContext: context, viewport: viewport }).promise.then(() => {
+            const pageDiv = document.createElement('div');
+            pageDiv.className = 'page';
+            pageDiv.appendChild(canvas);
+            flipbook.appendChild(pageDiv);
+
+            if (i === totalPages) {
+              $('#flipbook').turn({
+                width: 800,
+                height: 500,
+                autoCenter: true,
+                gradients: true,
+                elevation: 50
+              });
+            }
+          });
+        });
+      }
+    });
+  </script>
+</body>
+</html>
