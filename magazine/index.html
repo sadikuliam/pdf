@@ -1,86 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Maga Flipbook</title>
-  <style>
-    body {
-      background: #f4f4f4;
-      font-family: 'Segoe UI', sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-    #flipbook {
-      width: 900px;   /* বড় করা হয়েছে */
-      height: 600px;  /* বড় করা হয়েছে */
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-      border-radius: 8px;
-      background: white;
-    }
-    .page {
-      background: #fff;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 0;
-    }
-    canvas {
-      width: 100% !important;   /* পুরো পেজ ভিউ */
-      height: 100% !important;
-      display: block;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
+  
+  <!-- PDF.js (PDF রেন্ডার করার জন্য) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  </script>
+  
+  <!-- Page-Flip (ফ্লিপবুক ইফেক্টের জন্য) -->
+  <script src="https://cdn.jsdelivr.net/npm/page-flip/dist/js/page-flip.browser.js"></script>
 </head>
 <body>
-  <div id="flipbook"></div>
 
-  <!-- jQuery -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-  <!-- PDF.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-  <!-- Turn.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4/turn.min.js"></script>
+  <div class="loading" id="loading">লোড হচ্ছে... দয়া করে অপেক্ষা করুন</div>
 
-  <script>
-    const url = 'maga123.pdf'; // তোমার নতুন PDF ফাইল
+  <div class="flipbook-container">
+    <div id="book">
+      <!-- PDF পাতাগুলো এখানে লোড হবে -->
+    </div>
+  </div>
 
-    const flipbook = document.getElementById('flipbook');
-    pdfjsLib.getDocument(url).promise.then(pdf => {
-      const totalPages = pdf.numPages;
-      let loadedPages = 0;
+  <div class="controls">
+    <button id="prev">❮ আগের পাতা</button>
+    <span id="page-info">পাতা ১</span>
+    <button id="next">পরের পাতা ❯</button>
+  </div>
 
-      for (let i = 1; i <= totalPages; i++) {
-        pdf.getPage(i).then(page => {
-          const viewport = page.getViewport({ scale: 2 }); // বড় স্কেল
-          const canvas = document.createElement('canvas');
-          const context = canvas.getContext('2d');
-          canvas.height = viewport.height;
-          canvas.width = viewport.width;
-
-          page.render({ canvasContext: context, viewport: viewport }).promise.then(() => {
-            const pageDiv = document.createElement('div');
-            pageDiv.className = 'page';
-            pageDiv.appendChild(canvas);
-            flipbook.appendChild(pageDiv);
-
-            loadedPages++;
-            if (loadedPages === totalPages) {
-              $('#flipbook').turn({
-                width: 900,
-                height: 600,
-                autoCenter: true,
-                gradients: true,
-                elevation: 50,
-                display: 'double' // ডাবল পেজ ভিউ
-              });
-            }
-          });
-        });
-      }
-    });
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
