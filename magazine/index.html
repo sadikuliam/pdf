@@ -1,35 +1,56 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Maga Flipbook</title>
-  <link rel="stylesheet" href="style.css" />
-  
-  <!-- PDF.js (PDF রেন্ডার করার জন্য) -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Maga Magazine Flipbook</title>
+
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap">
+
+  <link rel="stylesheet" href="style.css">
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
   </script>
-  
-  <!-- Page-Flip (ফ্লিপবুক ইফেক্টের জন্য) -->
-  <script src="https://cdn.jsdelivr.net/npm/page-flip/dist/js/page-flip.browser.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
 </head>
+
 <body>
-
-  <div class="loading" id="loading">লোড হচ্ছে... দয়া করে অপেক্ষা করুন</div>
-
-  <div class="flipbook-container">
-    <div id="book">
-      <!-- PDF পাতাগুলো এখানে লোড হবে -->
+  <header class="topbar">
+    <div>
+      <h1>Maga Magazine</h1>
+      <p>ডিজিটাল ফ্লিপবুক</p>
     </div>
-  </div>
 
-  <div class="controls">
-    <button id="prev">❮ আগের পাতা</button>
-    <span id="page-info">পাতা ১</span>
-    <button id="next">পরের পাতা ❯</button>
-  </div>
+    <button id="fullscreenBtn" class="icon-btn" title="পূর্ণ পর্দা">
+      ⛶
+    </button>
+  </header>
+
+  <main>
+    <div id="loading" class="loading">
+      PDF লোড হচ্ছে...
+    </div>
+
+    <div id="errorBox" class="error" hidden></div>
+
+    <div class="book-area">
+      <div id="book"></div>
+    </div>
+
+    <div class="controls">
+      <button id="prevBtn">❮ আগের পাতা</button>
+      <span id="pageInfo">পাতা ০ / ০</span>
+      <button id="nextBtn">পরের পাতা ❯</button>
+    </div>
+
+    <p class="hint">কীবোর্ডের ← → বোতাম অথবা মাউস/টাচ ব্যবহার করুন</p>
+  </main>
 
   <script src="script.js"></script>
 </body>
