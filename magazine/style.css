@@ -1,107 +1,179 @@
+:root {
+  --bg-dark: #07111f;
+  --bg-blue: #102c4c;
+  --accent: #f5b942;
+  --text: #ffffff;
+}
+
 * {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
 }
 
 body {
-  font-family: 'Hind Siliguri', 'Segoe UI', sans-serif;
-  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  margin: 0;
   min-height: 100vh;
+  color: var(--text);
+  font-family: "Hind Siliguri", sans-serif;
+  background:
+    radial-gradient(circle at top left, #1d527e 0, transparent 35%),
+    linear-gradient(135deg, var(--bg-dark), var(--bg-blue));
+  overflow-x: hidden;
+}
+
+.topbar {
+  width: 100%;
+  padding: 18px 5%;
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(3, 12, 25, 0.6);
+  backdrop-filter: blur(12px);
+}
+
+.topbar h1 {
+  margin: 0;
+  font-size: clamp(22px, 4vw, 34px);
+}
+
+.topbar p {
+  margin: 2px 0 0;
+  color: #b9c9d8;
+  font-size: 15px;
+}
+
+.icon-btn {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  color: white;
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 25px;
+  cursor: pointer;
+}
+
+main {
+  width: min(1200px, 96%);
+  margin: auto;
+  padding: 28px 0;
+  text-align: center;
+}
+
+.loading,
+.error {
+  width: min(650px, 92%);
+  margin: 10px auto 24px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  background: rgba(245, 185, 66, 0.95);
+  color: #161616;
+  font-weight: 600;
+}
+
+.error {
+  background: #ffd6d6;
+  color: #8c1010;
+  text-align: left;
+  line-height: 1.7;
+}
+
+.book-area {
+  min-height: 70vh;
+  display: flex;
   justify-content: center;
-  color: #fff;
-  overflow: hidden;
+  align-items: center;
+  padding: 10px;
 }
 
-/* লোডিং মেসেজ */
-.loading {
-  position: fixed;
-  top: 20px;
-  background: rgba(255, 152, 0, 0.9);
-  color: #000;
-  padding: 10px 20px;
-  border-radius: 5px;
-  font-weight: bold;
-  z-index: 1000;
-  display: none;
-}
-
-.flipbook-container {
-  width: 90%;
+#book {
+  width: 100%;
   max-width: 1000px;
-  height: 600px;
+  min-height: 520px;
+}
+
+.pdf-page {
+  background: #ffffff;
   display: flex;
   justify-content: center;
   align-items: center;
-}
-
-.page {
-  background-color: white;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
   overflow: hidden;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
 }
 
-.page-content {
+.pdf-page canvas {
+  display: block;
   width: 100%;
   height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.page-content canvas {
-  max-width: 100%;
-  max-height: 100%;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  object-fit: contain;
 }
 
 .controls {
   display: flex;
-  gap: 15px;
+  justify-content: center;
   align-items: center;
-  margin-top: 20px;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 18px;
 }
 
-button {
-  padding: 12px 24px;
+.controls button {
+  border: 0;
+  padding: 12px 22px;
+  border-radius: 9px;
+  color: #111;
+  background: var(--accent);
+  font-family: inherit;
   font-size: 16px;
-  background: #ff9800;
-  color: #000;
-  border: none;
-  border-radius: 8px;
+  font-weight: 700;
   cursor: pointer;
-  font-weight: bold;
-  transition: 0.3s;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+  transition: 0.2s ease;
 }
 
-button:hover {
-  background: #ffb74d;
+.controls button:hover:not(:disabled) {
   transform: translateY(-2px);
+  background: #ffd477;
 }
 
-button:disabled {
-  background: #ccc;
+.controls button:disabled {
+  opacity: 0.45;
   cursor: not-allowed;
-  transform: none;
 }
 
-#page-info {
-  font-weight: bold;
-  min-width: 80px;
-  text-align: center;
-  font-size: 18px;
+#pageInfo {
+  min-width: 120px;
+  font-size: 17px;
+  font-weight: 600;
 }
 
-@media (max-width: 768px) {
-  .flipbook-container {
-    height: 400px;
+.hint {
+  margin-top: 16px;
+  color: #b9c9d8;
+  font-size: 14px;
+}
+
+code {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+@media (max-width: 700px) {
+  main {
+    padding-top: 15px;
   }
-  button {
-    padding: 8px 16px;
+
+  .book-area {
+    min-height: 60vh;
+    padding: 0;
+  }
+
+  #book {
+    min-height: 430px;
+  }
+
+  .controls button {
+    padding: 9px 14px;
     font-size: 14px;
   }
 }
