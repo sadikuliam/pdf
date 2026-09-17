@@ -1,57 +1,458 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Flipbook Viewer</title>
 
-  <title>Maga Magazine Flipbook</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/page-flip/2.0.7/js/page-flip.browser.js"></script>
 
-  <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --bg-top:#0f1115;
+    --bg-bottom:#1a1d24;
+    --panel:#1c1f27;
+    --panel-border:#2c313c;
+    --accent:#c9a24b;
+    --accent-hover:#e0ba63;
+    --text:#eef0f3;
+    --text-dim:#9aa0ab;
+    --shadow: 0 30px 80px rgba(0,0,0,.55);
+    --radius:10px;
+  }
 
-  <link rel="stylesheet" href="style.css">
+  *{box-sizing:border-box;}
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script>
-    pdfjsLib.GlobalWorkerOptions.workerSrc =
-      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-  </script>
+  html,body{
+    margin:0;
+    height:100%;
+    background:radial-gradient(ellipse at top, var(--bg-bottom), var(--bg-top) 70%);
+    font-family:"Georgia","Times New Roman",serif;
+    color:var(--text);
+    overflow:hidden;
+  }
 
-  <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
+  .app{
+    display:flex;
+    flex-direction:column;
+    height:100%;
+    width:100%;
+  }
+
+  /* Top bar */
+  header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 28px;
+    background:linear-gradient(180deg, rgba(28,31,39,.95), rgba(28,31,39,.75));
+    border-bottom:1px solid var(--panel-border);
+    backdrop-filter:blur(6px);
+    z-index:10;
+  }
+
+  header h1{
+    font-size:18px;
+    font-weight:400;
+    letter-spacing:.5px;
+    margin:0;
+    color:var(--text);
+  }
+
+  header h1 span{
+    color:var(--accent);
+    font-style:italic;
+  }
+
+  .page-indicator{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:13px;
+    color:var(--text-dim);
+    letter-spacing:.5px;
+  }
+
+  /* Stage */
+  .stage{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    padding:20px;
+    min-height:0;
+  }
+
+  #book-container{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    filter:drop-shadow(var(--shadow));
+  }
+
+  .page{
+    background:#fdfcf8;
+    overflow:hidden;
+  }
+
+  .page canvas{
+    width:100%;
+    height:100%;
+    display:block;
+  }
+
+  .page-loading{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    height:100%;
+    width:100%;
+    background:#fdfcf8;
+    color:#b9b3a5;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:12px;
+    letter-spacing:.5px;
+  }
+
+  /* Controls */
+  .controls{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:18px;
+    padding:16px 20px 22px;
+    background:linear-gradient(0deg, rgba(28,31,39,.95), rgba(28,31,39,.6));
+    border-top:1px solid var(--panel-border);
+    font-family:"Helvetica Neue",Arial,sans-serif;
+  }
+
+  .btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    color:var(--text);
+    cursor:pointer;
+    transition:background .2s, border-color .2s, transform .15s;
+    font-size:16px;
+    user-select:none;
+  }
+
+  .btn:hover{
+    background:#242832;
+    border-color:var(--accent);
+    color:var(--accent-hover);
+  }
+
+  .btn:active{ transform:scale(.92); }
+
+  .btn.disabled{
+    opacity:.35;
+    pointer-events:none;
+  }
+
+  .zoom-group, .nav-group{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+
+  .divider{
+    width:1px;
+    height:26px;
+    background:var(--panel-border);
+  }
+
+  input[type="range"]{
+    width:120px;
+    accent-color:var(--accent);
+  }
+
+  .hint{
+    position:absolute;
+    bottom:90px;
+    left:50%;
+    transform:translateX(-50%);
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    font-size:12px;
+    color:var(--text-dim);
+    letter-spacing:.4px;
+    opacity:.8;
+    pointer-events:none;
+    transition:opacity .6s;
+  }
+
+  .loading-screen{
+    position:fixed;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    background:var(--bg-top);
+    z-index:100;
+    gap:18px;
+  }
+
+  .loading-screen.hidden{ display:none; }
+
+  .spinner{
+    width:44px;
+    height:44px;
+    border-radius:50%;
+    border:3px solid var(--panel-border);
+    border-top-color:var(--accent);
+    animation:spin 1s linear infinite;
+  }
+
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  .loading-screen p{
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    color:var(--text-dim);
+    font-size:13px;
+    letter-spacing:.5px;
+  }
+
+  .error-box{
+    max-width:420px;
+    margin:auto;
+    text-align:center;
+    font-family:"Helvetica Neue",Arial,sans-serif;
+    color:var(--text-dim);
+    font-size:14px;
+    line-height:1.6;
+    padding:24px;
+  }
+
+  .error-box code{
+    background:var(--panel);
+    padding:2px 6px;
+    border-radius:4px;
+    color:var(--accent);
+  }
+
+  @media (max-width: 640px){
+    header{ padding:12px 16px; }
+    header h1{ font-size:15px; }
+    .controls{ gap:10px; flex-wrap:wrap; }
+    .zoom-group{ display:none; }
+  }
+</style>
 </head>
-
 <body>
-  <header class="topbar">
-    <div>
-      <h1>Maga Magazine</h1>
-      <p>ডিজিটাল ফ্লিপবুক</p>
-    </div>
 
-    <button id="fullscreenBtn" class="icon-btn" title="পূর্ণ পর্দা">
-      ⛶
-    </button>
+<div class="app">
+  <header>
+    <h1>Document <span>Flipbook</span></h1>
+    <div class="page-indicator" id="pageIndicator">— / —</div>
   </header>
 
-  <main>
-    <div id="loading" class="loading">
-      PDF লোড হচ্ছে...
+  <div class="stage">
+    <div id="book-container"></div>
+    <div class="hint" id="hint">Click the page edge or use the arrows to turn pages</div>
+  </div>
+
+  <div class="controls">
+    <div class="nav-group">
+      <div class="btn" id="firstBtn" title="First page">⏮</div>
+      <div class="btn" id="prevBtn" title="Previous page">◀</div>
+      <div class="btn" id="nextBtn" title="Next page">▶</div>
+      <div class="btn" id="lastBtn" title="Last page">⏭</div>
     </div>
-
-    <div id="errorBox" class="error" hidden></div>
-
-    <div class="book-area">
-      <div id="book"></div>
+    <div class="divider"></div>
+    <div class="zoom-group">
+      <div class="btn" id="zoomOutBtn" title="Zoom out">−</div>
+      <input type="range" id="zoomSlider" min="70" max="160" value="100" />
+      <div class="btn" id="zoomInBtn" title="Zoom in">+</div>
     </div>
+    <div class="divider"></div>
+    <div class="btn" id="fullscreenBtn" title="Fullscreen">⛶</div>
+  </div>
+</div>
 
-    <div class="controls">
-      <button id="prevBtn">❮ আগের পাতা</button>
-      <span id="pageInfo">পাতা ০ / ০</span>
-      <button id="nextBtn">পরের পাতা ❯</button>
-    </div>
+<div class="loading-screen" id="loadingScreen">
+  <div class="spinner"></div>
+  <p id="loadingText">LOADING DOCUMENT…</p>
+</div>
 
-    <p class="hint">কীবোর্ডের ← → বোতাম অথবা মাউস/টাচ ব্যবহার করুন</p>
-  </main>
+<script>
+/* ============================================================
+   CONFIGURATION
+   Place your PDF file in the same folder as this HTML file.
+   ============================================================ */
+const PDF_FILE = "maga.pdf";
+const RENDER_SCALE = 2; // higher = sharper pages, larger file size in memory
 
-  <script src="script.js"></script>
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+
+const loadingScreen = document.getElementById("loadingScreen");
+const loadingText   = document.getElementById("loadingText");
+const bookContainer  = document.getElementById("book-container");
+const pageIndicator  = document.getElementById("pageIndicator");
+const hint           = document.getElementById("hint");
+
+let pageFlip = null;
+let baseWidth = 500;
+let baseHeight = 700;
+let zoomFactor = 1;
+
+function computeBookSize() {
+  const stageW = window.innerWidth - 60;
+  const stageH = window.innerHeight - 190;
+  const aspect = baseWidth / baseHeight;
+
+  let h = stageH;
+  let w = h * aspect * 2; // two pages side by side
+
+  if (w > stageW) {
+    w = stageW;
+    h = w / (aspect * 2);
+  }
+
+  return {
+    width: Math.max(260, (w / 2) * zoomFactor),
+    height: Math.max(360, h * zoomFactor)
+  };
+}
+
+async function renderPdfToPages(url) {
+  const pdf = await pdfjsLib.getDocument(url).promise;
+  const numPages = pdf.numPages;
+  const pageEls = [];
+
+  const firstPage = await pdf.getPage(1);
+  const vp = firstPage.getViewport({ scale: 1 });
+  baseWidth = vp.width;
+  baseHeight = vp.height;
+
+  for (let i = 1; i <= numPages; i++) {
+    loadingText.textContent = `RENDERING PAGE ${i} OF ${numPages}…`;
+    const page = await pdf.getPage(i);
+    const viewport = page.getViewport({ scale: RENDER_SCALE });
+
+    const canvas = document.createElement("canvas");
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    const ctx = canvas.getContext("2d");
+
+    await page.render({ canvasContext: ctx, viewport }).promise;
+
+    const pageDiv = document.createElement("div");
+    pageDiv.className = "page";
+    pageDiv.appendChild(canvas);
+    pageEls.push(pageDiv);
+  }
+
+  return pageEls;
+}
+
+function initFlipbook(pageEls) {
+  const size = computeBookSize();
+
+  pageFlip = new St.PageFlip(bookContainer, {
+    width: size.width,
+    height: size.height,
+    size: "stretch",
+    minWidth: 220,
+    maxWidth: 1400,
+    minHeight: 300,
+    maxHeight: 1800,
+    maxShadowOpacity: 0.5,
+    showCover: false,
+    mobileScrollSupport: true,
+    useMouseEvents: true,
+    flippingTime: 700,
+    usePortrait: window.innerWidth < 760
+  });
+
+  pageFlip.loadFromHTML(pageEls);
+
+  pageFlip.on("flip", (e) => updateIndicator(e.data));
+  updateIndicator(0);
+
+  window.addEventListener("resize", () => {
+    const s = computeBookSize();
+    pageFlip.update();
+  });
+}
+
+function updateIndicator(index) {
+  const total = pageFlip.getPageCount();
+  const current = Math.min(index + 1, total);
+  pageIndicator.textContent = `${current} / ${total}`;
+  document.getElementById("firstBtn").classList.toggle("disabled", index === 0);
+  document.getElementById("prevBtn").classList.toggle("disabled", index === 0);
+  document.getElementById("nextBtn").classList.toggle("disabled", index >= total - 1);
+  document.getElementById("lastBtn").classList.toggle("disabled", index >= total - 1);
+}
+
+function bindControls() {
+  document.getElementById("firstBtn").addEventListener("click", () => pageFlip.flip(0));
+  document.getElementById("prevBtn").addEventListener("click", () => pageFlip.flipPrev());
+  document.getElementById("nextBtn").addEventListener("click", () => pageFlip.flipNext());
+  document.getElementById("lastBtn").addEventListener("click", () =>
+    pageFlip.flip(pageFlip.getPageCount() - 1)
+  );
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight") pageFlip.flipNext();
+    if (e.key === "ArrowLeft") pageFlip.flipPrev();
+  });
+
+  const zoomSlider = document.getElementById("zoomSlider");
+  const applyZoom = (val) => {
+    zoomFactor = val / 100;
+    const size = computeBookSize();
+    bookContainer.style.transform = `scale(1)`;
+    pageFlip.update();
+  };
+
+  zoomSlider.addEventListener("input", (e) => applyZoom(e.target.value));
+  document.getElementById("zoomInBtn").addEventListener("click", () => {
+    zoomSlider.value = Math.min(160, +zoomSlider.value + 10);
+    applyZoom(zoomSlider.value);
+  });
+  document.getElementById("zoomOutBtn").addEventListener("click", () => {
+    zoomSlider.value = Math.max(70, +zoomSlider.value - 10);
+    applyZoom(zoomSlider.value);
+  });
+
+  document.getElementById("fullscreenBtn").addEventListener("click", () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen();
+    }
+  });
+
+  setTimeout(() => { hint.style.opacity = "0"; }, 5000);
+}
+
+async function start() {
+  try {
+    const pageEls = await renderPdfToPages(PDF_FILE);
+    initFlipbook(pageEls);
+    bindControls();
+    loadingScreen.classList.add("hidden");
+  } catch (err) {
+    console.error(err);
+    loadingScreen.innerHTML = `
+      <div class="error-box">
+        Could not load <code>${PDF_FILE}</code>.<br/><br/>
+        Make sure the file is uploaded to the same folder as this page
+        in your GitHub repository, and that the filename matches exactly
+        (case-sensitive).
+      </div>`;
+  }
+}
+
+start();
+</script>
 </body>
 </html>
