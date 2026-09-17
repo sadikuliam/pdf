@@ -14,11 +14,10 @@
       margin: 0;
     }
     #flipbook {
-      width: 800px;
-      height: 500px;
+      width: 900px;   /* বড় করা হয়েছে */
+      height: 600px;  /* বড় করা হয়েছে */
       box-shadow: 0 4px 20px rgba(0,0,0,0.2);
       border-radius: 8px;
-      overflow: hidden;
       background: white;
     }
     .page {
@@ -26,19 +25,19 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 18px;
-      padding: 20px;
+      padding: 0;
     }
     canvas {
-      max-width: 100%;
-      height: auto;
+      width: 100% !important;   /* পুরো পেজ ভিউ */
+      height: 100% !important;
+      display: block;
     }
   </style>
 </head>
 <body>
   <div id="flipbook"></div>
 
-  <!-- jQuery (Turn.js dependency) -->
+  <!-- jQuery -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <!-- PDF.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
@@ -46,8 +45,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4/turn.min.js"></script>
 
   <script>
-    // Updated PDF file name
-    const url = 'maga123.pdf'; // Make sure maga123.pdf is in your repo root
+    const url = 'maga123.pdf'; // তোমার নতুন PDF ফাইল
 
     const flipbook = document.getElementById('flipbook');
     pdfjsLib.getDocument(url).promise.then(pdf => {
@@ -56,7 +54,7 @@
 
       for (let i = 1; i <= totalPages; i++) {
         pdf.getPage(i).then(page => {
-          const viewport = page.getViewport({ scale: 1.2 });
+          const viewport = page.getViewport({ scale: 2 }); // বড় স্কেল
           const canvas = document.createElement('canvas');
           const context = canvas.getContext('2d');
           canvas.height = viewport.height;
@@ -71,11 +69,12 @@
             loadedPages++;
             if (loadedPages === totalPages) {
               $('#flipbook').turn({
-                width: 800,
-                height: 500,
+                width: 900,
+                height: 600,
                 autoCenter: true,
                 gradients: true,
-                elevation: 50
+                elevation: 50,
+                display: 'double' // ডাবল পেজ ভিউ
               });
             }
           });
