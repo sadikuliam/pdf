@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07111f">
+<!-- PWA Meta Tags -->
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="description" content="Bangla Live FM o Radio — Akashvani, Vividh Bharati, West Bengal, and Bangladesh radio streams.">
+<title>Bangla Live FM & Radio</title>
+
+<style>
+:root{--bg:#07111f;--panel:#0d1b2d;--panel2:#10233a;--line:#1e3550;--text:#f8fafc;--muted:#91a4bb;--accent:#55d6ff;--good:#20e3b2;--danger:#fb7185}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;min-height:100vh;background:linear-gradient(180deg,var(--bg),#0a1628 60%,#07111f);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Bengali",Arial,sans-serif}
+.page{width:min(960px,100%);margin:auto;padding:18px 14px 32px}header{padding:18px 4px 20px;text-align:center}
+h1{margin:0;font-size:clamp(1.55rem,5vw,2.25rem);line-height:1.2;letter-spacing:-.02em}.sub{margin:8px auto 0;color:var(--muted);font-size:.9rem;max-width:720px}
+.container{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.section-title{grid-column:1/-1;margin:8px 2px 0;padding:6px 2px 8px;border-bottom:1px solid var(--line);color:var(--accent);font-size:.98rem;font-weight:700}
+.radio-card{position:relative;background:linear-gradient(145deg,var(--panel),#0b1728);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:0 8px 22px rgba(0,0,0,.18)}.radio-card.playing{border-color:rgba(32,227,178,.5);box-shadow:0 8px 26px rgba(32,227,178,.08)}
+.live-badge{position:absolute;top:11px;right:11px;font-size:.62rem;font-weight:800;letter-spacing:.06em;padding:3px 7px;border-radius:999px;color:#ff9baa;background:rgba(251,113,133,.1);border:1px solid rgba(251,113,133,.22)}
+
+/* Test Mode Badge CSS */
+.test-badge{position:absolute;top:11px;right:11px;font-size:.62rem;font-weight:800;letter-spacing:.06em;padding:3px 7px;border-radius:999px;color:#ffdd55;background:rgba(255, 221, 85, 0.1);border:1px solid rgba(255, 221, 85, 0.3)}
+
+.station-head{display:flex;align-items:center;gap:11px;padding-right:50px;min-width:0}.station-icon{width:46px;height:46px;display:grid;place-items:center;border-radius:13px;background:var(--panel2);font-size:1.35rem;flex:none}.station-info{min-width:0}
+.station-info h2{margin:0;font-size:1rem;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.station-info p{margin:4px 0 0;color:var(--accent);font-size:.72rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.player-row{display:flex;align-items:center;gap:10px;margin-top:14px;padding:8px;background:rgba(255,255,255,.035);border-radius:12px}.play-btn{width:42px;height:42px;border:0;border-radius:50%;background:var(--accent);color:#062033;display:grid;place-items:center;font-size:.95rem;font-weight:900;cursor:pointer;flex:none;-webkit-tap-highlight-color:transparent; transition: opacity 0.3s;}.play-btn:active{transform:scale(.97)}.play-btn:disabled{background:#555;cursor:not-allowed;opacity:0.5;}
+.play-icon,.pause-icon,.spin-icon{grid-area:1/1}.pause-icon,.spin-icon{display:none}.loading .play-icon,.loading .pause-icon{display:none}.loading .spin-icon{display:block;animation:spin .8s linear infinite}.playing .play-icon{display:none}.playing .pause-icon{display:block}@keyframes spin{to{transform:rotate(360deg)}}
+.status-wrap{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}.status-text{font-size:.75rem;color:#d7e2ee;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.official-link{font-size:.68rem;color:var(--accent);text-decoration:none;width:max-content}
+.volume{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:.8rem;flex:none}.vol-slider{width:64px;accent-color:var(--accent)}footer{margin-top:22px;padding-top:14px;border-top:1px solid var(--line);color:#627791;text-align:center;font-size:.72rem}
+
+/* ======== Floating Install Banner CSS ======== */
+.install-banner { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--panel2); border: 1px solid var(--accent); border-radius: 12px; padding: 12px 18px; box-shadow: 0 10px 25px rgba(0,0,0,0.6); z-index: 9999; display: none; animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1); width: max-content; max-width: 90vw; }
+@keyframes slideUp { from { bottom: -80px; opacity: 0; } to { bottom: 20px; opacity: 1; } }
+.install-content { display: flex; align-items: center; gap: 14px; }
+.install-text { color: var(--text); font-size: 0.95rem; font-weight: 600; }
+.install-btn { background: var(--accent); color: #062033; border: none; border-radius: 8px; padding: 8px 16px; font-weight: 700; cursor: pointer; }
+.close-install { background: none; border: none; color: var(--muted); font-size: 1.2rem; cursor: pointer; padding: 0; line-height: 1; }
+
+@media(max-width:700px){.container{grid-template-columns:1fr}.page{padding:12px 10px 26px}.radio-card{padding:13px}.volume{display:none}.player-row{margin-top:12px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.spin-icon{animation:none!important}}
+</style>
+</head>
+<body><main class="page"><header><h1>📻 Bangla Live FM & Radio</h1><p class="sub">**“With gratitude to Fazlur Rahaman Molla for the inspiration that helped turn my vision into reality.”**</p></header>
+<section class="container"><div class="section-title">🇮🇳 ভারত (পশ্চিমবঙ্গ)</div>
+
+  <!-- 1. geetanjali-->
+  <article class="radio-card" data-type="direct" data-src="https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio055/hlspbaudio05564kbps.m3u8" data-name="FM Rainbow Kolkata">
+<div class="live-badge">LIVE</div>
+<div class="station-head"><div class="station-icon">📻</div><div class="station-info"><h2>AIR Kolkata - Geetanjali</h2><p>Kolkata</p></div></div>
+<div class="player-row">
+    <button class="play-btn" aria-label="Play FM Rainbow Kolkata">
+        <span class="play-icon">▶</span>
+        <span class="pause-icon">Ⅱ</span>
+        <span class="spin-icon">⟳</span>
+    </button>
+    <div class="status-wrap"><span class="status-text">বন্ধ আছে</span></div>
+    <label class="volume">
+        <span>🔊</span>
+        <input type="range" class="vol-slider" min="0" max="1" step="0.05" value="1" aria-label="Volume">
+    </label>
+</div>
+</article>
+  
+<!-- 2. rainbow -->
+<article class="radio-card" data-type="direct" data-src="https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio058/hlspbaudio05864kbps.m3u8" data-name="FM Rainbow Kolkata">
+<div class="live-badge">LIVE</div>
+<div class="station-head"><div class="station-icon">🌈</div><div class="station-info"><h2>FM Rainbow Kolkata</h2><p>Kolkata, 107.0 MHz</p></div></div>
+<div class="player-row">
+    <button class="play-btn" aria-label="Play FM Rainbow Kolkata">
+        <span class="play-icon">▶</span>
+        <span class="pause-icon">Ⅱ</span>
+        <span class="spin-icon">⟳</span>
+    </button>
+    <div class="status-wrap"><span class="status-text">বন্ধ আছে</span></div>
+    <label class="volume">
+        <span>🔊</span>
+        <input type="range" class="vol-slider" min="0" max="1" step="0.05" value="1" aria-label="Volume">
+    </label>
+</div>
+</article>
+  
+<!-- 3. Asansol -->
+<article class="radio-card" data-type="direct" data-src="https://air.pc.cdn.bitgravity.com/air/live/pbaudio054/playlist.m3u8" data-name="Akashvani Asansol">
+<div class="live-badge">LIVE</div>
+<div class="station-head"><div class="station-icon">🎙️</div><div class="station-info"><h2>Akashvani Asansol</h2><p>Asansol, West Bengal</p></div></div>
+<div class="player-row">
+    <button class="play-btn" aria-label="Play Akashvani Asansol">
+        <span class="play-icon">▶</span>
+        <span class="pause-icon">Ⅱ</span>
+        <span class="spin-icon">⟳</span>
+    </button>
+    <div class="status-wrap"><span class="status-text">বন্ধ আছে</span></div>
+    <label class="volume">
+        <span>🔊</span>
+        <input type="range" class="vol-slider" min="0" max="1" step="0.05" value="1" aria-label="Volume">
+    </label>
+</div>
+</article>
+
+<!-- 4. Vividh Bharati -->
+<article class="radio-card"
+         data-type="direct"
+         data-src="https://air.pc.cdn.bitgravity.com/air/live/pbaudio001/playlist.m3u8"
+         data-name="Vividh Bharati">
+    <div class="live-badge">LIVE</div>
+    <div class="station-head">
+        <div class="station-icon">🎵</div>
+        <div class="station-info">
+            <h2>Vividh Bharati</h2>
+            <p>All India Radio</p>
+        </div>
+    </div>
+    <div class="player-row">
+        <button class="play-btn" aria-label="Play Vividh Bharati">
+            <span class="play-icon">▶</span>
+            <span class="pause-icon">Ⅱ</span>
+            <span class="spin-icon">⟳</span>
+        </button>
+        <div class="status-wrap">
+            <span class="status-text">বন্ধ আছে</span>
+        </div>
+        <label class="volume">
+            <span>🔊</span>
+            <input type="range" class="vol-slider" min="0" max="1" step="0.05" value="1" aria-label="Volume">
+        </label>
+    </div>
+</article>
+  
+<!-- 5. Maitree -->
+<article class="radio-card" data-type="direct" data-src="https://airhlspush.pc.cdn.bitgravity.com/httppush/hlspbaudio245/hlspbaudio24564kbps.m3u8" data-name="Akashvani Maitree">
+<div class="live-badge">LIVE</div>
+<div class="station-head"><div class="station-icon">📻</div><div class="station-info"><h2>Akashvani Maitree</h2><p>Kolkata</p></div></div>
+<div class="player-row">
+    <button class="play-btn" aria-label="Play Akashvani Maitree">
+        <span class="play-icon">▶</span>
+        <span class="pause-icon">Ⅱ</span>
+        <span class="spin-icon">⟳</span>
+    </button>
+    <div class="status-wrap"><span class="status-text">বন্ধ আছে</span></div>
+    <label class="volume">
+        <span>🔊</span>
+        <input type="range" class="vol-slider" min="0" max="1" step="0.05" value="1" aria-label="Volume">
+    </label>
+</div>
+</article>
+  
+<!-- bangladesh section -->
+<div class="section-title">🇧🇩 বাংলাদেশ</div>
+  
+ <!-- 6. dhaka -->
+<article class="radio-card" data-type="garden" data-id="k0P756nS" data-name="Bangladesh Betar Dhaka">
+<div class="live-badge">LIVE</div>
+<div class="station-head"><div class="station-icon">📻</div><div class="station-info"><h2>Bangladesh Betar</h2><p>Dhaka, Bangladesh</p></div></div>
+<div class="player-row">
+    <button class="play-btn" aria-label="Play Bangladesh Betar">
+        <span class="play-icon">▶</span>
+        <span class="pause-icon">Ⅱ</span>
+        <span class="spin-icon">⟳</span>
+    </button>
+    <div class="status-wrap"><span class="status-text">বন্ধ আছে</span></div>
+    <label class="volume">
+        <span>🔊</span>
+        <input type="range" class="vol-slider" min="0" max="1" step="0.05" value="1" aria-label="Volume">
+    </label>
+</div>
+</article>
+  
+<!-- 7. Khulna -->
+<article class="radio-card" data-type="garden" data-id="2MrE9uJ6" data-name="Khulna FM 88.8">
+<div class="live-badge">LIVE</div>
+<div class="station-head"><div class="station-icon">🎼</div><div class="station-info"><h2>Khulna FM 88.8</h2><p>Khulna, Bangladesh</p></div></div>
+<div class="player-row"><button class="play-btn" aria-label="Play Khulna FM 88.8"><span class="play-icon">▶</span><span class="pause-icon">Ⅱ</span><span class="spin-icon">⟳</span></button><div class="status-wrap"><span class="status-text">বন্ধ আছে</span></div><label class="volume"><span>🔊</span><input type="range" class="vol-slider" min="0" max="1" step="0.05" value="1" aria-label="Volume"></label></div>
+</article>
+
+<!-- 8. Radio Bhumi -->
+<article class="radio-card" data-type="garden" data-id="sz9L6JeK" data-name="Radio Bhumi 92.8 FM">
+<div class="live-badge">LIVE</div>
+<div class="station-head"><div class="station-icon">🌐</div><div class="station-info"><h2>Radio Bhumi 92.8 FM</h2><p>Dhaka, Bangladesh</p></div></div>
+<div class="player-row"><button class="play-btn" aria-label="Play Radio Bhumi 92.8 FM"><span class="play-icon">▶</span><span class="pause-icon">Ⅱ</span><span class="spin-icon">⟳</span></button><div class="status-wrap"><span class="status-text">বন্ধ আছে</span></div><label class="volume"><span>🔊</span><input type="range" class="vol-slider" min="0" max="1" step="0.05" value="1" aria-label="Volume"></label></div>
+</article>
+
+<!-- New Section for Local Voice -->
+<div class="section-title" style="margin-top: 30px; border-bottom-color: #ffdd55; color: #ffdd55;">🛠️ পরীক্ষামূলক সম্প্রচার</div>
+
+<!-- 9. Local Voice (Caster.fm Direct Stream) -->
+<article class="radio-card" data-type="direct" data-src="http://sapircast.caster.fm:10233/29jVJ" data-name="Local Voice">
+    <div class="test-badge">TEST MODE</div>
+    <div class="station-head">
+        <div class="station-icon" style="background: rgba(255, 221, 85, 0.1);">🎙️</div>
+        <div class="station-info">
+            <h2>Local Voice</h2>
+            <p>Experimental Stream, Basirhat</p>
+        </div>
+    </div>
+    <div class="player-row" style="background: rgba(255, 221, 85, 0.05);">
+        <button class="play-btn" aria-label="Play Local Voice" style="background: #ffdd55; color: #000;">
+            <span class="play-icon">▶</span>
+            <span class="pause-icon">Ⅱ</span>
+            <span class="spin-icon">⟳</span>
+        </button>
+        <div class="status-wrap"><span class="status-text" style="color: #ffdd55;">বন্ধ আছে</span></div>
+        <label class="volume">
+            <span>🔊</span>
+            <input type="range" class="vol-slider" min="0" max="1" step="0.05" value="1" aria-label="Volume">
+        </label>
+    </div>
+</article>
+
+</section>
+<footer> Bangla Live Radio • Stream loads only after Play is pressed</footer></main>
+
+<!-- ======== Floating Install Banner ======== -->
+<div id="installBanner" class="install-banner">
+    <div class="install-content">
+        <span class="install-text">অ্যাপটি ইন্সটল করুন!</span>
+        <button id="installBtnApp" class="install-btn">Install</button>
+        <button id="closeInstall" class="close-install">✖</button>
+    </div>
+</div>
+
+<!-- ============================================== -->
+<!-- HLS and Direct Audio Player Script             -->
+<!-- ============================================== -->
+<script>
+let active={audio:null,card:null,button:null,hls:null};let hlsLoader=null;
+function resetCard(card,statusText){if(!card)return;card.classList.remove('playing');const b=card.querySelector('.play-btn');if(b)b.classList.remove('loading');card.querySelector('.status-text').textContent=statusText||'বন্ধ আছে';}
+function stopActive(){if(active.hls){try{active.hls.destroy()}catch(e){}active.hls=null}if(active.audio){try{active.audio.pause();active.audio.removeAttribute('src');active.audio.load()}catch(e){}}resetCard(active.card);active={audio:null,card:null,button:null,hls:null}}
+async function loadHls(){if(window.Hls)return window.Hls;if(hlsLoader)return hlsLoader;hlsLoader=new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js';s.onload=()=>resolve(window.Hls);s.onerror=()=>reject(new Error('HLS loader failed'));document.head.appendChild(s)});return hlsLoader}
+function makeAudio(card){const a=new Audio();a.preload='none';a.volume=Number(card.querySelector('.vol-slider')?.value || 1);return a}
+async function playDirect(card,url){
+    const audio=makeAudio(card),btn=card.querySelector('.play-btn'),status=card.querySelector('.status-text');active={audio,card,button:btn,hls:null};btn.classList.add('loading');status.textContent='Stream load হচ্ছে...';
+    try{
+        if(!url) throw new Error('No stream URL provided');
+        if(/\.m3u8($|\?)/i.test(url)){const HlsClass=await loadHls();if(HlsClass&&HlsClass.isSupported()){const hls=new HlsClass({enableWorker:true,lowLatencyMode:false,maxBufferLength:12});active.hls=hls;hls.on(HlsClass.Events.ERROR,(evt,data)=>{if(data.fatal){status.textContent='Stream পাওয়া যাচ্ছে না';btn.classList.remove('loading')}});hls.loadSource(url);hls.attachMedia(audio);await new Promise(resolve=>{audio.addEventListener('canplay',resolve,{once:true});setTimeout(resolve,7000)})}else{audio.src=url}}else audio.src=url;await audio.play();card.classList.add('playing');btn.classList.remove('loading');status.textContent='লাইভ চলছে'}catch(err){console.error(err);status.textContent='Stream চালু করা যায়নি';stopActive()}
+}
+
+document.querySelectorAll('.radio-card').forEach(card=>{
+    const type=card.dataset.type,btn=card.querySelector('.play-btn'),status=card.querySelector('.status-text'),vol=card.querySelector('.vol-slider');
+    btn.addEventListener('click',async()=>{
+        if(active.card===card){
+            if(active.audio&&!active.audio.paused){active.audio.pause();card.classList.remove('playing');status.textContent='Pause করা আছে'}
+            else if(type==='direct'){await playDirect(card,card.dataset.src)}
+            else if(type==='garden'){await playDirect(card,'https://radio.garden/api/ara/content/listen/'+card.dataset.id+'/channel.mp3')}
+            else{window.open(card.dataset.url,'_blank','noopener');status.textContent='Official Akashvani player খুলে দেওয়া হয়েছে'}
+            return
+        }
+        stopActive();
+        if(type==='direct')await playDirect(card,card.dataset.src);
+        else if(type==='garden')await playDirect(card,'https://radio.garden/api/ara/content/listen/'+card.dataset.id+'/channel.mp3');
+        else{window.open(card.dataset.url,'_blank','noopener');status.textContent='Official Akashvani player খুলে দেওয়া হয়েছে'}
+    });
+    if(vol) vol.addEventListener('input',()=>{if(active.card===card&&active.audio)active.audio.volume=Number(vol.value)})
+});
+
+// ======== PWA Install Banner Logic ========
+let deferredPrompt;
+const installBanner = document.getElementById('installBanner');
+const installBtnApp = document.getElementById('installBtnApp');
+const closeInstall = document.getElementById('closeInstall');
+
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').then((registration) => {
+            registration.onupdatefound = () => {
+                const installingWorker = registration.installing;
+                installingWorker.onstatechange = () => {
+                    if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        window.location.reload(true);
+                    }
+                };
+            };
+        }).catch((err) => console.log('SW Reg Failed', err));
+    });
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) { window.location.reload(true); refreshing = true; }
+    });
+}
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault(); deferredPrompt = e; installBanner.style.display = 'block';
+});
+installBtnApp.addEventListener('click', async () => {
+    if (deferredPrompt) {
+        installBanner.style.display = 'none'; deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice; deferredPrompt = null;
+    }
+});
+closeInstall.addEventListener('click', () => { installBanner.style.display = 'none'; });
+</script>
+</body>
+</html>
