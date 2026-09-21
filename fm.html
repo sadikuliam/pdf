@@ -2,7 +2,7 @@
 <html lang="bn">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
     <meta name="theme-color" content="#23a6d5">
     <title>Local Voice - Persistent Live Stream</title>
 
@@ -158,7 +158,7 @@
     <!-- Receiver Media Stream Audio Element -->
     <audio id="localAudioPlayer" autoplay playsinline style="display:none;"></audio>
 
-    <!-- OS Media Lock: Silent Audio Loop keeps Android/iOS audio engine unkilled -->
+    <!-- OS Audio Anchor: Silent loop keeps mobile audio channel awake -->
     <audio id="silentAnchorAudio" loop playsinline style="display:none;"></audio>
 
     <script type="module">
@@ -184,8 +184,7 @@
         let activeCall = null;
         let audioCtx = null;
         let wakeLock = null;
-        let lastBytesReceived = 0;
-        let silentStallCount = 0;
+        let worker = null;
 
         const liveBadge = document.getElementById('localLiveBadge');
         const statusText = document.getElementById('localStatusText');
@@ -196,36 +195,39 @@
         const volSlider = document.getElementById('localVolSlider');
         const card = document.getElementById('localVoiceCard');
 
-        // Silent WAV Data URI to anchor OS audio service
         silentAnchor.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
 
-        // ==========================================
-        // 1. WEB WORKER (Prevents Background Freeze)
-        // ==========================================
-        const workerBlob = new Blob([`
-            let interval = null;
+        // Web Worker to prevent background throttling / timer freezing
+        const workerCode = `
+            let timer = null;
             self.onmessage = function(e) {
-                if (e.data === 'START') {
-                    if (interval) clearInterval(interval);
-                    interval = setInterval(() => { self.postMessage('TICK'); }, 3000);
-                } else if (e.data === 'STOP') {
-                    if (interval) clearInterval(interval);
-                    interval = null;
+                if(e.data === 'START') {
+                    if(timer) clearInterval(timer);
+                    timer = setInterval(() => { self.postMessage('TICK'); }, 2000);
+                } else if(e.data === 'STOP') {
+                    if(timer) clearInterval(timer);
+                    timer = null;
                 }
             };
-        `], { type: 'application/javascript' });
-        const backgroundWorker = new Worker(URL.createObjectURL(workerBlob));
+        `;
+        const blob = new Blob([workerCode], { type: 'javascript' });
+        worker = new Worker(URL.createObjectURL(blob));
 
-        backgroundWorker.onmessage = (e) => {
-            if (e.data === 'TICK' && isLiveNow && card.classList.contains('playing')) {
-                performStreamHealthCheck();
+        worker.onmessage = function() {
+            if (isLiveNow && card.classList.contains('playing')) {
+                if (audioPlayer.paused && audioPlayer.srcObject) {
+                    audioPlayer.play().catch(() => {});
+                }
+                if (silentAnchor.paused) {
+                    silentAnchor.play().catch(() => {});
+                }
+                if (audioCtx && audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
             }
         };
 
-        // ==========================================
-        // 2. WAKE LOCK & VISIBILITY CONTROLLER
-        // ==========================================
-        async function acquireWakeLock() {
+        async function requestWakeLock() {
             try {
                 if ('wakeLock' in navigator) {
                     wakeLock = await navigator.wakeLock.request('screen');
@@ -235,18 +237,14 @@
 
         document.addEventListener("visibilitychange", () => {
             if (document.visibilityState === "visible") {
-                acquireWakeLock();
+                requestWakeLock();
                 if (card.classList.contains('playing')) {
-                    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
                     if (audioPlayer.paused) audioPlayer.play().catch(() => {});
                     if (silentAnchor.paused) silentAnchor.play().catch(() => {});
                 }
             }
         });
 
-        // ==========================================
-        // 3. FIREBASE BROADCAST STATUS LISTENER
-        // ==========================================
         onValue(statusRef, (snapshot) => {
             const data = snapshot.val();
             if (data && data.isLive) {
@@ -281,9 +279,6 @@
             }
         });
 
-        // ==========================================
-        // 4. AUDIO START / STOP CONTROLS
-        // ==========================================
         playBtn.addEventListener('click', async () => {
             if (audioPlayer.srcObject) {
                 stopAudio();
@@ -293,9 +288,7 @@
                     return;
                 }
                 
-                acquireWakeLock();
-                
-                // Engage OS Audio Focus with silent track
+                requestWakeLock();
                 silentAnchor.play().catch(() => {});
                 
                 btnIcon.innerText = "⏳";
@@ -309,7 +302,6 @@
         function startListening() {
             if (peer) { peer.destroy(); peer = null; }
 
-            // Configured with persistent STUN & aggressive ping
             peer = new Peer(null, {
                 debug: 1,
                 config: {
@@ -327,19 +319,17 @@
                     audioPlayer.srcObject = remoteStream;
                     card.classList.add('playing');
                     
-                    // Hardware Audio Pipeline
-                    initHardwareAudioNode(remoteStream);
+                    initAudioContextPipeline(remoteStream);
                     
                     audioPlayer.play().then(() => {
                         setupMediaSession();
-                    }).catch(err => console.log("Autoplay check:", err));
+                    }).catch(err => console.log(err));
                     
                     btnIcon.innerText = "Ⅱ";
                     btnIcon.style.marginLeft = "0px";
                     statusText.innerText = "লাইভ শুনছেন...";
                     
-                    // Start un-throttled Web Worker watchdog
-                    backgroundWorker.postMessage('START');
+                    worker.postMessage('START');
                 });
 
                 activeCall.on('close', () => triggerReconnect());
@@ -355,64 +345,18 @@
             });
         }
 
-        // Web Audio Routing directly into AudioContext destination
-        function initHardwareAudioNode(stream) {
+        function initAudioContextPipeline(stream) {
             try {
-                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-                if (!audioCtx) audioCtx = new AudioContextClass();
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!audioCtx) audioCtx = new AudioCtx();
                 if (audioCtx.state === 'suspended') audioCtx.resume();
-                
+
                 const source = audioCtx.createMediaStreamSource(stream);
-                const gain = audioCtx.createGain();
-                gain.gain.value = 1.0;
-                source.connect(gain);
-                gain.connect(audioCtx.destination);
-            } catch (e) {
-                console.log("AudioContext routing fallback to HTML5 Audio tag");
-            }
-        }
-
-        // Worker-driven Health Check: Reconnects if bytes stop flowing
-        async function performStreamHealthCheck() {
-            if (audioCtx && audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-            if (audioPlayer.paused && audioPlayer.srcObject) {
-                audioPlayer.play().catch(() => {});
-            }
-            if (silentAnchor.paused) {
-                silentAnchor.play().catch(() => {});
-            }
-
-            if (activeCall && activeCall.peerConnection) {
-                const state = activeCall.peerConnection.iceConnectionState;
-                if (state === 'disconnected' || state === 'failed' || state === 'closed') {
-                    triggerReconnect();
-                    return;
-                }
-
-                try {
-                    const stats = await activeCall.peerConnection.getStats();
-                    let currentBytes = 0;
-                    stats.forEach(report => {
-                        if (report.type === 'inbound-rtp' && report.kind === 'audio') {
-                            currentBytes = report.bytesReceived;
-                        }
-                    });
-
-                    if (currentBytes > 0) {
-                        if (currentBytes === lastBytesReceived) {
-                            silentStallCount++;
-                            if (silentStallCount >= 4) { // 12 seconds stalled
-                                triggerReconnect();
-                            }
-                        } else {
-                            silentStallCount = 0;
-                            lastBytesReceived = currentBytes;
-                        }
-                    }
-                } catch (e) {}
-            }
+                const gainNode = audioCtx.createGain();
+                gainNode.gain.value = 1.0;
+                source.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+            } catch(e) {}
         }
 
         function triggerReconnect() {
@@ -420,15 +364,13 @@
                 stopAudio();
                 return;
             }
-            console.warn("Audio connection stalled in background. Re-establishing WebRTC...");
             stopAudio(false);
             statusText.innerText = "পুনরায় কানেক্ট হচ্ছে...";
             setTimeout(() => { startListening(); }, 1500);
         }
 
         function stopAudio(fullReset = true) {
-            backgroundWorker.postMessage('STOP');
-            
+            worker.postMessage('STOP');
             if (audioPlayer.srcObject) audioPlayer.srcObject = null;
             if (activeCall) { activeCall.close(); activeCall = null; }
             if (peer) { peer.destroy(); peer = null; }
@@ -456,7 +398,7 @@
                 navigator.mediaSession.metadata = new MediaMetadata({
                     title: 'Local Voice (Live)',
                     artist: 'Basirhat Live FM',
-                    album: 'Continuous Live Stream',
+                    album: 'Persistent Stream',
                     artwork: [
                         { src: 'https://cdn-icons-png.flaticon.com/512/1256/1256627.png', sizes: '512x512', type: 'image/png' }
                     ]
@@ -477,8 +419,8 @@
         });
 
         function getSilenceStream() {
-            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-            const ctx = new AudioContextClass();
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            const ctx = new AudioCtx();
             const osc = ctx.createOscillator();
             const dst = ctx.createMediaStreamDestination();
             osc.start();
