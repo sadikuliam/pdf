@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#23a6d5">
     <title>Local Voice - Live Stream</title>
 
-    <!-- PeerJS for Local Voice (Reliable CDN) -->
+    <!-- PeerJS for Local Voice -->
     <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
 
     <style>
@@ -24,7 +24,6 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            /* Animated Colorful Background */
             background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
             background-size: 400% 400%;
             animation: gradientBG 15s ease infinite;
@@ -38,7 +37,6 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* Glassmorphism Card */
         .glass-player {
             position: relative;
             width: 100%;
@@ -59,7 +57,6 @@
             border: 1px solid rgba(32, 227, 178, 0.5);
         }
 
-        /* Badges */
         .badge {
             position: absolute;
             top: 20px;
@@ -89,25 +86,10 @@
             100% { box-shadow: 0 0 0 0 rgba(32, 227, 178, 0); }
         }
 
-        .station-icon {
-            font-size: 3.5rem;
-            margin-bottom: 10px;
-            text-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        }
+        .station-icon { font-size: 3.5rem; margin-bottom: 10px; text-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        h2 { font-size: 1.6rem; font-weight: 700; margin-bottom: 5px; }
+        p { font-size: 0.95rem; color: rgba(255, 255, 255, 0.8); margin-bottom: 30px; }
 
-        h2 {
-            font-size: 1.6rem;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-
-        p {
-            font-size: 0.95rem;
-            color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 30px;
-        }
-
-        /* Large Play Button */
         .play-btn {
             width: 100px;
             height: 100px;
@@ -128,68 +110,27 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        .play-btn:hover:not(:disabled) {
-            background: rgba(255, 255, 255, 0.35);
-            transform: scale(1.05);
-        }
+        .play-btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.35); transform: scale(1.05); }
+        .play-btn:active:not(:disabled) { transform: scale(0.95); }
+        .play-btn:disabled { background: rgba(0, 0, 0, 0.2); color: rgba(255, 255, 255, 0.5); cursor: not-allowed; box-shadow: none; }
 
-        .play-btn:active:not(:disabled) {
-            transform: scale(0.95);
-        }
+        .status-text { font-size: 1rem; font-weight: 600; margin-bottom: 25px; min-height: 24px; }
 
-        .play-btn:disabled {
-            background: rgba(0, 0, 0, 0.2);
-            color: rgba(255, 255, 255, 0.5);
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-
-        .status-text {
-            font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 25px;
-            min-height: 24px;
-        }
-
-        /* Volume Slider */
         .volume-control {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            background: rgba(0, 0, 0, 0.15);
-            padding: 12px 20px;
-            border-radius: 50px;
+            display: flex; align-items: center; justify-content: center; gap: 15px;
+            background: rgba(0, 0, 0, 0.15); padding: 12px 20px; border-radius: 50px;
         }
-
-        .volume-control span {
-            font-size: 1.2rem;
-        }
-
+        .volume-control span { font-size: 1.2rem; }
         input[type="range"] {
-            -webkit-appearance: none;
-            width: 150px;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 5px;
-            outline: none;
+            -webkit-appearance: none; width: 150px; height: 6px;
+            background: rgba(255, 255, 255, 0.3); border-radius: 5px; outline: none;
         }
-
         input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: #ffffff;
-            cursor: pointer;
-            box-shadow: 0 0 10px rgba(0,0,0,0.3);
-            transition: transform 0.1s;
+            -webkit-appearance: none; appearance: none; width: 18px; height: 18px;
+            border-radius: 50%; background: #ffffff; cursor: pointer;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3); transition: transform 0.1s;
         }
-
-        input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.2);
-        }
+        input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
     </style>
 </head>
 <body>
@@ -214,10 +155,9 @@
         </div>
     </div>
 
-    <!-- Hidden Audio Element for WebRTC -->
+    <!-- Hidden Audio Elements: Playsinline and Autoplay strictly enforced -->
     <audio id="localAudioPlayer" autoplay playsinline style="display:none;"></audio>
 
-    <!-- Firebase & WebRTC Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
@@ -241,7 +181,7 @@
         let activeCall = null;
         let audioCtx; 
         let connMonitor = null; 
-        let backgroundWatchdog = null;
+        let wakeLock = null;
 
         const liveBadge = document.getElementById('localLiveBadge');
         const statusText = document.getElementById('localStatusText');
@@ -250,6 +190,36 @@
         const audioPlayer = document.getElementById('localAudioPlayer');
         const volSlider = document.getElementById('localVolSlider');
         const card = document.getElementById('localVoiceCard');
+
+        // 1. WAKE LOCK API - Keeps screen and background process alive
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    wakeLock.addEventListener('release', () => {
+                        console.log('Wake Lock was released');
+                    });
+                }
+            } catch (err) {
+                console.error('Wake Lock error:', err);
+            }
+        }
+
+        // 2. VISIBILITY CHANGE - Auto reconnect if suspended in background
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible" && wakeLock === null) {
+                requestWakeLock();
+            }
+            if (document.visibilityState === "visible" && card.classList.contains('playing')) {
+                // If browser paused the audio, force resume
+                if (audioPlayer.paused) {
+                    audioPlayer.play().catch(() => triggerReconnect());
+                }
+                if (audioCtx && audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+            }
+        });
 
         onValue(statusRef, (snapshot) => {
             const data = snapshot.val();
@@ -294,6 +264,8 @@
                     return;
                 }
                 
+                requestWakeLock(); // Request wake lock on user interaction
+                
                 btnIcon.innerText = "⏳";
                 btnIcon.style.marginLeft = "0px";
                 statusText.innerText = "কানেক্ট হচ্ছে...";
@@ -303,7 +275,10 @@
 
         function startListening() {
             if (peer) { peer.destroy(); peer = null; }
-            peer = new Peer();
+            peer = new Peer(null, {
+                debug: 2,
+                pingInterval: 5000 // Ping interval ensures WebRTC stays active
+            });
             
             peer.on('open', () => {
                 activeCall = peer.call(currentBroadcasterId, getSilence());
@@ -321,8 +296,6 @@
                     btnIcon.innerText = "Ⅱ";
                     btnIcon.style.marginLeft = "0px";
                     statusText.innerText = "লাইভ শুনছেন...";
-                    
-                    startBackgroundWatchdog();
                 });
 
                 let lastBytesReceived = 0;
@@ -343,73 +316,71 @@
                                     currentBytes = report.bytesReceived;
                                 }
                             });
-                            if (currentBytes > 0) {
-                                if (currentBytes === lastBytesReceived) {
-                                    silentCount++;
-                                    if (silentCount >= 4) { triggerReconnect(); }
-                                } else {
-                                    silentCount = 0;
-                                    lastBytesReceived = currentBytes;
+                            
+                            // Only check silence if app is in foreground, to prevent false disconnects in background
+                            if (document.visibilityState === "visible") {
+                                if (currentBytes > 0) {
+                                    if (currentBytes === lastBytesReceived) {
+                                        silentCount++;
+                                        if (silentCount >= 5) { triggerReconnect(); }
+                                    } else {
+                                        silentCount = 0;
+                                        lastBytesReceived = currentBytes;
+                                    }
                                 }
                             }
                         } catch (e) { }
                     }
-                }, 3000);
+                }, 4000);
                 
                 activeCall.on('close', stopAudio);
                 activeCall.on('error', stopAudio);
             });
 
             peer.on('disconnected', () => {
-                if (peer && !peer.destroyed) peer.reconnect();
+                if (peer && !peer.destroyed && document.visibilityState === "visible") peer.reconnect();
             });
 
             peer.on('error', (err) => {
-                triggerReconnect();
+                if(card.classList.contains('playing')) triggerReconnect();
             });
         }
 
-        function startBackgroundWatchdog() {
-            if (backgroundWatchdog) clearInterval(backgroundWatchdog);
-            backgroundWatchdog = setInterval(() => {
-                if (card.classList.contains('playing') && isLiveNow) {
-                    if (audioCtx && audioCtx.state === 'suspended') {
-                        audioCtx.resume();
-                    }
-                    if (audioPlayer.paused && audioPlayer.srcObject) {
-                        audioPlayer.play().catch(e => {});
-                    }
-                }
-            }, 4000);
-        }
-
         function triggerReconnect() {
-            stopAudio();
             if (isLiveNow) {
+                console.log("Connection weak, reconnecting...");
+                stopAudio(false); // don't reset UI completely
                 statusText.innerText = "পুনরায় কানেক্ট হচ্ছে...";
-                setTimeout(() => { startListening(); }, 1000); 
+                setTimeout(() => { startListening(); }, 2000); 
+            } else {
+                stopAudio(true);
             }
         }
 
-        function stopAudio() {
-            if (backgroundWatchdog) { clearInterval(backgroundWatchdog); backgroundWatchdog = null; }
+        function stopAudio(fullReset = true) {
             if (connMonitor) { clearInterval(connMonitor); connMonitor = null; }
             if (audioPlayer.srcObject) { audioPlayer.srcObject = null; }
             if (activeCall) { activeCall.close(); activeCall = null; }
             if (peer) { peer.destroy(); peer = null; }
             
-            card.classList.remove('playing');
-            btnIcon.innerText = "▶";
-            btnIcon.style.marginLeft = "5px";
-            
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.playbackState = 'none';
+            if(wakeLock !== null) {
+                wakeLock.release().then(() => wakeLock = null);
             }
 
-            if(isLiveNow) {
-                statusText.innerText = "সম্প্রচার চলছে! শুনতে প্লে করুন";
-            } else {
-                statusText.innerText = "বন্ধ আছে";
+            if (fullReset) {
+                card.classList.remove('playing');
+                btnIcon.innerText = "▶";
+                btnIcon.style.marginLeft = "5px";
+                
+                if ('mediaSession' in navigator) {
+                    navigator.mediaSession.playbackState = 'none';
+                }
+
+                if(isLiveNow) {
+                    statusText.innerText = "সম্প্রচার চলছে! শুনতে প্লে করুন";
+                } else {
+                    statusText.innerText = "বন্ধ আছে";
+                }
             }
         }
 
@@ -417,13 +388,14 @@
             if ('mediaSession' in navigator) {
                 navigator.mediaSession.metadata = new MediaMetadata({
                     title: 'Local Voice (Live)',
-                    artist: 'Bangla Live FM',
-                    album: 'Experimental Stream, Basirhat',
+                    artist: 'Basirhat Live FM',
+                    album: 'Experimental Broadcast',
                     artwork: [
                         { src: 'https://cdn-icons-png.flaticon.com/512/1256/1256627.png', sizes: '512x512', type: 'image/png' }
                     ]
                 });
                 navigator.mediaSession.playbackState = 'playing';
+                
                 navigator.mediaSession.setActionHandler('play', () => {
                     audioPlayer.play();
                     navigator.mediaSession.playbackState = 'playing';
@@ -437,6 +409,7 @@
             audioPlayer.volume = e.target.value;
         });
 
+        // Generate silence to keep WebRTC channel valid without heavy processing
         function getSilence() {
             if (!audioCtx) {
                 const AudioContext = window.AudioContext || window.webkitAudioContext;
