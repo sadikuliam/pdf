@@ -1,25 +1,14 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="bn">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-    <meta name="theme-color" content="#23a6d5">
-    <title>Local Voice - Persistent Live Stream</title>
-
-    <!-- PeerJS Reliable CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local Voice - Live Radio</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;600;700&display=swap');
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Noto Sans Bengali', system-ui, -apple-system, sans-serif;
-        }
-
         body {
+            margin: 0;
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -27,8 +16,8 @@
             background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
             background-size: 400% 400%;
             animation: gradientBG 15s ease infinite;
+            font-family: 'Noto Sans Bengali', sans-serif;
             color: #ffffff;
-            padding: 20px;
         }
 
         @keyframes gradientBG {
@@ -37,396 +26,57 @@
             100% { background-position: 0% 50%; }
         }
 
-        .glass-player {
-            position: relative;
-            width: 100%;
-            max-width: 420px;
+        .radio-card {
             background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 28px;
-            padding: 40px 25px;
+            border-radius: 24px;
+            padding: 30px;
             text-align: center;
+            max-width: 380px;
+            width: 90%;
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
         }
 
-        .glass-player.playing {
-            box-shadow: 0 12px 40px rgba(32, 227, 178, 0.4);
-            border: 1px solid rgba(32, 227, 178, 0.5);
+        .station-icon {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
         }
 
-        .badge {
-            position: absolute;
-            top: 20px;
-            right: 25px;
-            font-size: 0.75rem;
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
             font-weight: 700;
-            letter-spacing: 1px;
-            padding: 5px 12px;
-            border-radius: 20px;
-            text-transform: uppercase;
-        }
-        .badge.offline {
-            color: #ff4d4d;
-            background: rgba(255, 77, 77, 0.2);
-            border: 1px solid rgba(255, 77, 77, 0.4);
-        }
-        .badge.live {
-            color: #20e3b2;
-            background: rgba(32, 227, 178, 0.2);
-            border: 1px solid rgba(32, 227, 178, 0.4);
-            animation: pulseLive 2s infinite;
         }
 
-        @keyframes pulseLive {
-            0% { box-shadow: 0 0 0 0 rgba(32, 227, 178, 0.4); }
-            70% { box-shadow: 0 0 0 8px rgba(32, 227, 178, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(32, 227, 178, 0); }
+        p {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 20px;
         }
 
-        .station-icon { font-size: 3.5rem; margin-bottom: 10px; text-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-        h2 { font-size: 1.6rem; font-weight: 700; margin-bottom: 5px; }
-        p { font-size: 0.95rem; color: rgba(255, 255, 255, 0.8); margin-bottom: 30px; }
-
-        .play-btn {
-            width: 100px;
-            height: 100px;
-            margin: 0 auto 25px;
-            border-radius: 50%;
-            border: none;
-            background: rgba(255, 255, 255, 0.25);
-            color: #ffffff;
-            font-size: 2.5rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
-            transition: all 0.3s ease;
-            -webkit-tap-highlight-color: transparent;
+        audio {
+            width: 100%;
+            border-radius: 30px;
+            outline: none;
         }
-
-        .play-btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.35); transform: scale(1.05); }
-        .play-btn:active:not(:disabled) { transform: scale(0.95); }
-        .play-btn:disabled { background: rgba(0, 0, 0, 0.2); color: rgba(255, 255, 255, 0.5); cursor: not-allowed; box-shadow: none; }
-
-        .status-text { font-size: 1rem; font-weight: 600; margin-bottom: 25px; min-height: 24px; }
-
-        .volume-control {
-            display: flex; align-items: center; justify-content: center; gap: 15px;
-            background: rgba(0, 0, 0, 0.15); padding: 12px 20px; border-radius: 50px;
-        }
-        .volume-control span { font-size: 1.2rem; }
-        input[type="range"] {
-            -webkit-appearance: none; width: 150px; height: 6px;
-            background: rgba(255, 255, 255, 0.3); border-radius: 5px; outline: none;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none; appearance: none; width: 18px; height: 18px;
-            border-radius: 50%; background: #ffffff; cursor: pointer;
-            box-shadow: 0 0 10px rgba(0,0,0,0.3); transition: transform 0.1s;
-        }
-        input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
     </style>
 </head>
 <body>
 
-    <div class="glass-player" id="localVoiceCard">
-        <div id="localLiveBadge" class="badge offline">OFFLINE</div>
-        
+    <div class="radio-card">
         <div class="station-icon">🎙️</div>
-        <h2>Local Voice</h2>
-        <p>Experimental Stream, Basirhat</p>
+        <h2>Local Voice Live</h2>
+        <p>বাসিরহাট লাইভ রেডিও স্ট্রিমিং</p>
 
-        <button class="play-btn" id="localPlayBtn" disabled aria-label="Play">
-            <span id="localBtnIcon" style="margin-left: 5px;">▶</span>
-        </button>
-
-        <div class="status-text" id="localStatusText" style="color: #ffdbdb;">লোড হচ্ছে...</div>
-
-        <div class="volume-control">
-            <span>🔉</span>
-            <input type="range" id="localVolSlider" min="0" max="1" step="0.05" value="1" aria-label="Volume">
-            <span>🔊</span>
-        </div>
+        <!-- HTML5 Audio Player -->
+        <audio controls autoplay preload="none">
+            <!-- আপনার Centova Cast Quick Links থেকে প্রাপ্ত লিংকটি এখানে দিন -->
+            <source src="https://eu8.fastcast4u.com/proxy/shmlocalvoice?mp=/stream" type="audio/pls">
+            আপনার ব্রাউজার অডিও ট্যাগ সমর্থন করে না।
+        </audio>
     </div>
 
-    <!-- Receiver Media Stream Audio Element -->
-    <audio id="localAudioPlayer" autoplay playsinline style="display:none;"></audio>
-
-    <!-- OS Audio Anchor: Silent loop keeps mobile audio channel awake -->
-    <audio id="silentAnchorAudio" loop playsinline style="display:none;"></audio>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyChsasjfB-0Yx2r4u2hSx0X2ZPHOYs6TKY",
-            authDomain: "localvoice-a3845.firebaseapp.com",
-            projectId: "localvoice-a3845",
-            storageBucket: "localvoice-a3845.firebasestorage.app",
-            messagingSenderId: "916898707708",
-            appId: "1:916898707708:web:7b7ad98a86f4a07a02ff79"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        const statusRef = ref(db, 'radio_status');
-
-        let isLiveNow = false;
-        let currentBroadcasterId = null;
-        let peer = null;
-        let activeCall = null;
-        let audioCtx = null;
-        let wakeLock = null;
-        let worker = null;
-
-        const liveBadge = document.getElementById('localLiveBadge');
-        const statusText = document.getElementById('localStatusText');
-        const playBtn = document.getElementById('localPlayBtn');
-        const btnIcon = document.getElementById('localBtnIcon');
-        const audioPlayer = document.getElementById('localAudioPlayer');
-        const silentAnchor = document.getElementById('silentAnchorAudio');
-        const volSlider = document.getElementById('localVolSlider');
-        const card = document.getElementById('localVoiceCard');
-
-        silentAnchor.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
-
-        // Web Worker to prevent background throttling / timer freezing
-        const workerCode = `
-            let timer = null;
-            self.onmessage = function(e) {
-                if(e.data === 'START') {
-                    if(timer) clearInterval(timer);
-                    timer = setInterval(() => { self.postMessage('TICK'); }, 2000);
-                } else if(e.data === 'STOP') {
-                    if(timer) clearInterval(timer);
-                    timer = null;
-                }
-            };
-        `;
-        const blob = new Blob([workerCode], { type: 'javascript' });
-        worker = new Worker(URL.createObjectURL(blob));
-
-        worker.onmessage = function() {
-            if (isLiveNow && card.classList.contains('playing')) {
-                if (audioPlayer.paused && audioPlayer.srcObject) {
-                    audioPlayer.play().catch(() => {});
-                }
-                if (silentAnchor.paused) {
-                    silentAnchor.play().catch(() => {});
-                }
-                if (audioCtx && audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
-            }
-        };
-
-        async function requestWakeLock() {
-            try {
-                if ('wakeLock' in navigator) {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                }
-            } catch (err) {}
-        }
-
-        document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === "visible") {
-                requestWakeLock();
-                if (card.classList.contains('playing')) {
-                    if (audioPlayer.paused) audioPlayer.play().catch(() => {});
-                    if (silentAnchor.paused) silentAnchor.play().catch(() => {});
-                }
-            }
-        });
-
-        onValue(statusRef, (snapshot) => {
-            const data = snapshot.val();
-            if (data && data.isLive) {
-                isLiveNow = true;
-                currentBroadcasterId = data.broadcasterId;
-                
-                liveBadge.textContent = "LIVE";
-                liveBadge.className = "badge live";
-                
-                if (!audioPlayer.srcObject) {
-                    statusText.innerText = "সম্প্রচার চলছে! শুনতে প্লে করুন";
-                    btnIcon.innerText = "▶";
-                    btnIcon.style.marginLeft = "5px";
-                    card.classList.remove('playing');
-                }
-                
-                statusText.style.color = "#20e3b2"; 
-                playBtn.style.background = "rgba(32, 227, 178, 0.4)"; 
-                playBtn.disabled = false;
-            } else {
-                isLiveNow = false;
-                currentBroadcasterId = null;
-                
-                liveBadge.textContent = "OFFLINE";
-                liveBadge.className = "badge offline";
-                
-                statusText.innerText = "বন্ধ আছে";
-                statusText.style.color = "#ffdbdb"; 
-                playBtn.style.background = "rgba(0, 0, 0, 0.2)";
-                playBtn.disabled = true;
-                stopAudio();
-            }
-        });
-
-        playBtn.addEventListener('click', async () => {
-            if (audioPlayer.srcObject) {
-                stopAudio();
-            } else if (isLiveNow) {
-                if (!currentBroadcasterId) {
-                    alert("⚠️ ব্রডকাস্টার আইডি পাওয়া যায়নি!");
-                    return;
-                }
-                
-                requestWakeLock();
-                silentAnchor.play().catch(() => {});
-                
-                btnIcon.innerText = "⏳";
-                btnIcon.style.marginLeft = "0px";
-                statusText.innerText = "কানেক্ট হচ্ছে...";
-                
-                startListening();
-            }
-        });
-
-        function startListening() {
-            if (peer) { peer.destroy(); peer = null; }
-
-            peer = new Peer(null, {
-                debug: 1,
-                config: {
-                    iceServers: [
-                        { urls: 'stun:stun.l.google.com:19302' },
-                        { urls: 'stun:stun1.l.google.com:19302' }
-                    ]
-                }
-            });
-            
-            peer.on('open', () => {
-                activeCall = peer.call(currentBroadcasterId, getSilenceStream());
-                
-                activeCall.on('stream', (remoteStream) => {
-                    audioPlayer.srcObject = remoteStream;
-                    card.classList.add('playing');
-                    
-                    initAudioContextPipeline(remoteStream);
-                    
-                    audioPlayer.play().then(() => {
-                        setupMediaSession();
-                    }).catch(err => console.log(err));
-                    
-                    btnIcon.innerText = "Ⅱ";
-                    btnIcon.style.marginLeft = "0px";
-                    statusText.innerText = "লাইভ শুনছেন...";
-                    
-                    worker.postMessage('START');
-                });
-
-                activeCall.on('close', () => triggerReconnect());
-                activeCall.on('error', () => triggerReconnect());
-            });
-
-            peer.on('disconnected', () => {
-                if (peer && !peer.destroyed) peer.reconnect();
-            });
-
-            peer.on('error', () => {
-                if (card.classList.contains('playing')) triggerReconnect();
-            });
-        }
-
-        function initAudioContextPipeline(stream) {
-            try {
-                const AudioCtx = window.AudioContext || window.webkitAudioContext;
-                if (!audioCtx) audioCtx = new AudioCtx();
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-
-                const source = audioCtx.createMediaStreamSource(stream);
-                const gainNode = audioCtx.createGain();
-                gainNode.gain.value = 1.0;
-                source.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-            } catch(e) {}
-        }
-
-        function triggerReconnect() {
-            if (!isLiveNow) {
-                stopAudio();
-                return;
-            }
-            stopAudio(false);
-            statusText.innerText = "পুনরায় কানেক্ট হচ্ছে...";
-            setTimeout(() => { startListening(); }, 1500);
-        }
-
-        function stopAudio(fullReset = true) {
-            worker.postMessage('STOP');
-            if (audioPlayer.srcObject) audioPlayer.srcObject = null;
-            if (activeCall) { activeCall.close(); activeCall = null; }
-            if (peer) { peer.destroy(); peer = null; }
-            silentAnchor.pause();
-            
-            if (wakeLock !== null) {
-                wakeLock.release().then(() => wakeLock = null).catch(() => {});
-            }
-
-            if (fullReset) {
-                card.classList.remove('playing');
-                btnIcon.innerText = "▶";
-                btnIcon.style.marginLeft = "5px";
-                
-                if ('mediaSession' in navigator) {
-                    navigator.mediaSession.playbackState = 'none';
-                }
-
-                statusText.innerText = isLiveNow ? "সম্প্রচার চলছে! শুনতে প্লে করুন" : "বন্ধ আছে";
-            }
-        }
-
-        function setupMediaSession() {
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.metadata = new MediaMetadata({
-                    title: 'Local Voice (Live)',
-                    artist: 'Basirhat Live FM',
-                    album: 'Persistent Stream',
-                    artwork: [
-                        { src: 'https://cdn-icons-png.flaticon.com/512/1256/1256627.png', sizes: '512x512', type: 'image/png' }
-                    ]
-                });
-                navigator.mediaSession.playbackState = 'playing';
-                navigator.mediaSession.setActionHandler('play', () => {
-                    audioPlayer.play();
-                    silentAnchor.play();
-                    navigator.mediaSession.playbackState = 'playing';
-                });
-                navigator.mediaSession.setActionHandler('pause', () => { stopAudio(); });
-                navigator.mediaSession.setActionHandler('stop', () => { stopAudio(); });
-            }
-        }
-
-        volSlider.addEventListener('input', (e) => {
-            audioPlayer.volume = e.target.value;
-        });
-
-        function getSilenceStream() {
-            const AudioCtx = window.AudioContext || window.webkitAudioContext;
-            const ctx = new AudioCtx();
-            const osc = ctx.createOscillator();
-            const dst = ctx.createMediaStreamDestination();
-            osc.start();
-            dst.stream.getAudioTracks()[0].enabled = false;
-            return dst.stream;
-        }
-    </script>
 </body>
 </html>
