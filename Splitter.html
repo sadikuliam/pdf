@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Splitter (OCR Safe)</title>
+    <!-- pdf-lib দিয়ে ব্রাউজারে পিডিএফ ম্যানিপুলেট করা হয় -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; background: #f4f4f9; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select { width: 100%; padding: 8px; box-sizing: border-box; }
+        button { background: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; width: 100%; }
+        button:hover { background: #0056b3; }
+        #status { margin-top: 15px; font-weight: bold; color: green; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>📄 PDF Splitter (Browser-based)</h2>
+    <p>Upload a PDF and split it without losing the OCR text layer.</p>
+    
+    <div class="form-group">
+        <label for="pdfFile">Choose PDF File:</label>
+        <input type="file" id="pdfFile" accept="application/pdf">
+    </div>
+
+    <div class="form-group">
+        <label for="splitMode">Split Mode:</label>
+        <select id="splitMode" onchange="toggleMode()">
+            <option value="range">Custom Page Range (e.g., 5-10)</option>
+            <option value="single">Single Page Extraction</option>
+        </select>
+    </div>
+
+    <div id="rangeInputs" class="form-group">
+        <label>Start Page: <input type="number" id="startPage" value="1" min="1"></label>
+        <label>End Page: <input type="number" id="endPage" value="1" min="1"></label>
+    </div>
+
+    <div id="singleInputs" class="form-group" style="display:none;">
+        <label>Page Number: <input type="number" id="targetPage" value="1" min="1"></label>
+    </div>
+
+    <button onclick="splitPdf()">Split & Download PDF</button>
+    <p id="status"></p>
+</div>
+
+<script>
+    function toggleMode() {
+        const mode = document.getElementById('splitMode').value;
+        if (mode === 'range') {
+            document.getElementById('rangeInputs').style.display = 'block';
+            document.getElementById('singleInputs').style.display = 'none';
+        } else {
+            document.getElementById('rangeInputs').style.display = 'none';
+            document.getElementById('singleInputs').style.display = 'block';
+        }
+    }
+
+    async function splitPdf() {
+        const fileInput = document.getElementById('pdfFile');
+        const status = document.getElementById('status');
+        
+        if (fileInput.files.length === 0) {
+            alert('Please select a PDF file first!');
+            return;
+        }
+
+        status.innerText = 'Processing... Please wait.';
+
+        try {
+            const fileArrayBuffer = await fileInput.files[0].arrayBuffer();
+            const pdfDoc = await PDFLib.PDFDocument.load(fileArrayBuffer);
+            const totalPages = pdfDoc.getPageCount();
+
+            const newPdf = await PDFLib.PDFDocument.create();
+            const mode = document.getElementById('splitMode').value;
+
+            let pagesToCopy = [];
+
+            if (mode === 'range') {
+                let start = parseInt(document.getElementById('startPage').value) - 1;
+                let end = parseInt(document.getElementById('endPage').value);
+
+                if (start < 0 || end > totalPages || start >= end) {
+                    alert(`Invalid page range! Total pages in this PDF: ${totalPages}`);
+                    status.innerText = '';
+                    return;
+                }
+
+                for (let i = start; i < end; i++) {
+                    pagesToCopy.push(i);
+                }
+            } else {
+                let target = parseInt(document.getElementById('targetPage').value) - 1;
+                if (target < 0 || target >= totalPages) {
+                    alert(`Invalid page number! Total pages: ${totalPages}`);
+                    status.innerText = '';
+                    return;
+                }
+                pagesToCopy.push(target);
+            }
+
+            const copiedPages = await newPdf.copyPages(pdfDoc, pagesToCopy);
+            copiedPages.forEach((page) => newPdf.addPage(page));
+
+            const pdfBytes = await newPdf.save();
+            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'split_document.pdf';
+            link.click();
+
+            status.innerText = 'Done! File downloaded successfully.';
+        } catch (error) {
+            console.error(error);
+            status.innerText = 'An error occurred while processing the PDF.';
+        }
+    }
+</script>
+
+</body>
+</html>
