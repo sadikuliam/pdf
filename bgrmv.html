@@ -47,7 +47,7 @@ h1{ margin:0; font-size:clamp(26px,4vw,42px); letter-spacing:-1px; }
   background-image:linear-gradient(45deg,#ddd 25%,transparent 25%), linear-gradient(-45deg,#ddd 25%,transparent 25%), linear-gradient(45deg,transparent 75%,#ddd 75%), linear-gradient(-45deg,transparent 75%,#ddd 75%);
   background-size:24px 24px; background-position:0 0,0 12px,12px -12px,-12px 0;
 }
-.preview-area img{ display:block; width:100%; height:auto; }
+.preview-area img{ display:block; max-width:100%; height:auto; }
 .canvas-container {
   position: relative;
   display: block;
@@ -96,7 +96,7 @@ input[type=color]{ width:42px; height:38px; padding:0; border:1px solid var(--li
 
 <main>
   <h1>SHM Pro AI Background Remover & Editor</h1>
-  <p class="subtitle">Fixed Layer Eraser + Round Cursor + Zoom & Undo.</p>
+  <p class="subtitle">Fixed Auto-Zoom Issue + Layer Eraser + Round Cursor + Zoom & Undo.</p>
 
   <div class="panel">
     <div class="drop" id="drop">
@@ -179,7 +179,7 @@ const container = $("container"), cursorBox = $("cursorBox"), resultArea = $("re
 
 let currentBg = "transparent", lastResults = null;
 let baseWidth = 0, zoom = 1, isEraserMode = true, eraserSize = 30;
-let personCanvas = null; // Separate layer for person subject
+let personCanvas = null;
 let historyStates = [];
 let isDragging = false, dragStartX = 0, dragStartY = 0, isEraseActive = false;
 
@@ -205,7 +205,6 @@ selfieSegmentation.onResults(results => {
   canvas.width = baseWidth;
   canvas.height = h;
 
-  // Create isolated person layer
   personCanvas = document.createElement("canvas");
   personCanvas.width = baseWidth;
   personCanvas.height = h;
@@ -228,13 +227,11 @@ function renderCanvas() {
   ctx.save();
   ctx.clearRect(0, 0, w, h);
 
-  // 1. Draw Background Color if selected
   if (currentBg !== "transparent") {
     ctx.fillStyle = currentBg;
     ctx.fillRect(0, 0, w, h);
   }
 
-  // 2. Draw Subject Layer (Eraser affects only this layer)
   ctx.drawImage(personCanvas, 0, 0, w, h);
   ctx.restore();
 }
@@ -279,7 +276,6 @@ async function handleImage(file) {
   };
 }
 
-// Cursor and Erase interactions on personCanvas
 container.onpointerenter = () => {
   if (isEraserMode) cursorBox.style.display = 'block';
 };
@@ -355,14 +351,12 @@ function eraseAt(x, y, rect) {
   renderCanvas();
 }
 
-// Eraser size slider
 $("eraserSize").oninput = e => {
   eraserSize = e.target.value;
   cursorBox.style.width = eraserSize + 'px';
   cursorBox.style.height = eraserSize + 'px';
 };
 
-// Mode switches
 $("modeErase").onclick = () => {
   isEraserMode = true;
   $("modeErase").classList.add("active");
@@ -379,10 +373,9 @@ $("modeMove").onclick = () => {
   cursorBox.style.display = 'none';
 };
 
-// Zoom controls
 function updateZoomDisplay() {
   if(baseWidth > 0) {
-    container.style.width = (baseWidth * zoom) + "px";
+    container.style.width = Math.min(baseWidth, resultArea.clientWidth * zoom) + "px";
   }
   $("zoomText").textContent = Math.round(zoom * 100) + "%";
 }
@@ -391,7 +384,6 @@ $("zoomIn").onclick = () => { zoom = Math.min(zoom + 0.25, 4); updateZoomDisplay
 $("zoomOut").onclick = () => { zoom = Math.max(zoom - 0.25, 0.5); updateZoomDisplay(); };
 $("zoomReset").onclick = () => { zoom = 1; updateZoomDisplay(); };
 
-// Colors
 document.querySelectorAll(".color").forEach(btn => {
   btn.onclick = () => {
     document.querySelectorAll(".color").forEach(b => b.classList.remove("active"));
