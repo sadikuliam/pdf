@@ -96,7 +96,7 @@ input[type=color]{ width:42px; height:38px; padding:0; border:1px solid var(--li
 
 <main>
   <h1>SHM Pro AI Background Remover & Editor</h1>
-  <p class="subtitle">Fixed Default Fit Zoom + Round Eraser Cursor + Move & Undo.</p>
+  <p class="subtitle">Fixed Layer Eraser + Round Cursor + Zoom & Undo.</p>
 
   <div class="panel">
     <div class="drop" id="drop">
@@ -178,7 +178,8 @@ const originalImg = $("original"), canvas = $("canvas"), ctx = canvas.getContext
 const container = $("container"), cursorBox = $("cursorBox"), resultArea = $("resultArea");
 
 let currentBg = "transparent", lastResults = null;
-let zoom = 1, isEraserMode = true, eraserSize = 30;
+let baseWidth = 0, zoom = 1, isEraserMode = true, eraserSize = 30;
+let personCanvas = null; // Separate layer for person subject
 let historyStates = [];
 let isDragging = false, dragStartX = 0, dragStartY = 0, isEraseActive = false;
 
@@ -198,11 +199,20 @@ selfieSegmentation.onResults(results => {
   statusBox.classList.remove("on");
   workspace.classList.add("on");
   
-  const w = lastResults.image.width;
+  baseWidth = lastResults.image.width;
   const h = lastResults.image.height;
 
-  canvas.width = w;
+  canvas.width = baseWidth;
   canvas.height = h;
+
+  // Create isolated person layer
+  personCanvas = document.createElement("canvas");
+  personCanvas.width = baseWidth;
+  personCanvas.height = h;
+  const pCtx = personCanvas.getContext("2d", { willReadFrequently: true });
+  pCtx.drawImage(lastResults.image, 0, 0, baseWidth, h);
+  pCtx.globalCompositeOperation = 'destination-in';
+  pCtx.drawImage(lastResults.segmentationMask, 0, 0, baseWidth, h);
 
   zoom = 1;
   updateZoomDisplay();
@@ -211,51 +221,46 @@ selfieSegmentation.onResults(results => {
 });
 
 function renderCanvas() {
-  if (!lastResults) return;
-  const w = lastResults.image.width;
-  const h = lastResults.image.height;
+  if (!lastResults || !personCanvas) return;
+  const w = canvas.width;
+  const h = canvas.height;
 
   ctx.save();
   ctx.clearRect(0, 0, w, h);
 
+  // 1. Draw Background Color if selected
   if (currentBg !== "transparent") {
     ctx.fillStyle = currentBg;
     ctx.fillRect(0, 0, w, h);
   }
 
-  const personCanvas = document.createElement("canvas");
-  personCanvas.width = w;
-  personCanvas.height = h;
-  const pCtx = personCanvas.getContext("2d", { willReadFrequently: true });
-
-  pCtx.drawImage(lastResults.image, 0, 0, w, h);
-  pCtx.globalCompositeOperation = 'destination-in';
-  pCtx.drawImage(lastResults.segmentationMask, 0, 0, w, h);
-
+  // 2. Draw Subject Layer (Eraser affects only this layer)
   ctx.drawImage(personCanvas, 0, 0, w, h);
   ctx.restore();
 }
 
 function saveHistory() {
-  const dataURL = canvas.toDataURL();
-  historyStates.push(dataURL);
+  if (!personCanvas) return;
+  const tempCanvas = document.createElement("canvas");
+  tempCanvas.width = personCanvas.width;
+  tempCanvas.height = personCanvas.height;
+  const tCtx = tempCanvas.getContext("2d");
+  tCtx.drawImage(personCanvas, 0, 0);
+  
+  historyStates.push(tempCanvas);
   if (historyStates.length > 15) historyStates.shift();
 }
 
 $("undoBtn").onclick = () => {
   if (historyStates.length > 1) {
     historyStates.pop();
-    const prevData = historyStates[historyStates.length - 1];
-    const img = new Image();
-    img.onload = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      if (currentBg !== "transparent") {
-        ctx.fillStyle = currentBg;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-      }
-      ctx.drawImage(img, 0, 0);
-    };
-    img.src = prevData;
+    const prevCanvas = historyStates[historyStates.length - 1];
+    
+    const pCtx = personCanvas.getContext("2d");
+    pCtx.clearRect(0, 0, personCanvas.width, personCanvas.height);
+    pCtx.drawImage(prevCanvas, 0, 0);
+
+    renderCanvas();
   }
 };
 
@@ -274,7 +279,7 @@ async function handleImage(file) {
   };
 }
 
-// Cursor and Erase interactions (Round Eraser)
+// Cursor and Erase interactions on personCanvas
 container.onpointerenter = () => {
   if (isEraserMode) cursorBox.style.display = 'block';
 };
@@ -332,19 +337,22 @@ container.onpointerup = e => {
 };
 
 function eraseAt(x, y, rect) {
-  const scaleX = canvas.width / rect.width;
-  const scaleY = canvas.height / rect.height;
+  const scaleX = personCanvas.width / rect.width;
+  const scaleY = personCanvas.height / rect.height;
 
   const canvasX = x * scaleX;
   const canvasY = y * scaleY;
   const radius = (eraserSize / 2) * scaleX;
 
-  ctx.save();
-  ctx.globalCompositeOperation = 'destination-out';
-  ctx.beginPath();
-  ctx.arc(canvasX, canvasY, radius, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
+  const pCtx = personCanvas.getContext("2d", { willReadFrequently: true });
+  pCtx.save();
+  pCtx.globalCompositeOperation = 'destination-out';
+  pCtx.beginPath();
+  pCtx.arc(canvasX, canvasY, radius, 0, Math.PI * 2);
+  pCtx.fill();
+  pCtx.restore();
+
+  renderCanvas();
 }
 
 // Eraser size slider
@@ -371,9 +379,11 @@ $("modeMove").onclick = () => {
   cursorBox.style.display = 'none';
 };
 
-// Zoom controls (Fit to container by default)
+// Zoom controls
 function updateZoomDisplay() {
-  container.style.width = (zoom * 100) + "%";
+  if(baseWidth > 0) {
+    container.style.width = (baseWidth * zoom) + "px";
+  }
   $("zoomText").textContent = Math.round(zoom * 100) + "%";
 }
 
@@ -388,7 +398,6 @@ document.querySelectorAll(".color").forEach(btn => {
     btn.classList.add("active");
     currentBg = btn.dataset.color;
     renderCanvas();
-    saveHistory();
   };
 });
 
@@ -396,10 +405,10 @@ $("customColor").oninput = e => {
   document.querySelectorAll(".color").forEach(b => b.classList.remove("active"));
   currentBg = e.target.value;
   renderCanvas();
-  saveHistory();
 };
 
 $("download").onclick = () => {
+  renderCanvas();
   canvas.toBlob(blob => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -414,6 +423,7 @@ $("newImage").onclick = () => {
   workspace.classList.remove("on");
   fileInput.value = "";
   lastResults = null;
+  personCanvas = null;
   historyStates = [];
 };
 </script>
