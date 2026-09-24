@@ -2,227 +2,2024 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AI Background Remover</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>SHM AI Background Remover</title>
+
 <style>
-  :root { --bg:#f3f5f7; --panel:#fff; --ink:#14202b; --muted:#5c6b78; --line:#d5dce2; --accent:#1f6feb; --accent-ink:#fff; }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg:#0f1418; --panel:#182028; --ink:#e8eef3; --muted:#93a2af; --line:#2a3641; --accent:#4c94ff; --accent-ink:#06121f; }
+:root{
+  --bg:#eef2f7;
+  --panel:#ffffff;
+  --text:#15202b;
+  --muted:#687786;
+  --line:#d8e0e8;
+  --accent:#1769ff;
+  --danger:#e53935;
+  --shadow:0 12px 35px rgba(20,40,70,.10);
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  background:linear-gradient(135deg,#eef3f9,#f9fbfd);
+  color:var(--text);
+  font-family:Inter,"Segoe UI",Arial,sans-serif;
+}
+
+main{
+  max-width:1150px;
+  margin:auto;
+  padding:30px 16px 60px;
+}
+
+h1{
+  margin:0;
+  font-size:clamp(26px,4vw,42px);
+  letter-spacing:-1px;
+}
+
+.subtitle{
+  margin:8px 0 25px;
+  color:var(--muted);
+  max-width:750px;
+}
+
+.panel{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:20px;
+  box-shadow:var(--shadow);
+}
+
+/* Upload */
+
+.drop{
+  border:2px dashed #aebdcd;
+  border-radius:16px;
+  padding:55px 20px;
+  text-align:center;
+  cursor:pointer;
+  transition:.2s;
+  background:#fafcff;
+}
+
+.drop:hover,
+.drop.over{
+  border-color:var(--accent);
+  background:#f2f7ff;
+}
+
+.drop-icon{
+  font-size:45px;
+  margin-bottom:10px;
+}
+
+.drop strong{
+  display:block;
+  font-size:18px;
+  margin-bottom:7px;
+}
+
+.drop small{
+  color:var(--muted);
+}
+
+/* Progress */
+
+.status{
+  display:none;
+  margin-top:20px;
+}
+
+.status.on{
+  display:block;
+}
+
+.status-line{
+  display:flex;
+  justify-content:space-between;
+  font-size:14px;
+}
+
+.progress{
+  height:9px;
+  margin-top:8px;
+  background:#e4eaf0;
+  border-radius:10px;
+  overflow:hidden;
+}
+
+.progress span{
+  display:block;
+  width:0;
+  height:100%;
+  background:linear-gradient(90deg,#1769ff,#00b8ff);
+  transition:.25s;
+}
+
+/* Workspace */
+
+.workspace{
+  display:none;
+  margin-top:22px;
+}
+
+.workspace.on{
+  display:block;
+}
+
+.preview-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:18px;
+}
+
+@media(max-width:750px){
+  .preview-grid{
+    grid-template-columns:1fr;
   }
-  * { box-sizing: border-box; }
-  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 "Trebuchet MS","Segoe UI",system-ui,sans-serif; }
-  main { max-width:980px; margin:0 auto; padding:32px 16px 56px; }
-  h1 { font-size:clamp(1.8rem,4vw,2.6rem); margin:0 0 6px; letter-spacing:-.02em; }
-  .sub { color:var(--muted); margin:0 0 24px; max-width:60ch; }
-  .panel { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px; }
-  .drop { border:2px dashed var(--line); border-radius:10px; padding:36px 16px; text-align:center; cursor:pointer; color:var(--muted); }
-  .drop:hover,.drop.over,.drop:focus-visible { border-color:var(--accent); color:var(--ink); outline:none; }
-  .stage { display:none; margin-top:18px; gap:18px; grid-template-columns:1fr 1fr; }
-  .stage.on { display:grid; }
-  @media (max-width:720px){ .stage.on { grid-template-columns:1fr; } }
-  .box { position:relative; border:1px solid var(--line); border-radius:8px; overflow:hidden; min-height:200px; background-color:#fff;
-    background-image:linear-gradient(45deg,#ddd 25%,transparent 25%,transparent 75%,#ddd 75%),linear-gradient(45deg,#ddd 25%,transparent 25%,transparent 75%,#ddd 75%);
-    background-size:20px 20px; background-position:0 0,10px 10px; }
-  .box img,.box canvas { display:block; width:100%; height:auto; }
-  #canvas { touch-action:none; cursor:crosshair; }
-  .cap { font-size:.85rem; color:var(--muted); margin:8px 0 0; }
-  .status { margin-top:16px; display:none; }
-  .status.on { display:block; }
-  .bar { height:8px; background:var(--line); border-radius:4px; overflow:hidden; margin-top:8px; }
-  .bar span { display:block; height:100%; width:0; background:var(--accent); transition:width .2s; }
-  .controls { display:none; margin-top:20px; }
-  .controls.on { display:block; }
-  .row { display:flex; flex-wrap:wrap; gap:14px; align-items:center; margin:10px 0 18px; }
-  .sw { width:38px; height:38px; border-radius:50%; border:2px solid var(--line); cursor:pointer; padding:0; }
-  .sw[aria-pressed="true"] { outline:3px solid var(--accent); outline-offset:2px; }
-  .sw.none { background:conic-gradient(#ccc 25%,#fff 0 50%,#ccc 0 75%,#fff 0); }
-  input[type=color] { width:46px; height:38px; padding:0; border:1px solid var(--line); border-radius:6px; background:none; cursor:pointer; }
-  .seg { display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
-  .seg button { border:0; background:none; color:var(--ink); padding:9px 16px; font:inherit; cursor:pointer; }
-  .seg button[aria-pressed="true"] { background:var(--accent); color:var(--accent-ink); font-weight:600; }
-  .hint { color:var(--muted); font-size:.9rem; margin:0 0 8px; max-width:70ch; }
-  button.main { background:var(--accent); color:var(--accent-ink); border:0; border-radius:8px; padding:11px 20px; font:inherit; font-weight:600; cursor:pointer; }
-  button.ghost { background:none; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:10px 16px; font:inherit; cursor:pointer; }
-  button:focus-visible,.sw:focus-visible { outline:3px solid var(--accent); outline-offset:2px; }
-  .err { color:#d23b3b; margin-top:12px; display:none; }
+}
+
+.preview-card{
+  border:1px solid var(--line);
+  border-radius:14px;
+  overflow:hidden;
+  background:#fff;
+}
+
+.preview-title{
+  padding:11px 14px;
+  font-weight:700;
+  border-bottom:1px solid var(--line);
+}
+
+.preview-area{
+  position:relative;
+  min-height:300px;
+  overflow:auto;
+
+  background-color:#fff;
+
+  background-image:
+  linear-gradient(45deg,#ddd 25%,transparent 25%),
+  linear-gradient(-45deg,#ddd 25%,transparent 25%),
+  linear-gradient(45deg,transparent 75%,#ddd 75%),
+  linear-gradient(-45deg,transparent 75%,#ddd 75%);
+
+  background-size:24px 24px;
+  background-position:0 0,0 12px,12px -12px,-12px 0;
+}
+
+.preview-area img,
+.preview-area canvas{
+  display:block;
+  width:100%;
+  height:auto;
+  max-width:none;
+}
+
+#editCanvas{
+  touch-action:none;
+  cursor:crosshair;
+}
+
+/* Controls */
+
+.controls{
+  display:none;
+  margin-top:22px;
+}
+
+.controls.on{
+  display:block;
+}
+
+.control-section{
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:16px;
+  margin-bottom:14px;
+}
+
+.control-section h3{
+  margin:0 0 12px;
+  font-size:16px;
+}
+
+.row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:center;
+}
+
+button{
+  font:inherit;
+}
+
+button.main{
+  border:0;
+  border-radius:9px;
+  padding:11px 18px;
+  background:var(--accent);
+  color:#fff;
+  cursor:pointer;
+  font-weight:700;
+}
+
+button.main:hover{
+  filter:brightness(.94);
+}
+
+button.secondary{
+  border:1px solid var(--line);
+  border-radius:9px;
+  padding:10px 16px;
+  background:#fff;
+  cursor:pointer;
+}
+
+button.secondary:hover{
+  background:#f4f7fa;
+}
+
+button.danger{
+  border:1px solid #ffcaca;
+  color:#c62828;
+  background:#fff;
+  border-radius:9px;
+  padding:10px 16px;
+  cursor:pointer;
+}
+
+.seg{
+  display:flex;
+  border:1px solid var(--line);
+  border-radius:9px;
+  overflow:hidden;
+}
+
+.seg button{
+  border:0;
+  padding:9px 17px;
+  background:#fff;
+  cursor:pointer;
+}
+
+.seg button.active{
+  background:var(--accent);
+  color:#fff;
+  font-weight:700;
+}
+
+input[type=range]{
+  width:180px;
+}
+
+.color-list{
+  display:flex;
+  flex-wrap:wrap;
+  gap:9px;
+  align-items:center;
+}
+
+.color{
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  border:2px solid #d0d8e0;
+  cursor:pointer;
+}
+
+.color.active{
+  outline:3px solid var(--accent);
+  outline-offset:2px;
+}
+
+.transparent{
+  background:
+    linear-gradient(45deg,#ccc 25%,transparent 25%),
+    linear-gradient(-45deg,#ccc 25%,transparent 25%),
+    linear-gradient(45deg,transparent 75%,#ccc 75%),
+    linear-gradient(-45deg,transparent 75%,#ccc 75%);
+  background-size:12px 12px;
+  background-position:0 0,0 6px,6px -6px,-6px 0;
+}
+
+input[type=color]{
+  width:42px;
+  height:38px;
+  padding:0;
+  border:1px solid var(--line);
+  border-radius:8px;
+}
+
+.info{
+  font-size:13px;
+  color:var(--muted);
+  margin-top:9px;
+}
+
+.error{
+  display:none;
+  margin-top:14px;
+  color:var(--danger);
+  background:#fff1f1;
+  border:1px solid #ffd1d1;
+  padding:11px;
+  border-radius:9px;
+}
+
+.toolbar{
+  display:flex;
+  flex-wrap:wrap;
+  gap:9px;
+  margin-bottom:12px;
+}
+
+.zoom{
+  font-weight:600;
+  color:var(--muted);
+}
+
+footer{
+  text-align:center;
+  margin-top:25px;
+  color:#8794a1;
+  font-size:13px;
+}
 </style>
 </head>
+
 <body>
+
 <main>
-  <h1>AI background remover</h1>
-  <p class="sub">Upload a photo. The AI cuts out the subject in your browser, then you choose a background color, fix any missed spots with the brush, and download.</p>
 
-  <div class="panel">
-    <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose an image">
-      <strong>Click to choose an image</strong> or drag it here<br><small>JPG, PNG or WebP</small>
-    </div>
-    <input type="file" id="file" accept="image/*" hidden>
+<h1>AI Background Remover</h1>
 
-    <div class="status" id="status" aria-live="polite">
-      <span id="statusText">Loading AI model…</span>
-      <div class="bar"><span id="barFill"></span></div>
-    </div>
-    <div class="err" id="err"></div>
+<p class="subtitle">
+Remove image backgrounds directly in your browser using AI.
+Refine edges, restore missed areas, erase unwanted parts and export a transparent PNG.
+</p>
 
-    <div class="stage" id="stage">
-      <div><div class="box"><img id="orig" alt="Original image"></div><p class="cap">Original</p></div>
-      <div><div class="box" id="resultBox"><canvas id="canvas"></canvas></div><p class="cap">Background removed (paint on this image to fix it)</p></div>
-    </div>
+<div class="panel">
 
-    <div class="controls" id="controls">
-      <strong>Fix missed parts</strong>
-      <p class="hint">If the AI removed part of the person (for example a saree or shirt), choose Restore and paint over it. Choose Erase to remove leftover background.</p>
-      <div class="row">
-        <div class="seg" role="group" aria-label="Brush mode">
-          <button type="button" id="mRestore" aria-pressed="true">Restore</button>
-          <button type="button" id="mErase" aria-pressed="false">Erase</button>
-        </div>
-        <label>Brush size <input type="range" id="size" min="10" max="150" value="50"></label>
-        <button class="ghost" type="button" id="undo">Undo</button>
-      </div>
+<div class="drop" id="drop">
+  <div class="drop-icon">🪄</div>
+  <strong>Click to choose an image</strong>
+  <div>or drag & drop your image here</div>
+  <small>JPG • PNG • WebP</small>
+</div>
 
-      <strong>Background color</strong>
-      <div class="row" id="swatches"></div>
+<input type="file" id="file" accept="image/*" hidden>
 
-      <button class="main" id="download">Download PNG</button>
-      <button class="ghost" id="reset" style="margin-left:8px">New image</button>
-    </div>
+<div class="status" id="status">
+  <div class="status-line">
+    <span id="statusText">Preparing AI...</span>
+    <span id="percent">0%</span>
   </div>
+  <div class="progress">
+    <span id="progressBar"></span>
+  </div>
+</div>
+
+<div class="error" id="error"></div>
+
+<div class="workspace" id="workspace">
+
+<div class="preview-grid">
+
+<div class="preview-card">
+
+<div class="preview-title">
+Original
+</div>
+
+<div class="preview-area">
+<img id="original">
+</div>
+
+</div>
+
+
+<div class="preview-card">
+
+<div class="preview-title">
+Background Removed / Edited
+</div>
+
+<div class="preview-area" id="resultArea">
+
+<canvas id="editCanvas"></canvas>
+
+</div>
+
+</div>
+
+</div>
+
+
+<div class="controls" id="controls">
+
+
+<!-- BRUSH -->
+
+<div class="control-section">
+
+<h3>🖌 Refine Subject</h3>
+
+<div class="toolbar">
+
+<div class="seg">
+
+<button id="restoreBtn" class="active">
+Restore
+</button>
+
+<button id="eraseBtn">
+Erase
+</button>
+
+</div>
+
+<label>
+Brush:
+<input
+type="range"
+id="brushSize"
+min="5"
+max="250"
+value="60">
+</label>
+
+<span id="brushValue">60 px</span>
+
+<button class="secondary" id="undoBtn">
+Undo
+</button>
+
+<button class="secondary" id="redoBtn">
+Redo
+</button>
+
+</div>
+
+<div class="info">
+Restore adds the original image back. Erase removes the subject area.
+Use a smaller brush around hair and clothing edges.
+</div>
+
+</div>
+
+
+<!-- REFINEMENT -->
+
+<div class="control-section">
+
+<h3>✨ AI Edge Refinement</h3>
+
+<div class="row">
+
+<label>
+Edge softness
+<input
+type="range"
+id="softness"
+min="0"
+max="8"
+value="2">
+</label>
+
+<span id="softnessValue">2</span>
+
+<button class="secondary" id="refineBtn">
+Refine Mask
+</button>
+
+</div>
+
+<div class="info">
+Refinement smooths jagged edges and removes tiny unwanted mask particles.
+</div>
+
+</div>
+
+
+<!-- BACKGROUND -->
+
+<div class="control-section">
+
+<h3>🎨 Background</h3>
+
+<div class="color-list" id="colors">
+
+<button
+class="color transparent active"
+data-color="transparent"
+title="Transparent">
+</button>
+
+<button
+class="color"
+data-color="#ffffff"
+style="background:#ffffff">
+</button>
+
+<button
+class="color"
+data-color="#000000"
+style="background:#000000">
+</button>
+
+<button
+class="color"
+data-color="#f44336"
+style="background:#f44336">
+</button>
+
+<button
+class="color"
+data-color="#2196f3"
+style="background:#2196f3">
+</button>
+
+<button
+class="color"
+data-color="#4caf50"
+style="background:#4caf50">
+</button>
+
+<button
+class="color"
+data-color="#ff9800"
+style="background:#ff9800">
+</button>
+
+<button
+class="color"
+data-color="#673ab7"
+style="background:#673ab7">
+</button>
+
+<input
+type="color"
+id="customColor"
+value="#1769ff">
+
+</div>
+
+</div>
+
+
+<!-- ZOOM -->
+
+<div class="control-section">
+
+<h3>🔍 Preview</h3>
+
+<div class="row">
+
+<button class="secondary" id="zoomOut">
+−
+</button>
+
+<span class="zoom" id="zoomText">
+100%
+</span>
+
+<button class="secondary" id="zoomIn">
++
+</button>
+
+<button class="secondary" id="zoomReset">
+Reset Zoom
+</button>
+
+</div>
+
+</div>
+
+
+<!-- DOWNLOAD -->
+
+<div class="control-section">
+
+<div class="row">
+
+<button class="main" id="download">
+⬇ Download PNG
+</button>
+
+<button class="secondary" id="downloadJpg">
+Download JPG
+</button>
+
+<button class="danger" id="newImage">
+New Image
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<footer>
+SHM AI Background Remover • Processing happens in your browser
+</footer>
+
 </main>
 
+
 <script type="module">
-  // AI runs in the browser. Full-precision "isnet" model = best edge quality (bigger first download, then cached).
-  import { removeBackground } from "https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.5.5/+esm";
 
-  const $ = (id) => document.getElementById(id);
-  const drop=$("drop"), fileInput=$("file"), stage=$("stage"), controls=$("controls");
-  const status=$("status"), statusText=$("statusText"), barFill=$("barFill"), err=$("err");
-  const canvas=$("canvas"), ctx=canvas.getContext("2d"), resultBox=$("resultBox");
+/*
+===========================================================
+SHM AI BACKGROUND REMOVER
+Advanced browser-side implementation
+===========================================================
+*/
 
-  const subject = document.createElement("canvas");   // the cut-out subject (editable)
-  const sctx = subject.getContext("2d");
-  let origBmp = null, hasImage = false, bgColor = "transparent", mode = "restore";
-  const history = [];
+import {
+  removeBackground
+} from "https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.5.5/+esm";
 
-  // ---------- color swatches ----------
-  const COLORS = ["#ffffff","#000000","#e63946","#f4a261","#ffd60a","#2a9d8f","#1f6feb","#8338ec","#ff5fa2"];
-  const swWrap = $("swatches");
-  function addSwatch(color, label, cls="") {
-    const b=document.createElement("button");
-    b.className="sw "+cls; b.type="button"; b.title=label; b.setAttribute("aria-label",label);
-    if (color!=="transparent") b.style.background=color;
-    b.dataset.color=color; b.setAttribute("aria-pressed","false");
-    b.onclick=()=>setColor(color); swWrap.appendChild(b);
+
+/* ========================================================
+ELEMENTS
+======================================================== */
+
+const $ = id => document.getElementById(id);
+
+const drop = $("drop");
+const fileInput = $("file");
+
+const status = $("status");
+const statusText = $("statusText");
+const progressBar = $("progressBar");
+const percent = $("percent");
+
+const errorBox = $("error");
+
+const workspace = $("workspace");
+const controls = $("controls");
+
+const original = $("original");
+
+const canvas = $("editCanvas");
+const ctx = canvas.getContext("2d", {
+  willReadFrequently:true
+});
+
+const sourceCanvas = document.createElement("canvas");
+const sourceCtx = sourceCanvas.getContext("2d", {
+  willReadFrequently:true
+});
+
+const maskCanvas = document.createElement("canvas");
+const maskCtx = maskCanvas.getContext("2d", {
+  willReadFrequently:true
+});
+
+const history = [];
+const redoStack = [];
+
+
+/* ========================================================
+STATE
+======================================================== */
+
+let imageWidth = 0;
+let imageHeight = 0;
+
+let originalBitmap = null;
+
+let currentBackground = "transparent";
+
+let brushMode = "restore";
+
+let zoom = 1;
+
+let painting = false;
+let lastPoint = null;
+
+
+/* ========================================================
+UTILITY
+======================================================== */
+
+function showError(message){
+
+  errorBox.textContent = message;
+  errorBox.style.display = "block";
+
+}
+
+function clearError(){
+
+  errorBox.style.display = "none";
+
+}
+
+
+function setProgress(value,text){
+
+  value = Math.max(0,Math.min(100,value));
+
+  progressBar.style.width = value + "%";
+  percent.textContent = Math.round(value) + "%";
+
+  if(text){
+    statusText.textContent = text;
   }
-  addSwatch("transparent","Transparent","none");
-  COLORS.forEach(c=>addSwatch(c,c));
-  const picker=document.createElement("input");
-  picker.type="color"; picker.value="#1f6feb"; picker.title="Custom color"; picker.setAttribute("aria-label","Custom color");
-  picker.oninput=()=>setColor(picker.value); swWrap.appendChild(picker);
 
-  function setColor(c){
-    bgColor=c;
-    swWrap.querySelectorAll(".sw").forEach(s=>s.setAttribute("aria-pressed", s.dataset.color===c?"true":"false"));
-    render();
+}
+
+
+/* ========================================================
+UPLOAD
+======================================================== */
+
+drop.addEventListener("click",()=>{
+  fileInput.click();
+});
+
+
+drop.addEventListener("dragover",e=>{
+  e.preventDefault();
+  drop.classList.add("over");
+});
+
+
+drop.addEventListener("dragleave",()=>{
+  drop.classList.remove("over");
+});
+
+
+drop.addEventListener("drop",e=>{
+
+  e.preventDefault();
+
+  drop.classList.remove("over");
+
+  const file = e.dataTransfer.files[0];
+
+  processFile(file);
+
+});
+
+
+fileInput.addEventListener("change",()=>{
+
+  processFile(fileInput.files[0]);
+
+});
+
+
+/* ========================================================
+MAIN AI PROCESS
+======================================================== */
+
+async function processFile(file){
+
+  if(!file || !file.type.startsWith("image/")){
+    showError("Please select a valid image.");
+    return;
   }
 
-  // ---------- render ----------
-  function render(){
-    if(!hasImage) return;
-    if(canvas.width!==subject.width){ canvas.width=subject.width; canvas.height=subject.height; }
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    if(bgColor!=="transparent"){ ctx.fillStyle=bgColor; ctx.fillRect(0,0,canvas.width,canvas.height); }
-    ctx.drawImage(subject,0,0);
-    resultBox.style.backgroundImage = bgColor==="transparent" ? "" : "none";
-  }
+  clearError();
 
-  // ---------- brush ----------
-  const setMode=(m)=>{ mode=m; $("mRestore").setAttribute("aria-pressed",m==="restore"); $("mErase").setAttribute("aria-pressed",m==="erase"); };
-  $("mRestore").onclick=()=>setMode("restore");
-  $("mErase").onclick=()=>setMode("erase");
+  workspace.classList.remove("on");
+  controls.classList.remove("on");
 
-  function snapshot(){
-    const c=document.createElement("canvas"); c.width=subject.width; c.height=subject.height;
-    c.getContext("2d").drawImage(subject,0,0);
-    history.push(c); if(history.length>8) history.shift();
-  }
-  $("undo").onclick=()=>{
-    const c=history.pop(); if(!c) return;
-    sctx.clearRect(0,0,subject.width,subject.height); sctx.drawImage(c,0,0); render();
-  };
+  status.classList.add("on");
 
-  function stamp(x,y,r){
-    sctx.save();
-    if(mode==="erase"){
-      sctx.globalCompositeOperation="destination-out";
-      sctx.beginPath(); sctx.arc(x,y,r,0,Math.PI*2); sctx.fill();
-    } else {
-      sctx.beginPath(); sctx.arc(x,y,r,0,Math.PI*2); sctx.clip();
-      sctx.drawImage(origBmp,0,0,subject.width,subject.height);
-    }
-    sctx.restore();
-  }
-  function pos(e){
-    const rect=canvas.getBoundingClientRect(), k=canvas.width/rect.width;
-    return { x:(e.clientX-rect.left)*k, y:(e.clientY-rect.top)*k, k };
-  }
-  let painting=false, last=null;
-  canvas.addEventListener("pointerdown",(e)=>{
-    if(!hasImage) return;
-    painting=true; canvas.setPointerCapture(e.pointerId); snapshot();
-    const p=pos(e), r=$("size").value*p.k/2; last=p; stamp(p.x,p.y,r); render();
-  });
-  canvas.addEventListener("pointermove",(e)=>{
-    if(!painting) return;
-    const p=pos(e), r=$("size").value*p.k/2;
-    const dx=p.x-last.x, dy=p.y-last.y, dist=Math.hypot(dx,dy), step=Math.max(r/3,1);
-    for(let d=step; d<=dist; d+=step) stamp(last.x+dx*d/dist, last.y+dy*d/dist, r);
-    stamp(p.x,p.y,r); last=p; render();
-  });
-  const stop=()=>{ painting=false; };
-  canvas.addEventListener("pointerup",stop); canvas.addEventListener("pointercancel",stop);
+  setProgress(0,"Preparing image...");
 
-  // ---------- AI ----------
-  async function handle(file){
-    if(!file || !file.type.startsWith("image/")) return;
-    err.style.display="none"; controls.classList.remove("on"); hasImage=false; history.length=0;
-    $("orig").src=URL.createObjectURL(file);
-    stage.classList.add("on"); status.classList.add("on");
-    statusText.textContent="Loading AI model…"; barFill.style.width="0";
-    try{
-      origBmp = await createImageBitmap(file);
-      const blob = await removeBackground(file,{
-        model:"isnet",                                   // best quality model
-        output:{ format:"image/png", quality:1 },
-        progress:(key,cur,total)=>{
-          statusText.textContent = key.startsWith("compute") ? "Removing background…" : "Downloading AI model (first time only)…";
-          if(total) barFill.style.width=Math.round(cur/total*100)+"%";
+  try{
+
+    /*
+    Load original image
+    */
+
+    originalBitmap =
+      await createImageBitmap(file);
+
+    /*
+    Limit extremely large images to avoid browser crashes.
+    */
+
+    const MAX_SIZE = 4500;
+
+    let scale = Math.min(
+      1,
+      MAX_SIZE /
+      Math.max(
+        originalBitmap.width,
+        originalBitmap.height
+      )
+    );
+
+    imageWidth =
+      Math.max(
+        1,
+        Math.round(originalBitmap.width * scale)
+      );
+
+    imageHeight =
+      Math.max(
+        1,
+        Math.round(originalBitmap.height * scale)
+      );
+
+
+    /*
+    Prepare source canvas
+    */
+
+    sourceCanvas.width = imageWidth;
+    sourceCanvas.height = imageHeight;
+
+    sourceCtx.clearRect(
+      0,
+      0,
+      imageWidth,
+      imageHeight
+    );
+
+    sourceCtx.drawImage(
+      originalBitmap,
+      0,
+      0,
+      imageWidth,
+      imageHeight
+    );
+
+
+    original.src =
+      URL.createObjectURL(file);
+
+
+    /*
+    AI BACKGROUND REMOVAL
+    */
+
+    setProgress(
+      5,
+      "Loading AI model..."
+    );
+
+
+    const resultBlob =
+      await removeBackground(file,{
+
+        model:"isnet",
+
+        output:{
+          format:"image/png",
+          quality:1
         },
+
+        progress:(key,current,total)=>{
+
+          if(total){
+
+            const p =
+              5 +
+              (current / total) * 75;
+
+            setProgress(
+              p,
+              key &&
+              key.toLowerCase().includes("compute")
+                ? "AI is detecting the subject..."
+                : "Downloading AI model..."
+            );
+
+          }
+
+        }
+
       });
-      const cut = await createImageBitmap(blob);
-      subject.width=cut.width; subject.height=cut.height;
-      sctx.clearRect(0,0,cut.width,cut.height); sctx.drawImage(cut,0,0);
-      hasImage=true; canvas.width=0;
-      status.classList.remove("on"); controls.classList.add("on");
-      setColor(bgColor);
-    }catch(e){
-      console.error(e); status.classList.remove("on");
-      err.textContent="Could not remove the background. Check your connection and try a different image.";
-      err.style.display="block";
-    }
+
+
+    /*
+    Decode AI result
+    */
+
+    setProgress(
+      82,
+      "Building subject mask..."
+    );
+
+
+    const resultBitmap =
+      await createImageBitmap(resultBlob);
+
+
+    /*
+    Create mask from AI alpha channel
+    */
+
+    maskCanvas.width =
+      imageWidth;
+
+    maskCanvas.height =
+      imageHeight;
+
+    maskCtx.clearRect(
+      0,
+      0,
+      imageWidth,
+      imageHeight
+    );
+
+
+    maskCtx.drawImage(
+      resultBitmap,
+      0,
+      0,
+      imageWidth,
+      imageHeight
+    );
+
+
+    /*
+    Resize result to our working dimensions
+    */
+
+    canvas.width = imageWidth;
+    canvas.height = imageHeight;
+
+
+    /*
+    Save AI result
+    */
+
+    saveHistory();
+
+
+    /*
+    Initial cleanup
+    */
+
+    setProgress(
+      88,
+      "Refining edges..."
+    );
+
+    cleanMask();
+
+
+    /*
+    Render
+    */
+
+    render();
+
+
+    setProgress(
+      100,
+      "Background removed successfully"
+    );
+
+
+    setTimeout(()=>{
+
+      status.classList.remove("on");
+
+      workspace.classList.add("on");
+
+      controls.classList.add("on");
+
+    },350);
+
+
+  }catch(error){
+
+    console.error(error);
+
+    status.classList.remove("on");
+
+    showError(
+      "Background removal failed. Please check your internet connection and try another image."
+    );
+
   }
 
-  drop.onclick=()=>fileInput.click();
-  drop.onkeydown=(e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); fileInput.click(); } };
-  fileInput.onchange=()=>handle(fileInput.files[0]);
-  ["dragenter","dragover"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("over");}));
-  ["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove("over");}));
-  drop.addEventListener("drop",e=>handle(e.dataTransfer.files[0]));
+}
 
-  $("download").onclick=()=>{
-    const a=document.createElement("a"); a.href=canvas.toDataURL("image/png"); a.download="background-removed.png"; a.click();
+
+/* ========================================================
+MASK CLEANUP
+======================================================== */
+
+function cleanMask(){
+
+  const imageData =
+    maskCtx.getImageData(
+      0,
+      0,
+      imageWidth,
+      imageHeight
+    );
+
+  const data = imageData.data;
+
+  /*
+  Remove very weak alpha pixels.
+  This greatly reduces grey halos.
+  */
+
+  for(let i=3;i<data.length;i+=4){
+
+    const a = data[i];
+
+    if(a < 18){
+
+      data[i] = 0;
+
+    }
+    else if(a < 45){
+
+      data[i] =
+        Math.round(
+          a * .35
+        );
+
+    }
+
+  }
+
+  maskCtx.putImageData(
+    imageData,
+    0,
+    0
+  );
+
+}
+
+
+/* ========================================================
+ADVANCED EDGE REFINEMENT
+======================================================== */
+
+function refineMask(){
+
+  const radius =
+    Number($("softness").value);
+
+  if(radius <= 0){
+    render();
+    return;
+  }
+
+  const w = imageWidth;
+  const h = imageHeight;
+
+  const input =
+    maskCtx.getImageData(
+      0,
+      0,
+      w,
+      h
+    );
+
+  const src = input.data;
+
+  const output =
+    new Uint8ClampedArray(
+      src.length
+    );
+
+  /*
+  Edge-aware local alpha smoothing.
+  */
+
+  for(let y=0;y<h;y++){
+
+    for(let x=0;x<w;x++){
+
+      const idx =
+        (y*w+x)*4;
+
+      let sum = 0;
+      let count = 0;
+
+      const r =
+        Math.min(
+          radius,
+          5
+        );
+
+      for(
+        let yy=-r;
+        yy<=r;
+        yy++
+      ){
+
+        const ny = y+yy;
+
+        if(ny<0 || ny>=h)
+          continue;
+
+        for(
+          let xx=-r;
+          xx<=r;
+          xx++
+        ){
+
+          const nx=x+xx;
+
+          if(nx<0 || nx>=w)
+            continue;
+
+          const ni =
+            (ny*w+nx)*4;
+
+          sum += src[ni+3];
+
+          count++;
+
+        }
+
+      }
+
+      output[idx] =
+        src[idx];
+
+      output[idx+1] =
+        src[idx+1];
+
+      output[idx+2] =
+        src[idx+2];
+
+      output[idx+3] =
+        Math.round(sum/count);
+
+    }
+
+  }
+
+
+  input.data.set(output);
+
+  maskCtx.putImageData(
+    input,
+    0,
+    0
+  );
+
+  cleanMask();
+
+  render();
+
+}
+
+
+/* ========================================================
+RENDER
+======================================================== */
+
+function render(){
+
+  if(!imageWidth)
+    return;
+
+  ctx.clearRect(
+    0,
+    0,
+    imageWidth,
+    imageHeight
+  );
+
+
+  /*
+  Background
+  */
+
+  if(
+    currentBackground !==
+    "transparent"
+  ){
+
+    ctx.fillStyle =
+      currentBackground;
+
+    ctx.fillRect(
+      0,
+      0,
+      imageWidth,
+      imageHeight
+    );
+
+  }
+
+
+  /*
+  Create clipped original image
+  */
+
+  const temp =
+    document.createElement("canvas");
+
+  temp.width = imageWidth;
+  temp.height = imageHeight;
+
+  const tctx =
+    temp.getContext("2d");
+
+  tctx.drawImage(
+    sourceCanvas,
+    0,
+    0
+  );
+
+
+  /*
+  Apply AI mask as alpha
+  */
+
+  const originalData =
+    tctx.getImageData(
+      0,
+      0,
+      imageWidth,
+      imageHeight
+    );
+
+  const maskData =
+    maskCtx.getImageData(
+      0,
+      0,
+      imageWidth,
+      imageHeight
+    );
+
+
+  for(
+    let i=0;
+    i<originalData.data.length;
+    i+=4
+  ){
+
+    originalData.data[i+3] =
+      maskData.data[i+3];
+
+  }
+
+
+  tctx.putImageData(
+    originalData,
+    0,
+    0
+  );
+
+
+  ctx.drawImage(
+    temp,
+    0,
+    0
+  );
+
+}
+
+
+/* ========================================================
+HISTORY
+======================================================== */
+
+function cloneMask(){
+
+  const c =
+    document.createElement("canvas");
+
+  c.width =
+    imageWidth;
+
+  c.height =
+    imageHeight;
+
+  c.getContext("2d")
+    .drawImage(
+      maskCanvas,
+      0,
+      0
+    );
+
+  return c;
+
+}
+
+
+function saveHistory(){
+
+  history.push(
+    cloneMask()
+  );
+
+  if(history.length > 20)
+    history.shift();
+
+}
+
+
+function restoreCanvas(c){
+
+  maskCtx.clearRect(
+    0,
+    0,
+    imageWidth,
+    imageHeight
+  );
+
+  maskCtx.drawImage(
+    c,
+    0,
+    0
+  );
+
+  render();
+
+}
+
+
+$("undoBtn").onclick=()=>{
+
+  if(history.length <= 1)
+    return;
+
+  const current =
+    history.pop();
+
+  redoStack.push(
+    current
+  );
+
+  restoreCanvas(
+    history[history.length-1]
+  );
+
+};
+
+
+$("redoBtn").onclick=()=>{
+
+  const next =
+    redoStack.pop();
+
+  if(!next)
+    return;
+
+  history.push(
+    next
+  );
+
+  restoreCanvas(next);
+
+};
+
+
+/* ========================================================
+BRUSH
+======================================================== */
+
+function setBrushMode(mode){
+
+  brushMode=mode;
+
+  $("restoreBtn")
+    .classList.toggle(
+      "active",
+      mode==="restore"
+    );
+
+  $("eraseBtn")
+    .classList.toggle(
+      "active",
+      mode==="erase"
+    );
+
+}
+
+
+$("restoreBtn").onclick=()=>{
+  setBrushMode("restore");
+};
+
+
+$("eraseBtn").onclick=()=>{
+  setBrushMode("erase");
+};
+
+
+/* ========================================================
+BRUSH POSITION
+======================================================== */
+
+function getCanvasPosition(e){
+
+  const rect =
+    canvas.getBoundingClientRect();
+
+  const scaleX =
+    imageWidth /
+    rect.width;
+
+  const scaleY =
+    imageHeight /
+    rect.height;
+
+  return {
+
+    x:
+      (e.clientX -
+      rect.left) *
+      scaleX,
+
+    y:
+      (e.clientY -
+      rect.top) *
+      scaleY
+
   };
-  $("reset").onclick=()=>{ hasImage=false; stage.classList.remove("on"); controls.classList.remove("on"); fileInput.value=""; };
+
+}
+
+
+/* ========================================================
+SOFT BRUSH
+======================================================== */
+
+function paint(x,y,radius){
+
+  maskCtx.save();
+
+  /*
+  Soft radial brush
+  */
+
+  const gradient =
+    maskCtx.createRadialGradient(
+      x,
+      y,
+      radius*.15,
+      x,
+      y,
+      radius
+    );
+
+
+  if(
+    brushMode ===
+    "erase"
+  ){
+
+    /*
+    Erase = reduce alpha
+    */
+
+    maskCtx.globalCompositeOperation =
+      "destination-out";
+
+    gradient.addColorStop(
+      0,
+      "rgba(0,0,0,1)"
+    );
+
+    gradient.addColorStop(
+      .65,
+      "rgba(0,0,0,.65)"
+    );
+
+    gradient.addColorStop(
+      1,
+      "rgba(0,0,0,0)"
+    );
+
+  }else{
+
+    /*
+    Restore = paint alpha.
+    */
+
+    maskCtx.globalCompositeOperation =
+      "source-over";
+
+    gradient.addColorStop(
+      0,
+      "rgba(255,255,255,1)"
+    );
+
+    gradient.addColorStop(
+      .65,
+      "rgba(255,255,255,.75)"
+    );
+
+    gradient.addColorStop(
+      1,
+      "rgba(255,255,255,0)"
+    );
+
+  }
+
+
+  maskCtx.fillStyle =
+    gradient;
+
+  maskCtx.beginPath();
+
+  maskCtx.arc(
+    x,
+    y,
+    radius,
+    0,
+    Math.PI*2
+  );
+
+  maskCtx.fill();
+
+  maskCtx.restore();
+
+}
+
+
+/* ========================================================
+PAINTING
+======================================================== */
+
+canvas.addEventListener(
+  "pointerdown",
+  e=>{
+
+    if(!imageWidth)
+      return;
+
+    e.preventDefault();
+
+    painting=true;
+
+    canvas.setPointerCapture(
+      e.pointerId
+    );
+
+    saveHistory();
+
+    redoStack.length=0;
+
+    const p =
+      getCanvasPosition(e);
+
+    lastPoint=p;
+
+    const size =
+      Number(
+        $("brushSize").value
+      );
+
+    paint(
+      p.x,
+      p.y,
+      size/2
+    );
+
+    render();
+
+  }
+);
+
+
+canvas.addEventListener(
+  "pointermove",
+  e=>{
+
+    if(!painting)
+      return;
+
+    e.preventDefault();
+
+    const p =
+      getCanvasPosition(e);
+
+    const size =
+      Number(
+        $("brushSize").value
+      );
+
+    const radius =
+      size/2;
+
+    const dx =
+      p.x-lastPoint.x;
+
+    const dy =
+      p.y-lastPoint.y;
+
+    const distance =
+      Math.hypot(dx,dy);
+
+    const step =
+      Math.max(
+        radius*.25,
+        1
+      );
+
+
+    for(
+      let d=step;
+      d<=distance;
+      d+=step
+    ){
+
+      const x =
+        lastPoint.x +
+        dx*(d/distance);
+
+      const y =
+        lastPoint.y +
+        dy*(d/distance);
+
+      paint(
+        x,
+        y,
+        radius
+      );
+
+    }
+
+
+    paint(
+      p.x,
+      p.y,
+      radius
+    );
+
+
+    lastPoint=p;
+
+    render();
+
+  }
+);
+
+
+function stopPainting(){
+
+  painting=false;
+
+  lastPoint=null;
+
+}
+
+
+canvas.addEventListener(
+  "pointerup",
+  stopPainting
+);
+
+canvas.addEventListener(
+  "pointercancel",
+  stopPainting
+);
+
+canvas.addEventListener(
+  "pointerleave",
+  e=>{
+
+    if(
+      painting &&
+      e.buttons===0
+    ){
+      stopPainting();
+    }
+
+  }
+);
+
+
+/* ========================================================
+BRUSH SIZE
+======================================================== */
+
+$("brushSize").oninput=()=>{
+
+  $("brushValue").textContent =
+    $("brushSize").value +
+    " px";
+
+};
+
+
+/* ========================================================
+EDGE SOFTNESS
+======================================================== */
+
+$("softness").oninput=()=>{
+
+  $("softnessValue").textContent =
+    $("softness").value;
+
+};
+
+
+$("refineBtn").onclick=()=>{
+
+  const btn =
+    $("refineBtn");
+
+  btn.disabled=true;
+
+  btn.textContent =
+    "Refining...";
+
+  setTimeout(()=>{
+
+    saveHistory();
+
+    refineMask();
+
+    btn.disabled=false;
+
+    btn.textContent =
+      "Refine Mask";
+
+  },30);
+
+};
+
+
+/* ========================================================
+BACKGROUND
+======================================================== */
+
+document
+.querySelectorAll(".color")
+.forEach(button=>{
+
+  button.addEventListener(
+    "click",
+    ()=>{
+
+      document
+      .querySelectorAll(".color")
+      .forEach(x=>
+        x.classList.remove("active")
+      );
+
+      button.classList.add("active");
+
+      currentBackground =
+        button.dataset.color;
+
+      render();
+
+    }
+  );
+
+});
+
+
+$("customColor").oninput=()=>{
+
+  document
+  .querySelectorAll(".color")
+  .forEach(x=>
+    x.classList.remove("active")
+  );
+
+  currentBackground =
+    $("customColor").value;
+
+  render();
+
+};
+
+
+/* ========================================================
+ZOOM
+======================================================== */
+
+function updateZoom(){
+
+  canvas.style.width =
+    (imageWidth*zoom) +
+    "px";
+
+  canvas.style.height =
+    (imageHeight*zoom) +
+    "px";
+
+  $("zoomText").textContent =
+    Math.round(zoom*100) +
+    "%";
+
+}
+
+
+$("zoomIn").onclick=()=>{
+
+  zoom=Math.min(
+    3,
+    zoom+.25
+  );
+
+  updateZoom();
+
+};
+
+
+$("zoomOut").onclick=()=>{
+
+  zoom=Math.max(
+    .25,
+    zoom-.25
+  );
+
+  updateZoom();
+
+};
+
+
+$("zoomReset").onclick=()=>{
+
+  zoom=1;
+
+  updateZoom();
+
+};
+
+
+/* ========================================================
+DOWNLOAD PNG
+======================================================== */
+
+$("download").onclick=()=>{
+
+  render();
+
+  canvas.toBlob(
+    blob=>{
+
+      const url =
+        URL.createObjectURL(blob);
+
+      const a =
+        document.createElement("a");
+
+      a.href=url;
+
+      a.download =
+        "SHM-background-removed.png";
+
+      a.click();
+
+      setTimeout(
+        ()=>URL.revokeObjectURL(url),
+        1000
+      );
+
+    },
+    "image/png"
+  );
+
+};
+
+
+/* ========================================================
+DOWNLOAD JPG
+======================================================== */
+
+$("downloadJpg").onclick=()=>{
+
+  const jpg =
+    document.createElement("canvas");
+
+  jpg.width =
+    imageWidth;
+
+  jpg.height =
+    imageHeight;
+
+  const jctx =
+    jpg.getContext("2d");
+
+  jctx.fillStyle =
+    currentBackground ===
+    "transparent"
+      ? "#ffffff"
+      : currentBackground;
+
+  jctx.fillRect(
+    0,
+    0,
+    imageWidth,
+    imageHeight
+  );
+
+  jctx.drawImage(
+    canvas,
+    0,
+    0
+  );
+
+
+  jpg.toBlob(
+    blob=>{
+
+      const url =
+        URL.createObjectURL(blob);
+
+      const a =
+        document.createElement("a");
+
+      a.href=url;
+
+      a.download =
+        "SHM-background-removed.jpg";
+
+      a.click();
+
+      setTimeout(
+        ()=>URL.revokeObjectURL(url),
+        1000
+      );
+
+    },
+    "image/jpeg",
+    .95
+  );
+
+};
+
+
+/* ========================================================
+NEW IMAGE
+======================================================== */
+
+$("newImage").onclick=()=>{
+
+  workspace.classList.remove("on");
+
+  controls.classList.remove("on");
+
+  status.classList.remove("on");
+
+  fileInput.value="";
+
+  history.length=0;
+
+  redoStack.length=0;
+
+  currentBackground =
+    "transparent";
+
+  zoom=1;
+
+};
+
+
+/* ========================================================
+KEYBOARD SHORTCUTS
+======================================================== */
+
+document.addEventListener(
+  "keydown",
+  e=>{
+
+    if(
+      e.ctrlKey &&
+      e.key.toLowerCase()==="z"
+    ){
+
+      e.preventDefault();
+
+      $("undoBtn").click();
+
+    }
+
+    if(
+      e.ctrlKey &&
+      e.key.toLowerCase()==="y"
+    ){
+
+      e.preventDefault();
+
+      $("redoBtn").click();
+
+    }
+
+  }
+);
+
 </script>
+
 </body>
 </html>
