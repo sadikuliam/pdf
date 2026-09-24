@@ -869,7 +869,7 @@ async function processFile(file){
 
 
     /*
-    AI BACKGROUND REMOVAL
+    AI BACKGROUND REMOVAL (Updated to 'medium' model for precise clothing/subject detection)
     */
 
     setProgress(
@@ -881,7 +881,7 @@ async function processFile(file){
     const resultBlob =
       await removeBackground(file,{
 
-        model:"medium", // 'isnet'-এর বদলে 'medium' মডেল ব্যবহার করা হলো
+        model:"medium", // 'medium' মডেল কাপড়ের প্যাটার্ন ও শোল্ডার নিখুঁতভাবে কাটতে সাহায্য করবে
 
         output:{
           format:"image/png",
