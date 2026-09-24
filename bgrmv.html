@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SHM Pro Free AI Background Remover</title>
+<title>SHM Pro AI Background Remover & Editor</title>
 <style>
 :root{
   --bg:#eef2f7;
@@ -41,25 +41,29 @@ h1{ margin:0; font-size:clamp(26px,4vw,42px); letter-spacing:-1px; }
 .preview-grid{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
 @media(max-width:750px){ .preview-grid{ grid-template-columns:1fr; } }
 .preview-card{ border:1px solid var(--line); border-radius:14px; overflow:hidden; background:#fff; }
-.preview-title{ padding:11px 14px; font-weight:700; border-bottom:1px solid var(--line); }
+.preview-title{ padding:11px 14px; font-weight:700; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; }
 .preview-area{
-  position:relative; min-height:300px; overflow:auto; background:#fff;
+  position:relative; min-height:350px; max-height:500px; overflow:auto; background:#fff;
   background-image:linear-gradient(45deg,#ddd 25%,transparent 25%), linear-gradient(-45deg,#ddd 25%,transparent 25%), linear-gradient(45deg,transparent 75%,#ddd 75%), linear-gradient(-45deg,transparent 75%,#ddd 75%);
   background-size:24px 24px; background-position:0 0,0 12px,12px -12px,-12px 0;
 }
-.preview-area img, .preview-area canvas{ display:block; width:100%; height:auto; }
+.preview-area img, .preview-area canvas{ display:block; width:100%; height:auto; transform-origin: top left; }
+#canvas{ touch-action:none; }
 .controls{ margin-top:22px; }
 .control-section{ border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:14px; }
 .control-section h3{ margin:0 0 12px; font-size:16px; }
 .row{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
-button{ font:inherit; }
-button.main{ border:0; border-radius:9px; padding:11px 18px; background:var(--accent); color:#fff; cursor:pointer; font-weight:700; }
-button.secondary{ border:1px solid var(--line); border-radius:9px; padding:10px 16px; background:#fff; cursor:pointer; }
+button{ font:inherit; cursor:pointer; }
+button.main{ border:0; border-radius:9px; padding:11px 18px; background:var(--accent); color:#fff; font-weight:700; }
+button.secondary{ border:1px solid var(--line); border-radius:9px; padding:10px 16px; background:#fff; }
+button.secondary.active{ background:var(--accent); color:#fff; border-color:var(--accent); }
+button.danger{ border:1px solid #ffcaca; color:#c62828; background:#fff; border-radius:9px; padding:10px 16px; }
 .color-list{ display:flex; flex-wrap:wrap; gap:9px; align-items:center; }
 .color{ width:38px; height:38px; border-radius:50%; border:2px solid #d0d8e0; cursor:pointer; }
 .color.active{ outline:3px solid var(--accent); outline-offset:2px; }
 .transparent{ background:linear-gradient(45deg,#ccc 25%,transparent 25%), linear-gradient(-45deg,#ccc 25%,transparent 25%), linear-gradient(45deg,transparent 75%,#ccc 75%), linear-gradient(-45deg,transparent 75%,#ccc 75%); background-size:12px 12px; }
 input[type=color]{ width:42px; height:38px; padding:0; border:1px solid var(--line); border-radius:8px; cursor:pointer; }
+.zoom-info{ font-weight:600; color:var(--muted); }
 </style>
 
 <!-- MediaPipe Selfie Segmentation Scripts -->
@@ -69,8 +73,8 @@ input[type=color]{ width:42px; height:38px; padding:0; border:1px solid var(--li
 <body>
 
 <main>
-  <h1>SHM Pro Free AI Background Remover</h1>
-  <p class="subtitle">Powered by Google MediaPipe AI with Fixed Color Controls & Sharp Edges.</p>
+  <h1>SHM Pro AI Background Remover & Editor</h1>
+  <p class="subtitle">MediaPipe AI + Erase Brush + Zoom & Custom Background Colors.</p>
 
   <div class="panel">
     <div class="drop" id="drop">
@@ -87,12 +91,34 @@ input[type=color]{ width:42px; height:38px; padding:0; border:1px solid var(--li
           <div class="preview-area"><img id="original"></div>
         </div>
         <div class="preview-card">
-          <div class="preview-title">Background Removed / Edited</div>
-          <div class="preview-area"><canvas id="canvas"></canvas></div>
+          <div class="preview-title">
+            <span>Background Removed / Edited</span>
+            <div class="row" style="gap:5px;">
+              <button class="secondary active" id="modeErase" title="Erase Brush Mode">🧹 Erase</button>
+              <button class="secondary" id="modeMove" title="Pan / Move Mode">✋ Move</button>
+            </div>
+          </div>
+          <div class="preview-area" id="resultArea">
+            <canvas id="canvas"></canvas>
+          </div>
         </div>
       </div>
 
       <div class="controls">
+        <!-- EDIT TOOLS -->
+        <div class="control-section">
+          <h3>🛠 Manual Touch-up & Zoom</h3>
+          <div class="row">
+            <label>Eraser Size: <input type="range" id="brushSize" min="5" max="100" value="30"></label>
+            <span id="brushVal">30px</span>
+            <button class="secondary" id="zoomOut">🔍 −</button>
+            <span class="zoom-info" id="zoomText">100%</span>
+            <button class="secondary" id="zoomIn">🔍 +</button>
+            <button class="secondary" id="zoomReset">Reset Zoom</button>
+          </div>
+        </div>
+
+        <!-- BACKGROUND -->
         <div class="control-section">
           <h3>🎨 Background Color Options</h3>
           <div class="color-list" id="colors">
@@ -107,10 +133,12 @@ input[type=color]{ width:42px; height:38px; padding:0; border:1px solid var(--li
             <input type="color" id="customColor" value="#1769ff" title="Custom Color Picker">
           </div>
         </div>
+
+        <!-- DOWNLOAD -->
         <div class="control-section">
           <div class="row">
             <button class="main" id="download">⬇ Download PNG</button>
-            <button class="secondary" id="newImage">New Image</button>
+            <button class="danger" id="newImage">New Image</button>
           </div>
         </div>
       </div>
@@ -124,6 +152,8 @@ const drop = $("drop"), fileInput = $("file"), statusBox = $("status"), workspac
 const originalImg = $("original"), canvas = $("canvas"), ctx = canvas.getContext("2d");
 
 let currentBg = "transparent", lastResults = null;
+let zoom = 1, isEraserMode = true, isPainting = false;
+let brushSize = 30;
 
 drop.onclick = () => fileInput.click();
 fileInput.onchange = e => handleImage(e.target.files[0]);
@@ -145,23 +175,22 @@ selfieSegmentation.onResults(results => {
 
 function renderCanvas() {
   if (!lastResults) return;
-
   const w = lastResults.image.width;
   const h = lastResults.image.height;
 
-  canvas.width = w;
-  canvas.height = h;
+  if (canvas.width !== w || canvas.height !== h) {
+    canvas.width = w;
+    canvas.height = h;
+  }
 
   ctx.save();
   ctx.clearRect(0, 0, w, h);
 
-  // 1. Draw background color if not transparent
   if (currentBg !== "transparent") {
     ctx.fillStyle = currentBg;
     ctx.fillRect(0, 0, w, h);
   }
 
-  // 2. Create person cutout using mask
   const personCanvas = document.createElement("canvas");
   personCanvas.width = w;
   personCanvas.height = h;
@@ -171,7 +200,6 @@ function renderCanvas() {
   pCtx.globalCompositeOperation = 'destination-in';
   pCtx.drawImage(lastResults.segmentationMask, 0, 0, w, h);
 
-  // 3. Draw cutout person onto main canvas
   ctx.drawImage(personCanvas, 0, 0, w, h);
   ctx.restore();
 }
@@ -186,11 +214,73 @@ async function handleImage(file) {
   img.src = originalImg.src;
 
   img.onload = async () => {
+    zoom = 1;
+    updateZoomDisplay();
     await selfieSegmentation.send({ image: img });
   };
 }
 
-// Color selection handlers
+// Eraser & Painting functionality for zoomed in touch-ups
+canvas.onpointerdown = e => {
+  if (!isEraserMode) return;
+  isPainting = true;
+  eraseAtEvent(e);
+};
+
+canvas.onpointermove = e => {
+  if (!isPainting || !isEraserMode) return;
+  eraseAtEvent(e);
+};
+
+window.onpointerup = () => { isPainting = false; };
+
+function eraseAtEvent(e) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const x = (e.clientX - rect.left) * scaleX;
+  const y = (e.clientY - rect.top) * scaleY;
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.beginPath();
+  ctx.arc(x, y, (brushSize * scaleX) / 2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+// Mode switch
+$("modeErase").onclick = () => {
+  isEraserMode = true;
+  $("modeErase").classList.add("active");
+  $("modeMove").classList.remove("active");
+  canvas.style.cursor = "crosshair";
+};
+
+$("modeMove").onclick = () => {
+  isEraserMode = false;
+  $("modeMove").classList.add("active");
+  $("modeErase").classList.remove("active");
+  canvas.style.cursor = "grab";
+};
+
+// Brush size change
+$("brushSize").oninput = e => {
+  brushSize = e.target.value;
+  $("brushVal").textContent = brushSize + "px";
+};
+
+// Zoom controls
+function updateZoomDisplay() {
+  canvas.style.width = (zoom * 100) + "%";
+  $("zoomText").textContent = Math.round(zoom * 100) + "%";
+}
+
+$("zoomIn").onclick = () => { zoom = Math.min(zoom + 0.25, 4); updateZoomDisplay(); };
+$("zoomOut").onclick = () => { zoom = Math.max(zoom - 0.25, 0.5); updateZoomDisplay(); };
+$("zoomReset").onclick = () => { zoom = 1; updateZoomDisplay(); };
+
+// Colors
 document.querySelectorAll(".color").forEach(btn => {
   btn.onclick = () => {
     document.querySelectorAll(".color").forEach(b => b.classList.remove("active"));
@@ -200,7 +290,7 @@ document.querySelectorAll(".color").forEach(btn => {
   };
 });
 
-$("customColor").oninput = (e) => {
+$("customColor").oninput = e => {
   document.querySelectorAll(".color").forEach(b => b.classList.remove("active"));
   currentBg = e.target.value;
   renderCanvas();
@@ -211,7 +301,7 @@ $("download").onclick = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "SHM-Pro-Background-Removed.png";
+    a.download = "SHM-Pro-Edited.png";
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }, "image/png");
