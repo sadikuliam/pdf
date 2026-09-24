@@ -881,7 +881,7 @@ async function processFile(file){
     const resultBlob =
       await removeBackground(file,{
 
-        model:"isnet",
+        model:"medium", // 'isnet'-এর বদলে 'medium' মডেল ব্যবহার করা হলো
 
         output:{
           format:"image/png",
