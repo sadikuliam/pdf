@@ -54,7 +54,7 @@ h1{ margin:0; font-size:clamp(26px,4vw,42px); letter-spacing:-1px; }
   transform-origin: top left;
   cursor: none;
 }
-#canvas{ display:block; touch-action:none; }
+#canvas{ display:block; max-width:100%; height:auto; touch-action:none; }
 
 /* Mouse Follower Eraser Box */
 #cursorBox {
@@ -94,7 +94,7 @@ input[type=color]{ width:42px; height:38px; padding:0; border:1px solid var(--li
 
 <main>
   <h1>SHM Pro AI Background Remover & Editor</h1>
-  <p class="subtitle">MS Paint style Square Eraser Cursor + Move/Pan + Undo & Zoom.</p>
+  <p class="subtitle">Fixed Zoom System + Square Eraser Cursor + Move/Pan + Undo.</p>
 
   <div class="panel">
     <div class="drop" id="drop">
@@ -176,7 +176,7 @@ const originalImg = $("original"), canvas = $("canvas"), ctx = canvas.getContext
 const container = $("container"), cursorBox = $("cursorBox"), resultArea = $("resultArea");
 
 let currentBg = "transparent", lastResults = null;
-let zoom = 1, isEraserMode = true, eraserSize = 30;
+let baseWidth = 0, zoom = 1, isEraserMode = true, eraserSize = 30;
 let historyStates = [];
 let isDragging = false, dragStartX = 0, dragStartY = 0, isEraseActive = false;
 
@@ -195,6 +195,15 @@ selfieSegmentation.onResults(results => {
   lastResults = results;
   statusBox.classList.remove("on");
   workspace.classList.add("on");
+  
+  baseWidth = lastResults.image.width;
+  const h = lastResults.image.height;
+
+  canvas.width = baseWidth;
+  canvas.height = h;
+
+  zoom = 1;
+  updateZoomDisplay();
   renderCanvas();
   saveHistory();
 });
@@ -203,11 +212,6 @@ function renderCanvas() {
   if (!lastResults) return;
   const w = lastResults.image.width;
   const h = lastResults.image.height;
-
-  if (canvas.width !== w || canvas.height !== h) {
-    canvas.width = w;
-    canvas.height = h;
-  }
 
   ctx.save();
   ctx.clearRect(0, 0, w, h);
@@ -263,8 +267,6 @@ async function handleImage(file) {
   img.src = originalImg.src;
 
   img.onload = async () => {
-    zoom = 1;
-    updateZoomDisplay();
     historyStates = [];
     await selfieSegmentation.send({ image: img });
   };
@@ -366,9 +368,11 @@ $("modeMove").onclick = () => {
   cursorBox.style.display = 'none';
 };
 
-// Zoom controls
+// Zoom controls (Fixed)
 function updateZoomDisplay() {
-  container.style.width = (zoom * 100) + "%";
+  if(baseWidth > 0) {
+    container.style.width = (baseWidth * zoom) + "px";
+  }
   $("zoomText").textContent = Math.round(zoom * 100) + "%";
 }
 
