@@ -56,13 +56,14 @@ h1{ margin:0; font-size:clamp(26px,4vw,42px); letter-spacing:-1px; }
 }
 #canvas{ display:block; max-width:100%; height:auto; touch-action:none; }
 
-/* Mouse Follower Eraser Box */
+/* Round Mouse Follower Eraser Cursor */
 #cursorBox {
   position: absolute;
   width: 30px;
   height: 30px;
   border: 2px solid #000;
   background: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
   pointer-events: none;
   display: none;
   transform: translate(-50%, -50%);
@@ -94,7 +95,7 @@ input[type=color]{ width:42px; height:38px; padding:0; border:1px solid var(--li
 
 <main>
   <h1>SHM Pro AI Background Remover & Editor</h1>
-  <p class="subtitle">Fixed Zoom System + Square Eraser Cursor + Move/Pan + Undo.</p>
+  <p class="subtitle">Round Eraser Cursor + Actual Size (100%) Default Zoom + Move & Undo.</p>
 
   <div class="panel">
     <div class="drop" id="drop">
@@ -114,7 +115,7 @@ input[type=color]{ width:42px; height:38px; padding:0; border:1px solid var(--li
           <div class="preview-title">
             <span>Background Removed / Edited</span>
             <div class="row" style="gap:5px;">
-              <button class="secondary active" id="modeErase" title="Square Erase Mode">🔲 Square Erase</button>
+              <button class="secondary active" id="modeErase" title="Round Erase Mode">⚪ Round Erase</button>
               <button class="secondary" id="modeMove" title="Pan / Move Mode">✋ Move</button>
             </div>
           </div>
@@ -202,7 +203,7 @@ selfieSegmentation.onResults(results => {
   canvas.width = baseWidth;
   canvas.height = h;
 
-  zoom = 1;
+  zoom = 1; // Default Actual Size (100%)
   updateZoomDisplay();
   renderCanvas();
   saveHistory();
@@ -272,7 +273,7 @@ async function handleImage(file) {
   };
 }
 
-// Cursor and Erase interactions
+// Cursor and Erase interactions (Round Eraser)
 container.onpointerenter = () => {
   if (isEraserMode) cursorBox.style.display = 'block';
 };
@@ -335,12 +336,13 @@ function eraseAt(x, y, rect) {
 
   const canvasX = x * scaleX;
   const canvasY = y * scaleY;
-  const sizeX = eraserSize * scaleX;
-  const sizeY = eraserSize * scaleY;
+  const radius = (eraserSize / 2) * scaleX;
 
   ctx.save();
   ctx.globalCompositeOperation = 'destination-out';
-  ctx.fillRect(canvasX - sizeX / 2, canvasY - sizeY / 2, sizeX, sizeY);
+  ctx.beginPath();
+  ctx.arc(canvasX, canvasY, radius, 0, Math.PI * 2);
+  ctx.fill();
   ctx.restore();
 }
 
@@ -368,7 +370,7 @@ $("modeMove").onclick = () => {
   cursorBox.style.display = 'none';
 };
 
-// Zoom controls (Fixed)
+// Zoom controls
 function updateZoomDisplay() {
   if(baseWidth > 0) {
     container.style.width = (baseWidth * zoom) + "px";
