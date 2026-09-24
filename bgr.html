@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Background Remover</title>
+<style>
+  :root {
+    --bg: #f3f5f7; --panel: #ffffff; --ink: #14202b; --muted: #5c6b78;
+    --line: #d5dce2; --accent: #1f6feb; --accent-ink: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0f1418; --panel: #182028; --ink: #e8eef3; --muted: #93a2af; --line: #2a3641; --accent: #4c94ff; --accent-ink: #06121f; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 "Trebuchet MS", "Segoe UI", system-ui, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 32px 16px 56px; }
+  h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); margin: 0 0 6px; letter-spacing: -0.02em; }
+  .sub { color: var(--muted); margin: 0 0 24px; max-width: 60ch; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; }
+  .drop { border: 2px dashed var(--line); border-radius: 10px; padding: 36px 16px; text-align: center; cursor: pointer; color: var(--muted); }
+  .drop:hover, .drop.over, .drop:focus-visible { border-color: var(--accent); color: var(--ink); outline: none; }
+  .stage { display: none; margin-top: 18px; gap: 18px; grid-template-columns: 1fr 1fr; }
+  .stage.on { display: grid; }
+  @media (max-width: 720px) { .stage.on { grid-template-columns: 1fr; } }
+  .box { position: relative; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; min-height: 200px;
+         background-color: #fff;
+         background-image: linear-gradient(45deg,#ddd 25%,transparent 25%,transparent 75%,#ddd 75%),
+                           linear-gradient(45deg,#ddd 25%,transparent 25%,transparent 75%,#ddd 75%);
+         background-size: 20px 20px; background-position: 0 0, 10px 10px; }
+  .box img, .box canvas { display: block; width: 100%; height: auto; }
+  .cap { font-size: .85rem; color: var(--muted); margin: 8px 0 0; }
+  .status { margin-top: 16px; display: none; }
+  .status.on { display: block; }
+  .bar { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; margin-top: 8px; }
+  .bar span { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+  .controls { display: none; margin-top: 18px; }
+  .controls.on { display: block; }
+  .swatches { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 10px 0 16px; }
+  .sw { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--line); cursor: pointer; padding: 0; }
+  .sw[aria-pressed="true"] { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .sw.none { background: conic-gradient(#ccc 25%, #fff 0 50%, #ccc 0 75%, #fff 0); }
+  input[type=color] { width: 46px; height: 38px; padding: 0; border: 1px solid var(--line); border-radius: 6px; background: none; cursor: pointer; }
+  button.main { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 8px; padding: 11px 20px; font: inherit; font-weight: 600; cursor: pointer; }
+  button.main:focus-visible, .sw:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  button.ghost { background: none; color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 10px 16px; font: inherit; cursor: pointer; margin-left: 8px; }
+  .err { color: #d23b3b; margin-top: 12px; display: none; }
+</style>
+</head>
+<body>
+<main>
+  <h1>AI background remover</h1>
+  <p class="sub">Upload a photo. The AI cuts out the subject in your browser, then you choose any background color and download the result. Images never leave your device.</p>
+
+  <div class="panel">
+    <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose an image">
+      <strong>Click to choose an image</strong> or drag it here<br>
+      <small>JPG, PNG or WebP</small>
+    </div>
+    <input type="file" id="file" accept="image/*" hidden>
+
+    <div class="status" id="status" aria-live="polite">
+      <span id="statusText">Loading AI model…</span>
+      <div class="bar"><span id="barFill"></span></div>
+    </div>
+    <div class="err" id="err"></div>
+
+    <div class="stage" id="stage">
+      <div><div class="box"><img id="orig" alt="Original image"></div><p class="cap">Original</p></div>
+      <div><div class="box" id="resultBox"><canvas id="canvas"></canvas></div><p class="cap">Background removed</p></div>
+    </div>
+
+    <div class="controls" id="controls">
+      <strong>Background color</strong>
+      <div class="swatches" id="swatches"></div>
+      <button class="main" id="download">Download PNG</button>
+      <button class="ghost" id="reset">New image</button>
+    </div>
+  </div>
+</main>
+
+<script type="module">
+  // AI model runs fully in the browser (WebAssembly / ONNX). First run downloads the model (~40-80 MB), then it is cached.
+  import { removeBackground } from "https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.5.5/+esm";
+
+  const $ = (id) => document.getElementById(id);
+  const drop = $("drop"), fileInput = $("file"), stage = $("stage"), controls = $("controls");
+  const status = $("status"), statusText = $("statusText"), barFill = $("barFill"), err = $("err");
+  const canvas = $("canvas"), ctx = canvas.getContext("2d"), resultBox = $("resultBox");
+
+  const COLORS = ["#ffffff", "#000000", "#e63946", "#f4a261", "#ffd60a", "#2a9d8f", "#1f6feb", "#8338ec", "#ff5fa2"];
+  let cutout = null;       // ImageBitmap of the subject with transparent background
+  let bgColor = "transparent";
+
+  // ----- Build color swatches -----
+  const swWrap = $("swatches");
+  function addSwatch(color, label, cls = "") {
+    const b = document.createElement("button");
+    b.className = "sw " + cls; b.type = "button"; b.title = label; b.setAttribute("aria-label", label);
+    if (color !== "transparent") b.style.background = color;
+    b.dataset.color = color; b.setAttribute("aria-pressed", "false");
+    b.onclick = () => setColor(color);
+    swWrap.appendChild(b);
+  }
+  addSwatch("transparent", "Transparent", "none");
+  COLORS.forEach((c) => addSwatch(c, c));
+  const picker = document.createElement("input");
+  picker.type = "color"; picker.value = "#1f6feb"; picker.title = "Custom color"; picker.setAttribute("aria-label", "Custom color");
+  picker.oninput = () => setColor(picker.value);
+  swWrap.appendChild(picker);
+
+  function setColor(c) {
+    bgColor = c;
+    swWrap.querySelectorAll(".sw").forEach((s) => s.setAttribute("aria-pressed", s.dataset.color === c ? "true" : "false"));
+    render();
+  }
+
+  // ----- Draw color + cutout -----
+  function render() {
+    if (!cutout) return;
+    canvas.width = cutout.width; canvas.height = cutout.height;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (bgColor !== "transparent") { ctx.fillStyle = bgColor; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+    ctx.drawImage(cutout, 0, 0);
+    resultBox.style.backgroundImage = bgColor === "transparent" ? "" : "none";
+  }
+
+  // ----- Handle file -----
+  async function handle(file) {
+    if (!file || !file.type.startsWith("image/")) return;
+    err.style.display = "none"; controls.classList.remove("on");
+    $("orig").src = URL.createObjectURL(file);
+    stage.classList.add("on"); status.classList.add("on");
+    statusText.textContent = "Loading AI model…"; barFill.style.width = "0";
+    try {
+      const blob = await removeBackground(file, {
+        progress: (key, current, total) => {
+          statusText.textContent = key.startsWith("compute") ? "Removing background…" : "Downloading AI model…";
+          if (total) barFill.style.width = Math.round((current / total) * 100) + "%";
+        },
+      });
+      cutout = await createImageBitmap(blob);
+      status.classList.remove("on"); controls.classList.add("on");
+      setColor(bgColor);
+    } catch (e) {
+      console.error(e);
+      status.classList.remove("on");
+      err.textContent = "Could not remove the background. Check your connection and try a different image.";
+      err.style.display = "block";
+    }
+  }
+
+  drop.onclick = () => fileInput.click();
+  drop.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileInput.click(); } };
+  fileInput.onchange = () => handle(fileInput.files[0]);
+  ["dragenter", "dragover"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+  ["dragleave", "drop"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
+  drop.addEventListener("drop", (e) => handle(e.dataTransfer.files[0]));
+
+  $("download").onclick = () => {
+    const a = document.createElement("a");
+    a.href = canvas.toDataURL("image/png"); a.download = "background-removed.png"; a.click();
+  };
+  $("reset").onclick = () => { cutout = null; stage.classList.remove("on"); controls.classList.remove("on"); fileInput.value = ""; };
+</script>
+</body>
+</html>
