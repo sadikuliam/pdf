@@ -43,12 +43,25 @@ h1{ margin:0; font-size:clamp(26px,4vw,42px); letter-spacing:-1px; }
 .preview-card{ border:1px solid var(--line); border-radius:14px; overflow:hidden; background:#fff; }
 .preview-title{ padding:11px 14px; font-weight:700; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; }
 .preview-area{
-  position:relative; min-height:350px; max-height:500px; overflow:auto; background:#fff;
+  position:relative; min-height:380px; max-height:500px; overflow:auto; background:#fff;
   background-image:linear-gradient(45deg,#ddd 25%,transparent 25%), linear-gradient(-45deg,#ddd 25%,transparent 25%), linear-gradient(45deg,transparent 75%,#ddd 75%), linear-gradient(-45deg,transparent 75%,#ddd 75%);
   background-size:24px 24px; background-position:0 0,0 12px,12px -12px,-12px 0;
 }
-.preview-area img, .preview-area canvas{ display:block; width:100%; height:auto; transform-origin: top left; }
-#canvas{ touch-action:none; }
+.preview-area img{ display:block; width:100%; height:auto; }
+.canvas-container {
+  position: relative;
+  display: inline-block;
+  transform-origin: top left;
+}
+#canvas{ display:block; touch-action:none; }
+#selectionBox {
+  position: absolute;
+  border: 2px dashed var(--danger);
+  background: rgba(229, 57, 53, 0.15);
+  display: none;
+  pointer-events: none;
+  z-index: 10;
+}
 .controls{ margin-top:22px; }
 .control-section{ border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:14px; }
 .control-section h3{ margin:0 0 12px; font-size:16px; }
@@ -74,7 +87,7 @@ input[type=color]{ width:42px; height:38px; padding:0; border:1px solid var(--li
 
 <main>
   <h1>SHM Pro AI Background Remover & Editor</h1>
-  <p class="subtitle">MediaPipe AI + Erase Brush + Zoom & Custom Background Colors.</p>
+  <p class="subtitle">Square Erase Tool + Move/Pan + Undo & Zoom Support.</p>
 
   <div class="panel">
     <div class="drop" id="drop">
@@ -94,12 +107,15 @@ input[type=color]{ width:42px; height:38px; padding:0; border:1px solid var(--li
           <div class="preview-title">
             <span>Background Removed / Edited</span>
             <div class="row" style="gap:5px;">
-              <button class="secondary active" id="modeErase" title="Erase Brush Mode">🧹 Erase</button>
+              <button class="secondary active" id="modeErase" title="Square Erase Mode">🔲 Square Erase</button>
               <button class="secondary" id="modeMove" title="Pan / Move Mode">✋ Move</button>
             </div>
           </div>
           <div class="preview-area" id="resultArea">
-            <canvas id="canvas"></canvas>
+            <div class="canvas-container" id="container">
+              <canvas id="canvas"></canvas>
+              <div id="selectionBox"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -107,10 +123,9 @@ input[type=color]{ width:42px; height:38px; padding:0; border:1px solid var(--li
       <div class="controls">
         <!-- EDIT TOOLS -->
         <div class="control-section">
-          <h3>🛠 Manual Touch-up & Zoom</h3>
+          <h3>🛠 Editing Tools & Zoom</h3>
           <div class="row">
-            <label>Eraser Size: <input type="range" id="brushSize" min="5" max="100" value="30"></label>
-            <span id="brushVal">30px</span>
+            <button class="secondary" id="undoBtn" title="Undo last erase">↩ Undo</button>
             <button class="secondary" id="zoomOut">🔍 −</button>
             <span class="zoom-info" id="zoomText">100%</span>
             <button class="secondary" id="zoomIn">🔍 +</button>
@@ -150,10 +165,13 @@ input[type=color]{ width:42px; height:38px; padding:0; border:1px solid var(--li
 const $ = id => document.getElementById(id);
 const drop = $("drop"), fileInput = $("file"), statusBox = $("status"), workspace = $("workspace");
 const originalImg = $("original"), canvas = $("canvas"), ctx = canvas.getContext("2d");
+const container = $("container"), selectionBox = $("selectionBox"), resultArea = $("resultArea");
 
 let currentBg = "transparent", lastResults = null;
-let zoom = 1, isEraserMode = true, isPainting = false;
-let brushSize = 30;
+let zoom = 1, isEraserMode = true;
+let startX = 0, startY = 0, isSelecting = false;
+let historyStates = [];
+let isDragging = false, dragStartX = 0, dragStartY = 0;
 
 drop.onclick = () => fileInput.click();
 fileInput.onchange = e => handleImage(e.target.files[0]);
@@ -171,6 +189,7 @@ selfieSegmentation.onResults(results => {
   statusBox.classList.remove("on");
   workspace.classList.add("on");
   renderCanvas();
+  saveHistory();
 });
 
 function renderCanvas() {
@@ -204,6 +223,29 @@ function renderCanvas() {
   ctx.restore();
 }
 
+function saveHistory() {
+  const dataURL = canvas.toDataURL();
+  historyStates.push(dataURL);
+  if (historyStates.length > 15) historyStates.shift();
+}
+
+$("undoBtn").onclick = () => {
+  if (historyStates.length > 1) {
+    historyStates.pop(); // remove current
+    const prevData = historyStates[historyStates.length - 1];
+    const img = new Image();
+    img.onload = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (currentBg !== "transparent") {
+        ctx.fillStyle = currentBg;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      ctx.drawImage(img, 0, 0);
+    };
+    img.src = prevData;
+  }
+};
+
 async function handleImage(file) {
   if (!file || !file.type.startsWith("image/")) return;
   statusBox.classList.add("on");
@@ -216,63 +258,109 @@ async function handleImage(file) {
   img.onload = async () => {
     zoom = 1;
     updateZoomDisplay();
+    historyStates = [];
     await selfieSegmentation.send({ image: img });
   };
 }
 
-// Eraser & Painting functionality for zoomed in touch-ups
-canvas.onpointerdown = e => {
-  if (!isEraserMode) return;
-  isPainting = true;
-  eraseAtEvent(e);
+// Square Erase & Move / Pan Handlers
+container.onpointerdown = e => {
+  const rect = container.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  if (isEraserMode) {
+    isSelecting = true;
+    startX = x;
+    startY = y;
+    selectionBox.style.left = x + 'px';
+    selectionBox.style.top = y + 'px';
+    selectionBox.style.width = '0px';
+    selectionBox.style.height = '0px';
+    selectionBox.style.display = 'block';
+    container.setPointerCapture(e.pointerId);
+  } else {
+    // Move / Pan mode
+    isDragging = true;
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+    container.setPointerCapture(e.pointerId);
+  }
 };
 
-canvas.onpointermove = e => {
-  if (!isPainting || !isEraserMode) return;
-  eraseAtEvent(e);
+container.onpointermove = e => {
+  const rect = container.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  if (isEraserMode && isSelecting) {
+    const currentX = Math.max(0, Math.min(x, rect.width));
+    const currentY = Math.max(0, Math.min(y, rect.height));
+
+    const left = Math.min(startX, currentX);
+    const top = Math.min(startY, currentY);
+    const width = Math.abs(currentX - startX);
+    const height = Math.abs(currentY - startY);
+
+    selectionBox.style.left = left + 'px';
+    selectionBox.style.top = top + 'px';
+    selectionBox.style.width = width + 'px';
+    selectionBox.style.height = height + 'px';
+  } else if (!isEraserMode && isDragging) {
+    const dx = e.clientX - dragStartX;
+    const dy = e.clientY - dragStartY;
+    resultArea.scrollLeft -= dx;
+    resultArea.scrollTop -= dy;
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+  }
 };
 
-window.onpointerup = () => { isPainting = false; };
+container.onpointerup = e => {
+  if (isEraserMode && isSelecting) {
+    isSelecting = false;
+    selectionBox.style.display = 'none';
 
-function eraseAtEvent(e) {
-  const rect = canvas.getBoundingClientRect();
-  const scaleX = canvas.width / rect.width;
-  const scaleY = canvas.height / rect.height;
-  const x = (e.clientX - rect.left) * scaleX;
-  const y = (e.clientY - rect.top) * scaleY;
+    const rect = container.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
 
-  ctx.save();
-  ctx.globalCompositeOperation = 'destination-out';
-  ctx.beginPath();
-  ctx.arc(x, y, (brushSize * scaleX) / 2, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-}
+    const boxRect = selectionBox.getBoundingClientRect();
+    const boxLeft = (boxRect.left - rect.left) * scaleX;
+    const boxTop = (boxRect.top - rect.top) * scaleY;
+    const boxWidth = boxRect.width * scaleX;
+    const boxHeight = boxRect.height * scaleY;
 
-// Mode switch
+    if (boxWidth > 3 && boxHeight > 3) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.fillRect(boxLeft, boxTop, boxWidth, boxHeight);
+      ctx.restore();
+      saveHistory();
+    }
+  } else if (!isEraserMode) {
+    isDragging = false;
+  }
+};
+
+// Mode switches
 $("modeErase").onclick = () => {
   isEraserMode = true;
   $("modeErase").classList.add("active");
   $("modeMove").classList.remove("active");
-  canvas.style.cursor = "crosshair";
+  container.style.cursor = "crosshair";
 };
 
 $("modeMove").onclick = () => {
   isEraserMode = false;
   $("modeMove").classList.add("active");
   $("modeErase").classList.remove("active");
-  canvas.style.cursor = "grab";
-};
-
-// Brush size change
-$("brushSize").oninput = e => {
-  brushSize = e.target.value;
-  $("brushVal").textContent = brushSize + "px";
+  container.style.cursor = "grab";
 };
 
 // Zoom controls
 function updateZoomDisplay() {
-  canvas.style.width = (zoom * 100) + "%";
+  container.style.width = (zoom * 100) + "%";
   $("zoomText").textContent = Math.round(zoom * 100) + "%";
 }
 
@@ -287,6 +375,7 @@ document.querySelectorAll(".color").forEach(btn => {
     btn.classList.add("active");
     currentBg = btn.dataset.color;
     renderCanvas();
+    saveHistory();
   };
 });
 
@@ -294,6 +383,7 @@ $("customColor").oninput = e => {
   document.querySelectorAll(".color").forEach(b => b.classList.remove("active"));
   currentBg = e.target.value;
   renderCanvas();
+  saveHistory();
 };
 
 $("download").onclick = () => {
@@ -311,6 +401,7 @@ $("newImage").onclick = () => {
   workspace.classList.remove("on");
   fileInput.value = "";
   lastResults = null;
+  historyStates = [];
 };
 </script>
 
