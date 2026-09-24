@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SHM MediaPipe Background Remover</title>
+<title>SHM MediaPipe Background Remover Pro</title>
 <style>
 :root{
   --bg:#eef2f7;
@@ -50,6 +50,7 @@ h1{ margin:0; font-size:clamp(26px,4vw,42px); letter-spacing:-1px; }
 .preview-area img, .preview-area canvas{ display:block; width:100%; height:auto; }
 .controls{ margin-top:22px; }
 .control-section{ border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:14px; }
+.control-section h3{ margin:0 0 12px; font-size:16px; }
 .row{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
 button{ font:inherit; }
 button.main{ border:0; border-radius:9px; padding:11px 18px; background:var(--accent); color:#fff; cursor:pointer; font-weight:700; }
@@ -58,6 +59,7 @@ button.secondary{ border:1px solid var(--line); border-radius:9px; padding:10px 
 .color{ width:38px; height:38px; border-radius:50%; border:2px solid #d0d8e0; cursor:pointer; }
 .color.active{ outline:3px solid var(--accent); outline-offset:2px; }
 .transparent{ background:linear-gradient(45deg,#ccc 25%,transparent 25%), linear-gradient(-45deg,#ccc 25%,transparent 25%), linear-gradient(45deg,transparent 75%,#ccc 75%), linear-gradient(-45deg,transparent 75%,#ccc 75%); background-size:12px 12px; }
+input[type=color]{ width:42px; height:38px; padding:0; border:1px solid var(--line); border-radius:8px; cursor:pointer; }
 </style>
 
 <!-- MediaPipe Selfie Segmentation Scripts -->
@@ -68,7 +70,7 @@ button.secondary{ border:1px solid var(--line); border-radius:9px; padding:10px 
 
 <main>
   <h1>SHM Free AI Background Remover</h1>
-  <p class="subtitle">Powered by Google MediaPipe AI (100% Free, runs directly in your browser without API keys).</p>
+  <p class="subtitle">Powered by Google MediaPipe AI with Multi-Color & Custom Background Options.</p>
 
   <div class="panel">
     <div class="drop" id="drop">
@@ -85,20 +87,24 @@ button.secondary{ border:1px solid var(--line); border-radius:9px; padding:10px 
           <div class="preview-area"><img id="original"></div>
         </div>
         <div class="preview-card">
-          <div class="preview-title">Background Removed</div>
+          <div class="preview-title">Background Removed / Edited</div>
           <div class="preview-area"><canvas id="canvas"></canvas></div>
         </div>
       </div>
 
       <div class="controls">
         <div class="control-section">
-          <h3>🎨 Background Color</h3>
-          <div class="color-list">
-            <button class="color transparent active" data-color="transparent"></button>
-            <button class="color" data-color="#ffffff" style="background:#ffffff"></button>
-            <button class="color" data-color="#000000" style="background:#000000"></button>
-            <button class="color" data-color="#f44336" style="background:#f44336"></button>
-            <button class="color" data-color="#2196f3" style="background:#2196f3"></button>
+          <h3>🎨 Background Color (More Options Added)</h3>
+          <div class="color-list" id="colors">
+            <button class="color transparent active" data-color="transparent" title="Transparent"></button>
+            <button class="color" data-color="#ffffff" style="background:#ffffff" title="White"></button>
+            <button class="color" data-color="#000000" style="background:#000000" title="Black"></button>
+            <button class="color" data-color="#f44336" style="background:#f44336" title="Red"></button>
+            <button class="color" data-color="#2196f3" style="background:#2196f3" title="Blue"></button>
+            <button class="color" data-color="#4caf50" style="background:#4caf50" title="Green"></button>
+            <button class="color" data-color="#ff9800" style="background:#ff9800" title="Orange"></button>
+            <button class="color" data-color="#673ab7" style="background:#673ab7" title="Purple"></button>
+            <input type="color" id="customColor" value="#1769ff" title="Custom Color Picker">
           </div>
         </div>
         <div class="control-section">
@@ -117,7 +123,7 @@ const $ = id => document.getElementById(id);
 const drop = $("drop"), fileInput = $("file"), statusBox = $("status"), workspace = $("workspace");
 const originalImg = $("original"), canvas = $("canvas"), ctx = canvas.getContext("2d");
 
-let currentBg = "transparent", loadedImage = null;
+let currentBg = "transparent", lastResults = null;
 
 drop.onclick = () => fileInput.click();
 fileInput.onchange = e => handleImage(e.target.files[0]);
@@ -131,11 +137,17 @@ const selfieSegmentation = new SelfieSegmentation({
 selfieSegmentation.setOptions({ modelSelection: 1 });
 
 selfieSegmentation.onResults(results => {
+  lastResults = results;
   statusBox.classList.remove("on");
   workspace.classList.add("on");
+  renderCanvas();
+});
 
-  canvas.width = loadedImage.width;
-  canvas.height = loadedImage.height;
+function renderCanvas() {
+  if (!lastResults) return;
+
+  canvas.width = lastResults.image.width;
+  canvas.height = lastResults.image.height;
 
   ctx.save();
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -145,11 +157,11 @@ selfieSegmentation.onResults(results => {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
 
-  ctx.drawImage(results.segmentationMask, 0, 0, canvas.width, canvas.height);
+  ctx.drawImage(lastResults.segmentationMask, 0, 0, canvas.width, canvas.height);
   ctx.globalCompositeOperation = 'source-in';
-  ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+  ctx.drawImage(lastResults.image, 0, 0, canvas.width, canvas.height);
   ctx.restore();
-});
+}
 
 async function handleImage(file) {
   if (!file || !file.type.startsWith("image/")) return;
@@ -157,31 +169,36 @@ async function handleImage(file) {
   workspace.classList.remove("on");
 
   originalImg.src = URL.createObjectURL(file);
-  loadedImage = new Image();
-  loadedImage.src = originalImg.src;
+  const img = new Image();
+  img.src = originalImg.src;
 
-  loadedImage.onload = async () => {
-    await selfieSegmentation.send({ image: loadedImage });
+  img.onload = async () => {
+    await selfieSegmentation.send({ image: img });
   };
 }
 
+// Color selection handlers
 document.querySelectorAll(".color").forEach(btn => {
-  btn.onclick = async () => {
+  btn.onclick = () => {
     document.querySelectorAll(".color").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     currentBg = btn.dataset.color;
-    if (loadedImage) {
-      await selfieSegmentation.send({ image: loadedImage });
-    }
+    renderCanvas();
   };
 });
+
+$("customColor").oninput = (e) => {
+  document.querySelectorAll(".color").forEach(b => b.classList.remove("active"));
+  currentBg = e.target.value;
+  renderCanvas();
+};
 
 $("download").onclick = () => {
   canvas.toBlob(blob => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "MediaPipe-Background-Removed.png";
+    a.download = "SHM-Background-Removed.png";
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }, "image/png");
@@ -190,6 +207,7 @@ $("download").onclick = () => {
 $("newImage").onclick = () => {
   workspace.classList.remove("on");
   fileInput.value = "";
+  lastResults = null;
 };
 </script>
 
