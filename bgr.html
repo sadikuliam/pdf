@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SHM MediaPipe Background Remover Pro</title>
+<title>SHM Pro Free AI Background Remover</title>
 <style>
 :root{
   --bg:#eef2f7;
@@ -69,8 +69,8 @@ input[type=color]{ width:42px; height:38px; padding:0; border:1px solid var(--li
 <body>
 
 <main>
-  <h1>SHM Free AI Background Remover</h1>
-  <p class="subtitle">Powered by Google MediaPipe AI with Multi-Color & Custom Background Options.</p>
+  <h1>SHM Pro Free AI Background Remover</h1>
+  <p class="subtitle">Powered by Google MediaPipe AI with Enhanced Edge Sharpening & Full Color Controls.</p>
 
   <div class="panel">
     <div class="drop" id="drop">
@@ -94,7 +94,7 @@ input[type=color]{ width:42px; height:38px; padding:0; border:1px solid var(--li
 
       <div class="controls">
         <div class="control-section">
-          <h3>🎨 Background Color (More Options Added)</h3>
+          <h3>  Color Options</h3>
           <div class="color-list" id="colors">
             <button class="color transparent active" data-color="transparent" title="Transparent"></button>
             <button class="color" data-color="#ffffff" style="background:#ffffff" title="White"></button>
@@ -146,20 +146,46 @@ selfieSegmentation.onResults(results => {
 function renderCanvas() {
   if (!lastResults) return;
 
-  canvas.width = lastResults.image.width;
-  canvas.height = lastResults.image.height;
+  const w = lastResults.image.width;
+  const h = lastResults.image.height;
 
+  canvas.width = w;
+  canvas.height = h;
+
+  // Create temporary canvas to process mask and sharpen edges
+  const tempCanvas = document.createElement("canvas");
+  tempCanvas.width = w;
+  tempCanvas.height = h;
+  const tCtx = tempCanvas.getContext("2d", { willReadFrequently: true });
+
+  // Draw original segmentation mask
+  tCtx.drawImage(lastResults.segmentationMask, 0, 0, w, h);
+
+  // Apply Edge Cleanup / Sharpening filter to remove blurry/grey halos
+  const imgData = tCtx.getImageData(0, 0, w, h);
+  const data = imgData.data;
+  for (let i = 3; i < data.length; i += 4) {
+    const alpha = data[i];
+    if (alpha < 40) {
+      data[i] = 0; // completely remove weak edges
+    } else if (alpha > 200) {
+      data[i] = 255; // make main subject solid
+    }
+  }
+  tCtx.putImageData(imgData, 0, 0);
+
+  // Now render to main canvas
   ctx.save();
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, w, h);
 
   if (currentBg !== "transparent") {
     ctx.fillStyle = currentBg;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, w, h);
   }
 
-  ctx.drawImage(lastResults.segmentationMask, 0, 0, canvas.width, canvas.height);
+  ctx.drawImage(tempCanvas, 0, 0, w, h);
   ctx.globalCompositeOperation = 'source-in';
-  ctx.drawImage(lastResults.image, 0, 0, canvas.width, canvas.height);
+  ctx.drawImage(lastResults.image, 0, 0, w, h);
   ctx.restore();
 }
 
@@ -198,7 +224,7 @@ $("download").onclick = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "SHM-Background-Removed.png";
+    a.download = "SHM-Pro-Background-Removed.png";
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }, "image/png");
