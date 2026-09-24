@@ -50,11 +50,12 @@ h1{ margin:0; font-size:clamp(26px,4vw,42px); letter-spacing:-1px; }
 .preview-area img{ display:block; width:100%; height:auto; }
 .canvas-container {
   position: relative;
-  display: inline-block;
+  display: block;
+  margin: 0 auto;
   transform-origin: top left;
   cursor: none;
 }
-#canvas{ display:block; max-width:100%; height:auto; touch-action:none; }
+#canvas{ display:block; width:100%; height:auto; touch-action:none; }
 
 /* Round Mouse Follower Eraser Cursor */
 #cursorBox {
@@ -95,7 +96,7 @@ input[type=color]{ width:42px; height:38px; padding:0; border:1px solid var(--li
 
 <main>
   <h1>SHM Pro AI Background Remover & Editor</h1>
-  <p class="subtitle">Round Eraser Cursor + Actual Size (100%) Default Zoom + Move & Undo.</p>
+  <p class="subtitle">Fixed Default Fit Zoom + Round Eraser Cursor + Move & Undo.</p>
 
   <div class="panel">
     <div class="drop" id="drop">
@@ -177,7 +178,7 @@ const originalImg = $("original"), canvas = $("canvas"), ctx = canvas.getContext
 const container = $("container"), cursorBox = $("cursorBox"), resultArea = $("resultArea");
 
 let currentBg = "transparent", lastResults = null;
-let baseWidth = 0, zoom = 1, isEraserMode = true, eraserSize = 30;
+let zoom = 1, isEraserMode = true, eraserSize = 30;
 let historyStates = [];
 let isDragging = false, dragStartX = 0, dragStartY = 0, isEraseActive = false;
 
@@ -197,13 +198,13 @@ selfieSegmentation.onResults(results => {
   statusBox.classList.remove("on");
   workspace.classList.add("on");
   
-  baseWidth = lastResults.image.width;
+  const w = lastResults.image.width;
   const h = lastResults.image.height;
 
-  canvas.width = baseWidth;
+  canvas.width = w;
   canvas.height = h;
 
-  zoom = 1; // Default Actual Size (100%)
+  zoom = 1;
   updateZoomDisplay();
   renderCanvas();
   saveHistory();
@@ -370,11 +371,9 @@ $("modeMove").onclick = () => {
   cursorBox.style.display = 'none';
 };
 
-// Zoom controls
+// Zoom controls (Fit to container by default)
 function updateZoomDisplay() {
-  if(baseWidth > 0) {
-    container.style.width = (baseWidth * zoom) + "px";
-  }
+  container.style.width = (zoom * 100) + "%";
   $("zoomText").textContent = Math.round(zoom * 100) + "%";
 }
 
