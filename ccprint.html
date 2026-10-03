@@ -6,7 +6,7 @@
 
     <title>SHM Pro Photo Print Maker | Cyber Cafe Printer</title>
 
-    <meta name="description" content="SHM Pro Photo Print Maker — Passport, Stamp, Form Fill-up and ID Card photos তৈরি করুন।">
+    <meta name="description" content="SHM Pro Photo Print Maker — Passport, Stamp, Job Form and ID Card photos তৈরি করুন।">
     <meta name="robots" content="index, follow">
 
     <!-- FONTS & ICONS -->
@@ -19,7 +19,6 @@
 
     <!-- PDF LIB -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 
     <style>
         :root {
@@ -83,12 +82,13 @@
             gap: 8px;
         }
 
+        /* MORE TOOLS BUTTON STYLES */
         .more-tools-btn {
             flex-grow: 1;
             max-width: fit-content;
             margin: 0 auto;
             text-align: center;
-            background: linear-gradient(145deg, #ff1493, #ff007f);
+            background: linear-gradient(145deg, #ff1493, #ff007f); /* Deep Pink */
             color: white !important;
             text-decoration: none;
             font-weight: 700;
@@ -96,7 +96,7 @@
             padding: 8px 24px;
             border-radius: 25px;
             border: none;
-            box-shadow: 0 5px 0 #c70066, 0 8px 15px rgba(255, 20, 147, 0.6);
+            box-shadow: 0 5px 0 #c70066, 0 8px 15px rgba(255, 20, 147, 0.6); /* 3D and glow */
             transition: all 0.2s ease;
             display: flex;
             align-items: center;
@@ -227,7 +227,7 @@
         }
 
         .qty-input {
-            width: 35px;
+            width: 50px; /* Width increased slightly for unlimited input */
             text-align: center;
             border: none;
             border-left: 1px solid #d1d5db;
@@ -236,6 +236,16 @@
             font-size: 0.9rem;
             font-weight: 600;
             outline: none;
+        }
+
+        /* Hide default number input spinners */
+        .qty-input::-webkit-outer-spin-button,
+        .qty-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .qty-input[type=number] {
+            -moz-appearance: textfield;
         }
 
         .btn-remove {
@@ -329,6 +339,7 @@
         .btn-print { background-color: #10b981; }
         .btn-print:hover { background-color: #059669; }
 
+        /* FOOTER STYLES */
         .footer {
             background-color: var(--bg-panel);
             padding: 15px 25px;
@@ -438,6 +449,7 @@
             </button>
         </div>
 
+        <!-- FOOTER SECTION ADDED HERE -->
         <div class="footer">
             <div class="footer-left">
                 <a href="https://shmwb.in" target="_blank" rel="noopener noreferrer">
@@ -450,6 +462,7 @@
                      alt="Visitor Counter for shmwb.in" class="badge-img">
             </div>
         </div>
+        <!-- END FOOTER SECTION -->
     </div>
 
     <!-- CROP MODAL -->
@@ -469,9 +482,6 @@
     </div>
 
     <script>
-        // Set up PDF.js worker
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-
         const canvas = document.getElementById('main-canvas');
         const ctx = canvas.getContext('2d');
         const paperSelect = document.getElementById('paper-size');
@@ -537,11 +547,24 @@
         function updatePersonQty(index, change) {
             let current = parseInt(persons[index].qty);
             let newVal = current + change;
-            if (newVal >= 1 && newVal <= 50) {
+            
+            // Limit has been removed from here
+            if (newVal >= 1) { 
                 persons[index].qty = newVal;
                 renderRows();
                 drawLayout();
             }
+        }
+
+        // New function to handle manual quantity input
+        function manualQtyUpdate(index, val) {
+            let newVal = parseInt(val);
+            if (isNaN(newVal) || newVal < 1) {
+                newVal = 1; // Fallback to 1 if user enters negative numbers or text
+            }
+            persons[index].qty = newVal;
+            renderRows();
+            drawLayout();
         }
 
         function updatePersonText(index, field, value) {
@@ -549,83 +572,33 @@
             drawLayout();
         }
 
-        async function handleUpload(event, index, imgNum) {
+        function handleUpload(event, index, imgNum) {
             const file = event.target.files[0];
-            if (!file) return;
-
-            if (file.type === 'application/pdf') {
-                try {
-                    const arrayBuffer = await file.arrayBuffer();
-                    const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
-                    
-                    let pageNum = 1;
-                    if (imgNum === 2 && pdf.numPages >= 2) {
-                        pageNum = 2; 
-                    }
-                    
-                    const page = await pdf.getPage(pageNum);
-                    const viewport = page.getViewport({ scale: 3.0 });
-                    const tempCanvas = document.createElement('canvas');
-                    tempCanvas.width = viewport.width;
-                    tempCanvas.height = viewport.height;
-                    const tempCtx = tempCanvas.getContext('2d');
-                    
-                    await page.render({ canvasContext: tempCtx, viewport: viewport }).promise;
-                    const dataUrl = tempCanvas.toDataURL('image/jpeg', 0.95);
-                    
-                    applyImageToPerson(dataUrl, index, imgNum);
-
-                    if (imgNum === 1 && pdf.numPages >= 2 && persons[index].size === 'id_card_in') {
-                        const page2 = await pdf.getPage(2);
-                        const viewport2 = page2.getViewport({ scale: 3.0 });
-                        const tempCanvas2 = document.createElement('canvas');
-                        tempCanvas2.width = viewport2.width;
-                        tempCanvas2.height = viewport2.height;
-                        const tempCtx2 = tempCanvas2.getContext('2d');
-                        await page2.render({ canvasContext: tempCtx2, viewport: viewport2 }).promise;
-                        
-                        const dataUrl2 = tempCanvas2.toDataURL('image/jpeg', 0.95);
-                        persons[index].img2.src = dataUrl2;
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const dataUrl = e.target.result;
+                    if (imgNum === 1) {
+                        persons[index].img1.src = dataUrl;
+                        persons[index].img1.onload = () => {
+                            persons[index].loaded1 = true;
+                            renderRows();
+                            openCropModal(index, 1); 
+                        };
+                    } else {
+                        persons[index].img2.src = dataUrl;
                         persons[index].img2.onload = () => {
                             persons[index].loaded2 = true;
                             renderRows();
-                            drawLayout();
+                            openCropModal(index, 2); 
                         };
                     }
-
-                } catch (error) {
-                    console.error("Error reading PDF:", error);
-                    alert("Failed to process the PDF file. Please try another file.");
-                }
-            } else if (file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    applyImageToPerson(e.target.result, index, imgNum);
                 };
                 reader.readAsDataURL(file);
-            } else {
-                alert("Please upload a valid Image (JPG/PNG) or PDF file.");
             }
         }
 
-        function applyImageToPerson(dataUrl, index, imgNum) {
-            if (imgNum === 1) {
-                persons[index].img1.src = dataUrl;
-                persons[index].img1.onload = () => {
-                    persons[index].loaded1 = true;
-                    renderRows();
-                    openCropModal(index, 1); 
-                };
-            } else {
-                persons[index].img2.src = dataUrl;
-                persons[index].img2.onload = () => {
-                    persons[index].loaded2 = true;
-                    renderRows();
-                    openCropModal(index, 2); 
-                };
-            }
-        }
-
+        // CROPPER FUNCTIONS
         function openCropModal(index, imgNum) {
             activeCropIndex = index;
             activeCropImgNum = imgNum;
@@ -641,10 +614,8 @@
 
             const dim = photoDimensions[persons[index].size];
             
-            let cropRatio = (persons[index].size === 'id_card_in') ? NaN : (dim.w / dim.h);
-            
             cropper = new Cropper(cropImg, {
-                aspectRatio: cropRatio,
+                aspectRatio: dim.w / dim.h,
                 viewMode: 1,
                 autoCropArea: 0.9,
                 dragMode: 'move'
@@ -659,31 +630,27 @@
             }
         }
 
-        function applyCrop() {
-            if (!cropper || activeCropIndex === null) return;
-            
-            const dim = photoDimensions[persons[activeCropIndex].size];
-            
-            const rawCroppedCanvas = cropper.getCroppedCanvas();
-            
-            const targetCanvas = document.createElement('canvas');
-            targetCanvas.width = dim.w * 15;
-            targetCanvas.height = dim.h * 15;
-            const tCtx = targetCanvas.getContext('2d');
-            
-            tCtx.drawImage(rawCroppedCanvas, 0, 0, targetCanvas.width, targetCanvas.height);
+       function applyCrop() {
+    if (!cropper || activeCropIndex === null) return;
+    
+    const dim = photoDimensions[persons[activeCropIndex].size];
 
-            const dataUrl = targetCanvas.toDataURL('image/jpeg', 1.0);
+    const canvasCropped = cropper.getCroppedCanvas({
+        width: dim.w * 15, 
+        height: dim.h * 15
+    });
 
-            if (activeCropImgNum === 1) {
-                persons[activeCropIndex].img1.src = dataUrl;
-                persons[activeCropIndex].img1.onload = () => { drawLayout(); renderRows(); };
-            } else {
-                persons[activeCropIndex].img2.src = dataUrl;
-                persons[activeCropIndex].img2.onload = () => { drawLayout(); renderRows(); };
-            }
-            closeCropModal();
-        }
+    const dataUrl = canvasCropped.toDataURL('image/jpeg', 1.0);
+
+    if (activeCropImgNum === 1) {
+        persons[activeCropIndex].img1.src = dataUrl;
+        persons[activeCropIndex].img1.onload = () => { drawLayout(); renderRows(); };
+    } else {
+        persons[activeCropIndex].img2.src = dataUrl;
+        persons[activeCropIndex].img2.onload = () => { drawLayout(); renderRows(); };
+    }
+    closeCropModal();
+}
 
         function renderRows() {
             const container = document.getElementById('persons-container');
@@ -695,11 +662,11 @@
 
                 const sizeOptions = `
                     <select class="person-size-select" onchange="changePersonSize(${index}, this.value)">
-                        <option value="job_form" ${p.size === 'job_form' ? 'selected' : ''}>Form Fill-up Special (1 Line 6 Photos)</option>
+                        <option value="job_form" ${p.size === 'job_form' ? 'selected' : ''}>Job Form Special (1 Line 6 Photos)</option>
                         <option value="passport_in" ${p.size === 'passport_in' ? 'selected' : ''}>Passport (3.5x4.5 cm)</option>
                         <option value="stamp_in" ${p.size === 'stamp_in' ? 'selected' : ''}>Stamp (2x2.5 cm)</option>
                         <option value="joint_in" ${p.size === 'joint_in' ? 'selected' : ''}>Joint Photo (4.8x4.0 cm)</option>
-                        <option value="id_card_in" ${p.size === 'id_card_in' ? 'selected' : ''}>PVC Card/ID Card (F+B) (8.6x5.4 cm)</option>
+                        <option value="id_card_in" ${p.size === 'id_card_in' ? 'selected' : ''}>ID Card (F+B) (8.6x5.4 cm)</option>
                     </select>
                 `;
 
@@ -713,16 +680,21 @@
                         <div style="display:flex; gap:4px;">
                             <label class="upload-btn">
                                 <i class="fa-solid fa-id-card"></i> ${p.loaded1 ? 'Front ✓' : 'Front'}
-                                <input type="file" accept="image/*, application/pdf" onchange="handleUpload(event, ${index}, 1)">
+                                <input type="file" accept="image/*" onchange="handleUpload(event, ${index}, 1)">
                             </label>
                             ${cropBtn1}
                         </div>
                         <div style="display:flex; gap:4px;">
                             <label class="upload-btn upload-btn-secondary">
                                 <i class="fa-solid fa-address-card"></i> ${p.loaded2 ? 'Back ✓' : 'Back'}
-                                <input type="file" accept="image/*, application/pdf" onchange="handleUpload(event, ${index}, 2)">
+                                <input type="file" accept="image/*" onchange="handleUpload(event, ${index}, 2)">
                             </label>
                             ${cropBtn2}
+                        </div>
+                        <div style="display:flex; gap:4px; margin-left: 5px;">
+                            <a href="pvcsize.html" target="_blank" class="upload-btn" style="background-color: #8b5cf6; text-decoration: none;" title="Convert any long card to standard PVC size">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Make PVC Size
+                            </a>
                         </div>
                     `;
                 } else {
@@ -730,7 +702,7 @@
                         <div style="display:flex; gap:4px;">
                             <label class="upload-btn">
                                 <i class="fa-solid fa-image"></i> ${p.loaded1 ? 'Photo ✓' : 'Upload'}
-                                <input type="file" accept="image/*, application/pdf" onchange="handleUpload(event, ${index}, 1)">
+                                <input type="file" accept="image/*" onchange="handleUpload(event, ${index}, 1)">
                             </label>
                             ${cropBtn1}
                         </div>
@@ -753,10 +725,11 @@
                     </select>
                 `;
 
+                // Changed input type to number, removed readonly, and added onchange event
                 const qtyControl = `
                     <div class="qty-control">
                         <button class="qty-btn" onclick="updatePersonQty(${index}, -1)">-</button>
-                        <input type="text" class="qty-input" value="${p.qty}" readonly>
+                        <input type="number" min="1" class="qty-input" value="${p.qty}" onchange="manualQtyUpdate(${index}, this.value)">
                         <button class="qty-btn" onclick="updatePersonQty(${index}, 1)">+</button>
                     </div>
                 `;
@@ -813,8 +786,7 @@
                 const isId = (p.size === 'id_card_in');
                 const unitW = isId ? (pW * 2 + idInnerGap) : pW;
 
-                // Vertical gap (gapY) adjusted to 20 for better layout matching
-                const gapY = isId ? 60 : 20;
+                const gapY = isId ? 60 : 12;
 
                 let fitCount = Math.floor((canvas.width - (2 * minMargin) + gapX) / (unitW + gapX));
                 if (p.size === 'job_form') fitCount = 6; 
