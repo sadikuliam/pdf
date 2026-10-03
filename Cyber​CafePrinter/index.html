@@ -227,7 +227,7 @@
         }
 
         .qty-input {
-            width: 35px;
+            width: 50px; /* Width increased slightly for unlimited input */
             text-align: center;
             border: none;
             border-left: 1px solid #d1d5db;
@@ -236,6 +236,16 @@
             font-size: 0.9rem;
             font-weight: 600;
             outline: none;
+        }
+
+        /* Hide default number input spinners */
+        .qty-input::-webkit-outer-spin-button,
+        .qty-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .qty-input[type=number] {
+            -moz-appearance: textfield;
         }
 
         .btn-remove {
@@ -537,11 +547,24 @@
         function updatePersonQty(index, change) {
             let current = parseInt(persons[index].qty);
             let newVal = current + change;
-            if (newVal >= 1 && newVal <= 50) {
+            
+            // Limit has been removed from here
+            if (newVal >= 1) { 
                 persons[index].qty = newVal;
                 renderRows();
                 drawLayout();
             }
+        }
+
+        // New function to handle manual quantity input
+        function manualQtyUpdate(index, val) {
+            let newVal = parseInt(val);
+            if (isNaN(newVal) || newVal < 1) {
+                newVal = 1; // Fallback to 1 if user enters negative numbers or text
+            }
+            persons[index].qty = newVal;
+            renderRows();
+            drawLayout();
         }
 
         function updatePersonText(index, field, value) {
@@ -610,7 +633,6 @@
        function applyCrop() {
     if (!cropper || activeCropIndex === null) return;
     
-    // এই লাইনটি ঠিক করা হয়েছে
     const dim = photoDimensions[persons[activeCropIndex].size];
 
     const canvasCropped = cropper.getCroppedCanvas({
@@ -703,10 +725,11 @@
                     </select>
                 `;
 
+                // Changed input type to number, removed readonly, and added onchange event
                 const qtyControl = `
                     <div class="qty-control">
                         <button class="qty-btn" onclick="updatePersonQty(${index}, -1)">-</button>
-                        <input type="text" class="qty-input" value="${p.qty}" readonly>
+                        <input type="number" min="1" class="qty-input" value="${p.qty}" onchange="manualQtyUpdate(${index}, this.value)">
                         <button class="qty-btn" onclick="updatePersonQty(${index}, 1)">+</button>
                     </div>
                 `;
