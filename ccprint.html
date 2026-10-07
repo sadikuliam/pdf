@@ -499,7 +499,7 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT LOGIC (Remains same, HTML structure mapped to new design) -->
+    <!-- JAVASCRIPT LOGIC -->
     <script>
         const canvas = document.getElementById('main-canvas');
         const ctx = canvas.getContext('2d');
@@ -540,7 +540,7 @@
                 qty: 1, 
                 name: '',
                 date: '',
-                border: 1, 
+                border: 0, // BY DEFAULT NO BORDER (0)
                 img1: new Image(),
                 loaded1: false,
                 img2: new Image(),
@@ -667,7 +667,7 @@
                         <option value="passport_in" ${p.size === 'passport_in' ? 'selected' : ''}>Passport (3.5x4.5 cm)</option>
                         <option value="stamp_in" ${p.size === 'stamp_in' ? 'selected' : ''}>Stamp (2x2.5 cm)</option>
                         <option value="joint_in" ${p.size === 'joint_in' ? 'selected' : ''}>Joint Photo (4.8x4.0 cm)</option>
-                        <option value="id_card_in" ${p.size === 'id_card_in' ? 'selected' : ''}>ID Card (8.6x5.4 cm)</option>
+                        <option value="id_card_in" ${p.size === 'id_card_in' ? 'selected' : ''}>ID Card PVC (8.6x5.4 cm)</option>
                     </select>
                 `;
 
