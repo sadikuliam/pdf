@@ -151,4 +151,291 @@
 
         .radio-btn {
             border: 1px solid var(--border);
-            border-radius:
+            border-radius: 8px;
+            padding: 0.6rem;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            background: #fff;
+            transition: all 0.2s;
+        }
+
+        .radio-btn input {
+            display: none;
+        }
+
+        .radio-btn.active, .radio-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: #eef2ff;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            width: 100%;
+            text-align: center;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        /* Result Section */
+        .result-section {
+            display: none;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .result-preview {
+            max-width: 150px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            margin: 0.75rem auto;
+            display: block;
+        }
+
+        .file-info {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .btn-download {
+            background: #10b981;
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .btn-download:hover {
+            background: #059669;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Photo & Signature Resizer</h1>
+            <p>Crop to precise aspect ratios and compress strictly down to your target file size.</p>
+        </header>
+
+        <!-- Upload Dropzone -->
+        <div class="upload-section" id="dropzone">
+            <input type="file" id="fileInput" accept="image/*">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">
+                Drag & drop your image here, or <span>browse files</span>
+            </div>
+        </div>
+
+        <!-- Workspace Section -->
+        <div class="workspace" id="workspace">
+            <div class="editor-grid">
+                <div class="img-container">
+                    <img id="imageToCrop" src="" alt="Source Image">
+                </div>
+                <div class="controls-panel">
+                    <!-- Crop Type -->
+                    <div class="control-group">
+                        <label>1. Select Crop Type</label>
+                        <div class="radio-group">
+                            <label class="radio-btn active" id="btnPassport">
+                                <input type="radio" name="cropType" value="passport" checked> Passport Photo (3:4)
+                            </label>
+                            <label class="radio-btn" id="btnSignature">
+                                <input type="radio" name="cropType" value="signature"> Signature (16:9)
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Target File Size -->
+                    <div class="control-group">
+                        <label>2. Select Target File Size</label>
+                        <div class="size-grid">
+                            <label class="radio-btn"><input type="radio" name="targetSize" value="100"> 90 KB - 100 KB</label>
+                            <label class="radio-btn active"><input type="radio" name="targetSize" value="50" checked> 45 KB - 50 KB</label>
+                            <label class="radio-btn"><input type="radio" name="targetSize" value="25"> 20 KB - 25 KB</label>
+                            <label class="radio-btn"><input type="radio" name="targetSize" value="10"> 8 KB - 10 KB</label>
+                        </div>
+                    </div>
+
+                    <button class="btn-primary" id="processBtn">Crop & Compress Image</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Section -->
+        <div class="result-section" id="resultSection">
+            <h3>Processed Output</h3>
+            <img id="outputPreview" class="result-preview" src="" alt="Result Preview">
+            <div class="file-info" id="fileInfo">Size: 48 KB | Dimensions: 400x533 px</div>
+            <a id="downloadBtn" class="btn-download" download="processed_image.jpg">Download Image</a>
+        </div>
+    </div>
+
+    <!-- Cropper.js JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const dropzone = document.getElementById('dropzone');
+        const workspace = document.getElementById('workspace');
+        const imageToCrop = document.getElementById('imageToCrop');
+        const processBtn = document.getElementById('processBtn');
+        const resultSection = document.getElementById('resultSection');
+        const outputPreview = document.getElementById('outputPreview');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const fileInfo = document.getElementById('fileInfo');
+
+        let cropper = null;
+
+        // Handle File Selection
+        dropzone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+        dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+        dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+        });
+
+        function handleFile(file) {
+            if (!file || !file.type.startsWith('image/')) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                imageToCrop.src = e.target.result;
+                workspace.style.display = 'block';
+                resultSection.style.display = 'none';
+
+                if (cropper) cropper.destroy();
+                
+                // Initialize Cropper with Passport Ratio default (3:4)
+                cropper = new Cropper(imageToCrop, {
+                    aspectRatio: 3 / 4,
+                    viewMode: 1,
+                    autoCropArea: 0.9,
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // UI Radio Switcher Highlights
+        document.querySelectorAll('.radio-group').forEach(group => {
+            group.querySelectorAll('.radio-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    group.querySelectorAll('.radio-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const radio = btn.querySelector('input');
+                    radio.checked = true;
+
+                    // Update aspect ratio dynamically if it's the crop type group
+                    if (radio.name === 'cropType' && cropper) {
+                        if (radio.value === 'passport') {
+                            cropper.setAspectRatio(3 / 4);
+                        } else {
+                            cropper.setAspectRatio(16 / 5); // Standard rectangular signature ratio
+                        }
+                    }
+                });
+            });
+        });
+
+        document.querySelectorAll('.size-grid').forEach(group => {
+            group.querySelectorAll('.radio-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    group.querySelectorAll('.radio-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    btn.querySelector('input').checked = true;
+                });
+            });
+        });
+
+        // Compression Logic using Binary Search on Quality Factor
+        processBtn.addEventListener('click', () => {
+            if (!cropper) return;
+
+            const targetKB = parseInt(document.querySelector('input[name="targetSize"]:checked').value);
+            const targetBytesMin = (targetKB === 100) ? 90 * 1024 : (targetKB === 50) ? 45 * 1024 : (targetKB === 25) ? 20 * 1024 : 8 * 1024;
+            const targetBytesMax = targetKB * 1024;
+
+            // Get cropped canvas
+            const canvas = cropper.getCroppedCanvas({
+                width: targetKB <= 25 ? 300 : 600, // Scale down dimensions for smaller targets
+            });
+
+            // Compress to hit target file size range via binary search quality adjustment
+            let minQuality = 0.05;
+            let maxQuality = 0.95;
+            let bestQuality = 0.75;
+            let bestBlob = null;
+
+            // Run an iterative compression check
+            function attemptCompress(quality, callback) {
+                canvas.toBlob((blob) => {
+                    callback(blob);
+                }, 'image/jpeg', quality);
+            }
+
+            // Simple loop approximation for quality tuning
+            let quality = 0.80;
+            canvas.toBlob((initialBlob) => {
+                bestBlob = initialBlob;
+                
+                // Fine-tune quality steps to hit boundaries safely
+                let step = 0.4;
+                let currentQ = 0.7;
+                
+                // Run recursive loop to home in on target size
+                function iterate(q, loopsLeft) {
+                    canvas.toBlob((blob) => {
+                        if (!blob) return;
+                        bestBlob = blob;
+                        if (loopsLeft <= 0 || (blob.size >= targetBytesMin && blob.size <= targetBytesMax)) {
+                            showResult(bestBlob);
+                            return;
+                        }
+                        if (blob.size > targetBytesMax) {
+                            currentQ -= step;
+                        } else {
+                            currentQ += step;
+                        }
+                        step /= 2;
+                        iterate(Math.max(0.05, Math.min(0.95, currentQ)), loopsLeft - 1);
+                    }, 'image/jpeg', q);
+                }
+                
+                iterate(currentQ, 5);
+            }, 'image/jpeg', quality);
+        });
+
+        function showResult(blob) {
+            const imageUrl = URL.createObjectURL(blob);
+            outputPreview.src = imageUrl;
+            downloadBtn.href = imageUrl;
+            
+            const sizeKB = (blob.size / 1024).toFixed(1);
+            fileInfo.innerHTML = `Final Size: <strong>${sizeKB} KB</strong>`;
+            resultSection.style.display = 'block';
+            resultSection.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
