@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF to PVC PNG Generator</title>
+    <title>Ayushman Card PDF to PVC PNG Generator</title>
     <!-- PDF.js Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <style>
@@ -20,6 +20,20 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+        }
+
+        .main-heading {
+            text-align: center;
+            color: #0056b3;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        .sub-heading {
+            text-align: center;
+            color: #555;
+            margin-bottom: 20px;
+            font-size: 14px;
         }
 
         .controls {
@@ -110,6 +124,9 @@
 </head>
 <body>
 
+    <h1 class="main-heading">আয়ুষ্মান কার্ড পিভিসি সাইজ কনভার্টার</h1>
+    <p class="sub-heading">ডাউনলোড করা লম্বাটে আয়ুষ্মান কার্ডের PDF ফাইল এখানে আপলোড করুন এবং স্বয়ংক্রিয়ভাবে সঠিক PVC সাইজে রূপান্তর করুন।</p>
+
     <div class="controls no-print">
         <input type="file" id="pdfInput" accept="application/pdf">
         <button onclick="downloadPNG()" id="pngBtn" class="btn-success" disabled>Download as PNG</button>
@@ -191,21 +208,19 @@
             await page.render(renderContext).promise;
         }
 
-        // --- UPDATED LOGIC: GENERATE CROPPED PNG AT 300 DPI ---
+        // --- GENERATE CROPPED PNG AT 300 DPI ---
         function downloadPNG() {
             // PVC dimensions (85.6mm x 54mm) at 300 DPI
             const cardWidth = 1011; 
             const cardHeight = 638;
 
-            // Layout settings based on your reference image
+            // Layout settings
             const padding = 120; // White space around the cards
             const gap = 150;     // Space between Front and Back
 
-            // Calculate the exact size needed for the canvas, no extra A4 white space
             const finalWidth = cardWidth + (padding * 2);
             const finalHeight = (cardHeight * 2) + gap + (padding * 2);
 
-            // Create offscreen master canvas
             const masterCanvas = document.createElement('canvas');
             masterCanvas.width = finalWidth;
             masterCanvas.height = finalHeight;
@@ -215,34 +230,28 @@
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, finalWidth, finalHeight);
 
-            // Fetch the rendered PDF pages
             const frontCanvas = document.getElementById('canvasFront');
             const backCanvas = document.getElementById('canvasBack');
 
-            // Border styling for cutting guidelines
             ctx.strokeStyle = '#000000';
             ctx.lineWidth = 3;
 
             // 2. Draw Front Card
             if (frontCanvas.width > 0) {
-                // Draw Image scaled perfectly to PVC dimensions
                 ctx.drawImage(frontCanvas, padding, padding, cardWidth, cardHeight);
-                // Draw cut border
                 ctx.strokeRect(padding, padding, cardWidth, cardHeight);
             }
 
             // 3. Draw Back Card
             if (backCanvas.width > 0) {
                 const backYOffset = padding + cardHeight + gap;
-                // Draw Image scaled perfectly to PVC dimensions
                 ctx.drawImage(backCanvas, padding, backYOffset, cardWidth, cardHeight);
-                // Draw cut border
                 ctx.strokeRect(padding, backYOffset, cardWidth, cardHeight);
             }
 
             // 4. Trigger PNG Download
             const link = document.createElement('a');
-            link.download = 'PVC_Print_Layout.png';
+            link.download = 'Ayushman_PVC_Layout.png';
             link.href = masterCanvas.toDataURL('image/png');
             link.click();
         }
