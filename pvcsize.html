@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ayushman Card PDF to PVC PNG Generator</title>
+    <title>Ayushman Card PDF to PVC Generator & A4 Layout</title>
     <!-- PDF.js Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <!-- jsPDF Library for PDF Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
             --pvc-width: 85.6mm;
@@ -77,6 +79,14 @@
             background: #146c43;
         }
 
+        .btn-pdf {
+            background: #dc3545;
+        }
+
+        .btn-pdf:hover {
+            background: #b02a37;
+        }
+
         /* A4 Page Preview Container */
         .a4-page {
             width: 210mm;
@@ -125,14 +135,15 @@
 <body>
 
     <h1 class="main-heading">আয়ুষ্মান কার্ড পিভিসি সাইজ কনভার্টার</h1>
-    <p class="sub-heading">ডাউনলোড করা লম্বাটে আয়ুষ্মান কার্ডের PDF ফাইল এখানে আপলোড করুন এবং স্বয়ংক্রিয়ভাবে সঠিক PVC সাইজে রূপান্তর করুন।</p>
+    <p class="sub-heading">ডাউনলোড করা লম্বাটে আয়ুষ্মান কার্ডের PDF ফাইল এখানে আপলোড করুন এবং সঠিক PVC সাইজে PNG বা A4 PDF ফরম্যাটে ডাউনলোড করুন।</p>
 
     <div class="controls no-print">
         <input type="file" id="pdfInput" accept="application/pdf">
         <button onclick="downloadPNG()" id="pngBtn" class="btn-success" disabled>Download as PNG</button>
+        <button onclick="downloadPDF()" id="pdfBtn" class="btn-pdf" disabled>Download as A4 PDF</button>
     </div>
 
-    <!-- This acts as a preview area -->
+    <!-- Preview Area -->
     <div class="a4-page" id="printArea">
         <div class="card-wrapper">
             <div class="card-label">Front Side Preview</div>
@@ -179,8 +190,9 @@
                         canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
                     }
 
-                    // Enable PNG button
+                    // Enable download buttons
                     document.getElementById('pngBtn').disabled = false;
+                    document.getElementById('pdfBtn').disabled = false;
 
                 } catch (error) {
                     console.error("Error rendering PDF: ", error);
@@ -194,7 +206,6 @@
             const canvas = document.getElementById(canvasId);
             const ctx = canvas.getContext('2d');
             
-            // Render at high scale to capture raw detail
             const viewport = page.getViewport({ scale: 4.0 }); 
             
             canvas.width = viewport.width;
@@ -208,15 +219,12 @@
             await page.render(renderContext).promise;
         }
 
-        // --- GENERATE CROPPED PNG AT 300 DPI ---
+        // --- 1. GENERATE CROPPED PNG ---
         function downloadPNG() {
-            // PVC dimensions (85.6mm x 54mm) at 300 DPI
             const cardWidth = 1011; 
             const cardHeight = 638;
-
-            // Layout settings
-            const padding = 120; // White space around the cards
-            const gap = 150;     // Space between Front and Back
+            const padding = 120; 
+            const gap = 150;     
 
             const finalWidth = cardWidth + (padding * 2);
             const finalHeight = (cardHeight * 2) + gap + (padding * 2);
@@ -226,7 +234,6 @@
             masterCanvas.height = finalHeight;
             const ctx = masterCanvas.getContext('2d');
 
-            // 1. Fill with White background
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, finalWidth, finalHeight);
 
@@ -236,24 +243,65 @@
             ctx.strokeStyle = '#000000';
             ctx.lineWidth = 3;
 
-            // 2. Draw Front Card
             if (frontCanvas.width > 0) {
                 ctx.drawImage(frontCanvas, padding, padding, cardWidth, cardHeight);
                 ctx.strokeRect(padding, padding, cardWidth, cardHeight);
             }
 
-            // 3. Draw Back Card
             if (backCanvas.width > 0) {
                 const backYOffset = padding + cardHeight + gap;
                 ctx.drawImage(backCanvas, padding, backYOffset, cardWidth, cardHeight);
                 ctx.strokeRect(padding, backYOffset, cardWidth, cardHeight);
             }
 
-            // 4. Trigger PNG Download
             const link = document.createElement('a');
             link.download = 'Ayushman_PVC_Layout.png';
             link.href = masterCanvas.toDataURL('image/png');
             link.click();
+        }
+
+        // --- 2. GENERATE A4 PDF ---
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            // A4 dimensions: 210mm x 297mm
+            // PVC card actual physical dimensions: 85.6mm x 54mm
+            const pvcWidthMm = 85.6;
+            const pvcHeightMm = 54;
+
+            // Center horizontally on A4 (210 - 85.6) / 2 = 62.2mm
+            const xPos = (210 - pvcWidthMm) / 2;
+
+            const frontCanvas = document.getElementById('canvasFront');
+            const backCanvas = document.getElementById('canvasBack');
+
+            // Top position for Front card
+            let yPosFront = 25; // 25mm from top
+            if (frontCanvas.width > 0) {
+                const frontImgData = frontCanvas.toDataURL('image/jpeg', 1.0);
+                doc.addImage(frontImgData, 'JPEG', xPos, yPosFront, pvcWidthMm, pvcHeightMm);
+                // Draw cut border
+                doc.setLineWidth(0.2);
+                doc.rect(xPos, yPosFront, pvcWidthMm, pvcHeightMm);
+            }
+
+            // Top position for Back card (leaving 15mm gap)
+            let yPosBack = yPosFront + pvcHeightMm + 15; 
+            if (backCanvas.width > 0) {
+                const backImgData = backCanvas.toDataURL('image/jpeg', 1.0);
+                doc.addImage(backImgData, 'JPEG', xPos, yPosBack, pvcWidthMm, pvcHeightMm);
+                // Draw cut border
+                doc.setLineWidth(0.2);
+                doc.rect(xPos, yPosBack, pvcWidthMm, pvcHeightMm);
+            }
+
+            // Save PDF
+            doc.save('Ayushman_PVC_A4_Layout.pdf');
         }
     </script>
 </body>
