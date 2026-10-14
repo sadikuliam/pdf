@@ -2,21 +2,18 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Offline PDF Flipbook Reader</title>
-    
-    <!-- dFlip CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/dflip/css/dflip.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/dflip/css/themify-icons.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>টাচ ও জুম সুবিধাসহ অফলাইন ফ্লিপবুক</title>
     
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
         body {
-            background-color: #2c3e50;
+            background-color: #1a1a1a;
             font-family: Arial, sans-serif;
             height: 100vh;
             overflow: hidden;
@@ -24,130 +21,304 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            color: #fff;
+            user-select: none;
         }
-        
-        #upload-container {
+
+        /* আপলোড সেকশন */
+        #upload-section {
             background: #ffffff;
-            padding: 35px 45px;
+            padding: 35px 30px;
             border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
             text-align: center;
-            z-index: 10;
-        }
-        h2 {
-            margin-bottom: 20px;
             color: #333;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            max-width: 90%;
+            width: 400px;
         }
-        .file-input-label {
+        .upload-btn {
             display: inline-block;
-            padding: 14px 28px;
-            background-color: #007bff;
-            color: #ffffff;
-            font-size: 16px;
-            font-weight: bold;
+            margin-top: 15px;
+            padding: 12px 25px;
+            background: #007bff;
+            color: #fff;
             border-radius: 6px;
+            font-weight: bold;
             cursor: pointer;
-            transition: background 0.3s ease;
+            transition: background 0.3s;
         }
-        .file-input-label:hover {
-            background-color: #0056b3;
+        .upload-btn:hover {
+            background: #0056b3;
         }
         input[type="file"] {
             display: none;
         }
+        #status {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #007bff;
+            font-weight: bold;
+        }
 
-        #flipbook-wrapper {
+        /* রিডার স্ক্রিন */
+        #reader-wrapper {
+            display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            display: none;
-            background-color: #222222;
-            z-index: 20;
+            background: #121212;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            touch-action: none;
         }
-        #flipbook-container {
+
+        /* জুম কন্টেইনার */
+        #panzoom-viewport {
+            width: 100%;
+            height: 85%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: none;
+        }
+
+        #flipbook {
+            box-shadow: 0 8px 30px rgba(0,0,0,0.8);
+            touch-action: pan-y;
+        }
+        .page {
+            background-color: #ffffff;
+            overflow: hidden;
+        }
+        .page canvas {
             width: 100%;
             height: 100%;
+            display: block;
         }
-        
+
+        /* নিচের কন্ট্রোল বার */
+        .controls {
+            position: absolute;
+            bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(30, 30, 30, 0.85);
+            backdrop-filter: blur(8px);
+            padding: 8px 16px;
+            border-radius: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            z-index: 1000;
+        }
+        .controls button {
+            background: #2e2e2e;
+            color: #fff;
+            border: 1px solid #444;
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .controls button:hover, .controls button:active {
+            background: #007bff;
+            border-color: #007bff;
+        }
+        #page-info {
+            font-size: 13px;
+            color: #ddd;
+            margin: 0 6px;
+        }
+
+        /* ক্লোজ বাটন */
         #close-btn {
             position: absolute;
             top: 15px;
-            right: 20px;
-            padding: 9px 18px;
-            background-color: #e74c3c;
+            right: 15px;
+            background: #dc3545;
             color: white;
             border: none;
-            border-radius: 4px;
+            padding: 8px 14px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 14px;
             font-weight: bold;
-            z-index: 99999;
-        }
-        #close-btn:hover {
-            background-color: #c0392b;
+            font-size: 13px;
+            z-index: 1000;
         }
     </style>
 </head>
 <body>
 
-    <div id="upload-container">
-        <h2>Apnar PDF Magazine Select Korun</h2>
-        <label for="pdf-input" class="file-input-label">Computer theke PDF Bachun</label>
-        <input type="file" id="pdf-input" accept="application/pdf">
-        <p style="margin-top: 15px; color: #666; font-size: 13px;">(25 MB ba tar besi boro file-o shorashori cholbe)</p>
+    <div id="upload-section">
+        <h2>অফলাইন টাচ ফ্লিপবুক</h2>
+        <p style="margin-top: 6px; color: #666; font-size: 13px;">যেকোনো বড় সাইজের PDF (টাচ ও পিঞ্চ জুম সমর্থিত)</p>
+        <label for="pdf-file" class="upload-btn">PDF ফাইল বাছুন</label>
+        <input type="file" id="pdf-file" accept="application/pdf">
+        <div id="status"></div>
     </div>
 
-    <div id="flipbook-wrapper">
-        <button id="close-btn" onclick="closeBook()">Notun Boi Khulun</button>
-        <div id="flipbook-container"></div>
+    <div id="reader-wrapper">
+        <button id="close-btn" onclick="location.reload()">বন্ধ করুন</button>
+        
+        <div id="panzoom-viewport">
+            <div id="flipbook"></div>
+        </div>
+
+        <div class="controls">
+            <button onclick="prevPage()">◀ আগের পাতা</button>
+            <span id="page-info">পৃষ্ঠা: ১</span>
+            <button onclick="nextPage()">পরের পাতা ▶</button>
+            <button onclick="zoomIn()">🔍+</button>
+            <button onclick="zoomOut()">🔍-</button>
+            <button onclick="resetZoom()">রিসেট</button>
+        </div>
     </div>
 
-    <!-- Required Dependancy Scripts -->
+    <!-- স্ক্রিপ্ট লাইব্রেরিসমূহ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/3/turn.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dflip/js/dflip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@panzoom/panzoom@4.5.1/dist/panzoom.min.js"></script>
 
     <script>
-        // PDF worker path setting
         pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
-        
-        var dFlipLocation = "https://cdn.jsdelivr.net/npm/dflip/";
-        var currentBookInstance = null;
 
-        document.getElementById('pdf-input').addEventListener('change', function(e) {
-            var file = e.target.files[0];
+        let panzoomInstance = null;
+        let totalPages = 0;
+        let isZoomed = false;
+
+        document.getElementById('pdf-file').addEventListener('change', async function(e) {
+            const file = e.target.files[0];
             if (!file) return;
 
-            // Browser internal blob URL create
-            var blobUrl = URL.createObjectURL(file);
+            const status = document.getElementById('status');
+            status.innerText = "ফাইল লোড হচ্ছে, কিছুক্ষণ অপেক্ষা করুন...";
 
-            document.getElementById('upload-container').style.display = 'none';
-            document.getElementById('flipbook-wrapper').style.display = 'block';
+            const fileReader = new FileReader();
+            fileReader.onload = async function() {
+                const typedarray = new Uint8Array(this.result);
+                
+                try {
+                    const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                    totalPages = pdf.numPages;
+                    status.innerText = `মোট ${totalPages} পৃষ্ঠা প্রস্তুত হচ্ছে...`;
 
-            var bookOptions = {
-                source: blobUrl,
-                pdfRenderQuality: 2,
-                backgroundColor: "#222222",
-                hard: "cover",
-                webgl: false, // Compatibility ensure korar jonno
-                pageMode: 1
+                    document.getElementById('upload-section').style.display = 'none';
+                    document.getElementById('reader-wrapper').style.display = 'flex';
+
+                    // ডিভাইস ও সাইজ অনুযায়ী ডাইমেনশন নির্ধারণ
+                    const isMobile = window.innerWidth <= 768;
+                    const firstPage = await pdf.getPage(1);
+                    const viewport = firstPage.getViewport({ scale: 1 });
+                    const ratio = viewport.width / viewport.height;
+
+                    const bookHeight = Math.min(window.innerHeight * 0.78, 650);
+                    const bookWidth = isMobile ? (bookHeight * ratio) : (bookHeight * ratio * 2);
+
+                    const flipbook = $('#flipbook');
+                    flipbook.empty();
+
+                    // পেজ ও ক্যানভাস তৈরি
+                    for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+                        const pageDiv = $('<div />', { class: 'page' });
+                        const canvas = document.createElement('canvas');
+                        pageDiv.append(canvas);
+                        flipbook.append(pageDiv);
+
+                        pdf.getPage(pageNum).then(function(page) {
+                            const scale = 2; // হাই-রেজোলিউশন রেন্ডারিং
+                            const pageViewport = page.getViewport({ scale: scale });
+                            const context = canvas.getContext('2d');
+                            canvas.height = pageViewport.height;
+                            canvas.width = pageViewport.width;
+
+                            page.render({
+                                canvasContext: context,
+                                viewport: pageViewport
+                            });
+                        });
+                    }
+
+                    // Turn.js সেটআপ
+                    flipbook.turn({
+                        width: bookWidth,
+                        height: bookHeight,
+                        autoCenter: true,
+                        display: isMobile ? 'single' : 'double',
+                        acceleration: true,
+                        elevation: 50,
+                        gradients: true,
+                        when: {
+                            turned: function(e, page) {
+                                document.getElementById('page-info').innerText = `পৃষ্ঠা: ${page} / ${totalPages}`;
+                            }
+                        }
+                    });
+
+                    // পিঞ্চ-টু-জুম ও টাচ প্যান সেটআপ
+                    const viewportElem = document.getElementById('panzoom-viewport');
+                    panzoomInstance = Panzoom(document.getElementById('flipbook'), {
+                        maxScale: 4,
+                        minScale: 1,
+                        contain: 'outside',
+                        disablePan: true // ডিফল্ট অবস্থায় পেজ সোয়াইপের জন্য প্যান বন্ধ থাকবে
+                    });
+
+                    // মাউস হুইল দিয়ে জুম
+                    viewportElem.addEventListener('wheel', panzoomInstance.zoomWithWheel);
+
+                    // জুম অবস্থায় সোয়াইপ এবং সাধারণ অবস্থায় পাতা উল্টানোর লজিক
+                    panzoomInstance.on('zoom', (e) => {
+                        const currentScale = e.detail.scale;
+                        if (currentScale > 1.05) {
+                            isZoomed = true;
+                            panzoomInstance.setOptions({ disablePan: false });
+                            flipbook.turn('disable', true); // জুম থাকা অবস্থায় পেজ ফ্লিপ লক
+                        } else {
+                            isZoomed = false;
+                            panzoomInstance.setOptions({ disablePan: true });
+                            flipbook.turn('disable', false); // সাধারণ অবস্থায় পেজ ফ্লিপ অন
+                        }
+                    });
+
+                } catch (err) {
+                    alert('PDF রেন্ডার করতে সমস্যা হয়েছে: ' + err.message);
+                    location.reload();
+                }
             };
 
-            // Init dFlip
-            currentBookInstance = $("#flipbook-container").dFlip(bookOptions);
+            fileReader.readAsArrayBuffer(file);
         });
 
-        function closeBook() {
-            if (currentBookInstance && currentBookInstance.destroy) {
-                currentBookInstance.destroy();
+        // নেভিগেশন কন্ট্রোল
+        function nextPage() {
+            if (!isZoomed) $('#flipbook').turn('next');
+        }
+
+        function prevPage() {
+            if (!isZoomed) $('#flipbook').turn('previous');
+        }
+
+        // জুম ফাংশনসমূহ
+        function zoomIn() {
+            if (panzoomInstance) panzoomInstance.zoomIn();
+        }
+
+        function zoomOut() {
+            if (panzoomInstance) panzoomInstance.zoomOut();
+        }
+
+        function resetZoom() {
+            if (panzoomInstance) {
+                panzoomInstance.reset();
+                isZoomed = false;
+                panzoomInstance.setOptions({ disablePan: true });
+                $('#flipbook').turn('disable', false);
             }
-            document.getElementById('flipbook-container').innerHTML = '';
-            document.getElementById('pdf-input').value = '';
-            document.getElementById('flipbook-wrapper').style.display = 'none';
-            document.getElementById('upload-container').style.display = 'block';
         }
     </script>
 </body>
