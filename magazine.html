@@ -1,431 +1,357 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#101827">
-
 <title>Digital Magazine | SHM</title>
 
 <style>
-:root {
-    --bg: #101827;
-    --panel: #192438;
-    --accent: #38bdf8;
-    --text: #f8fafc;
+*{box-sizing:border-box}
+body{
+ margin:0;background:radial-gradient(ellipse at top,#243b59,#101827 75%);
+ color:#f8fafc;font-family:Arial,sans-serif;min-height:100vh
 }
-
-* {
-    box-sizing: border-box;
+header{text-align:center;padding:22px 10px 8px}
+h1{font-size:clamp(24px,4vw,38px);margin:0}
+header p{font-size:13px;color:#bdcde0}
+.toolbar{
+ display:flex;justify-content:center;align-items:center;
+ flex-wrap:wrap;gap:8px;padding:10px
 }
-
-body {
-    margin: 0;
-    min-height: 100vh;
-    font-family: Arial, sans-serif;
-    color: var(--text);
-    background:
-        radial-gradient(ellipse at top, #243b59 0%, #101827 65%);
+button,.action{
+ border:1px solid #ffffff22;border-radius:9px;
+ padding:11px 14px;background:#24344b;color:white;
+ font-weight:bold;cursor:pointer;text-decoration:none;font-size:13px
 }
-
-header {
-    text-align: center;
-    padding: 24px 12px 12px;
+button:hover,.action:hover{background:#087da8}
+button:disabled{opacity:.4;cursor:not-allowed}
+.primary{background:#0284c7}
+#viewer{
+ width:100%;min-height:450px;display:flex;
+ align-items:center;justify-content:center;overflow:hidden;padding:10px
 }
-
-header h1 {
-    margin: 0;
-    font-size: clamp(24px, 4vw, 38px);
-    letter-spacing: 1px;
+#book{margin:auto}
+.page{
+ background:#fff;overflow:hidden;position:relative;
+ display:flex;align-items:center;justify-content:center
 }
-
-header p {
-    color: #b8c8dc;
-    margin: 10px 0;
-    font-size: 14px;
+.page canvas{width:100%;height:100%;display:block}
+.placeholder{color:#64748b;font-size:14px}
+#status{text-align:center;color:#cbd5e1;padding:12px}
+#error{
+ display:none;max-width:650px;margin:10px auto;padding:15px;
+ background:#542c3b;border-radius:10px;text-align:center;
+ line-height:1.6;overflow-wrap:anywhere
 }
-
-.toolbar {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 10px;
-    padding: 12px;
-}
-
-button, a.action {
-    border: 1px solid #ffffff20;
-    border-radius: 10px;
-    background: #24344b;
-    color: white;
-    padding: 11px 16px;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    text-decoration: none;
-    transition: .2s;
-}
-
-button:hover, a.action:hover {
-    background: #087da8;
-    transform: translateY(-2px);
-}
-
-button:disabled {
-    opacity: .4;
-    cursor: not-allowed;
-    transform: none;
-}
-
-.primary {
-    background: #0284c7;
-}
-
-#viewer {
-    width: 100%;
-    min-height: 440px;
-    padding: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-}
-
-#book {
-    margin: auto;
-}
-
-#book .page {
-    background: white;
-    overflow: hidden;
-}
-
-#book .page canvas {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
-
-#status {
-    text-align: center;
-    padding: 20px;
-    color: #cbd5e1;
-    line-height: 1.7;
-}
-
-#error {
-    display: none;
-    max-width: 600px;
-    margin: 10px auto;
-    padding: 16px;
-    color: #fecaca;
-    background: #7f1d1d55;
-    border-radius: 10px;
-    text-align: center;
-}
-
-footer {
-    text-align: center;
-    padding: 22px 10px;
-    color: #94a3b8;
-    font-size: 12px;
-}
-
-@media (max-width: 600px) {
-    header {
-        padding-top: 18px;
-    }
-
-    .toolbar {
-        gap: 7px;
-    }
-
-    button, a.action {
-        padding: 10px 12px;
-        font-size: 12px;
-    }
-
-    #viewer {
-        min-height: 320px;
-        padding: 4px;
-    }
+footer{text-align:center;padding:20px;color:#94a3b8;font-size:12px}
+@media(max-width:600px){
+ #viewer{min-height:330px;padding:4px}
+ button,.action{padding:10px;font-size:12px}
 }
 </style>
 </head>
-
 <body>
 
 <header>
-    <h1>📖 Digital Magazine</h1>
-    <p>Enjoy your magazine with a realistic page-turning experience</p>
+ <h1>📖 Digital Magazine</h1>
+ <p>Enjoy a realistic page-turning experience</p>
 </header>
 
 <div class="toolbar">
-    <button id="prevBtn" disabled>❮ Previous</button>
-    <span id="pageInfo">Loading PDF...</span>
-    <button id="nextBtn" disabled>Next ❯</button>
+ <button id="prev" disabled>❮ Previous</button>
+ <span id="counter">Loading...</span>
+ <button id="next" disabled>Next ❯</button>
 </div>
 
 <div class="toolbar">
-    <button id="firstBtn" disabled>⏮ First Page</button>
-    <button id="lastBtn" disabled>Last Page ⏭</button>
-    <button id="fullBtn">⛶ Fullscreen</button>
-    <a class="action primary"
-       id="downloadBtn"
-       href="https://github.com/sadikuliam/pdf/releases/download/v1.0/magazine.pdf"
-       target="_blank"
-       rel="noopener">
-       ⬇ Download PDF
-    </a>
+ <button id="first" disabled>⏮ First</button>
+ <button id="last" disabled>Last ⏭</button>
+ <button id="fullscreen">⛶ Fullscreen</button>
+ <a class="action primary" id="download" download="magazine.pdf">
+  ⬇ Download PDF
+ </a>
 </div>
 
-<div id="status">Please wait while your magazine loads...</div>
+<div id="status">Loading magazine...</div>
 <div id="error"></div>
 
 <main id="viewer">
-    <div id="book"></div>
+ <div id="book"></div>
 </main>
 
-<footer>
-    Digital Magazine • Powered by SHM Digital Technology
-</footer>
+<footer>SHM Digital Technology • Digital Magazine</footer>
 
-<!-- PDF.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-
-<!-- StPageFlip -->
 <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.min.js"></script>
 
 <script>
-(() => {
-    "use strict";
+"use strict";
 
-    const PDF_URL =
-        "https://github.com/sadikuliam/pdf/releases/download/v1.0/magazine.pdf";
+/*
+ IMPORTANT:
+ Replace this path only if your PDF is stored elsewhere
+ on the SAME GitHub Pages website.
+*/
+const PDF_URL = "./pdf/magazine.pdf";
 
-    const status = document.getElementById("status");
-    const errorBox = document.getElementById("error");
-    const bookElement = document.getElementById("book");
-    const viewer = document.getElementById("viewer");
-    const pageInfo = document.getElementById("pageInfo");
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+ "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
-    const prevBtn = document.getElementById("prevBtn");
-    const nextBtn = document.getElementById("nextBtn");
-    const firstBtn = document.getElementById("firstBtn");
-    const lastBtn = document.getElementById("lastBtn");
-    const fullBtn = document.getElementById("fullBtn");
+const $ = id => document.getElementById(id);
+const status = $("status");
+const errorBox = $("error");
+const bookElement = $("book");
+const viewer = $("viewer");
 
-    let pageFlip = null;
-    let pdfDocument = null;
-    let isLoading = false;
+let pdf = null;
+let flip = null;
+let rendering = new Map();
+let rendered = new Set();
+let pageElements = [];
+let pageWidth = 420;
+let pageHeight = 594;
+let totalPages = 0;
 
-    // Configure PDF.js worker.
-    pdfjsLib.GlobalWorkerOptions.workerSrc =
-        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+function showError(message){
+ status.style.display = "none";
+ errorBox.style.display = "block";
+ errorBox.textContent = message;
+}
 
-    function showError(message) {
-        status.style.display = "none";
-        errorBox.style.display = "block";
-        errorBox.textContent = message;
-    }
+function updateControls(index){
+ if(!flip) return;
 
-    function updateControls(currentIndex) {
-        if (!pageFlip) return;
+ const total = flip.getPageCount();
+ index = Math.max(0, Math.min(index, total - 1));
 
-        const total = pageFlip.getPageCount();
-        const current = currentIndex + 1;
+ $("counter").textContent =
+  `Page ${index + 1} of ${total}`;
 
-        pageInfo.textContent =
-            `Page ${current} of ${total}`;
+ $("prev").disabled = index === 0;
+ $("first").disabled = index === 0;
+ $("next").disabled = index >= total - 1;
+ $("last").disabled = index >= total - 1;
+}
 
-        prevBtn.disabled = currentIndex <= 0;
-        firstBtn.disabled = currentIndex <= 0;
-        nextBtn.disabled = currentIndex >= total - 1;
-        lastBtn.disabled = currentIndex >= total - 1;
-    }
+/*
+ Render only the requested page.
+ The canvas is released when the page is far away
+ from the currently visible pages.
+*/
+async function renderPage(index){
+ if(index < 0 || index >= totalPages) return;
+ if(rendered.has(index)) return;
+ if(rendering.has(index)) return rendering.get(index);
 
-    async function renderPDF() {
-        if (isLoading) return;
-        isLoading = true;
+ const task = (async()=>{
+  const page = await pdf.getPage(index + 1);
 
-        try {
-            if (!window.pdfjsLib) {
-                throw new Error("PDF.js failed to load. Please refresh the page.");
-            }
+  // Limit canvas dimensions to control memory usage.
+  const original = page.getViewport({scale:1});
+  const maxPixelsSide = 1500;
+  const scale = Math.min(
+   1.5,
+   maxPixelsSide / Math.max(original.width, original.height)
+  );
+  const viewport = page.getViewport({scale});
 
-            if (!window.St || !window.St.PageFlip) {
-                throw new Error("The page-flip library failed to load. Please refresh.");
-            }
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.ceil(viewport.width);
+  canvas.height = Math.ceil(viewport.height);
 
-            const loadingTask = pdfjsLib.getDocument({
-                url: PDF_URL,
-                withCredentials: false
-            });
+  const context = canvas.getContext("2d", {alpha:false});
 
-            pdfDocument = await loadingTask.promise;
+  await page.render({
+   canvasContext:context,
+   viewport
+  }).promise;
 
-            if (!pdfDocument.numPages) {
-                throw new Error("The PDF contains no pages.");
-            }
+  const holder = pageElements[index];
 
-            status.textContent =
-                `Preparing ${pdfDocument.numPages} pages...`;
+  holder.replaceChildren(canvas);
+  rendered.add(index);
 
-            const pageElements = [];
-            let pageWidth = 500;
-            let pageHeight = 700;
+  page.cleanup();
+ })();
 
-            // Render every PDF page into a canvas.
-            for (let i = 1; i <= pdfDocument.numPages; i++) {
-                status.textContent =
-                    `Rendering page ${i} of ${pdfDocument.numPages}...`;
+ rendering.set(index, task);
 
-                const pdfPage = await pdfDocument.getPage(i);
-                const originalViewport = pdfPage.getViewport({ scale: 1 });
+ try{
+  await task;
+ }finally{
+  rendering.delete(index);
+ }
+}
 
-                if (i === 1) {
-                    pageWidth = originalViewport.width;
-                    pageHeight = originalViewport.height;
-                }
+/*
+ Keep nearby pages ready for animation.
+ Pages outside this window release their canvases.
+*/
+async function prepareNearby(index){
+ const start = Math.max(0, index - 2);
+ const end = Math.min(totalPages - 1, index + 3);
 
-                const page = document.createElement("div");
-                page.className = "page";
+ const jobs = [];
 
-                if (i === 1 || i === pdfDocument.numPages) {
-                    page.dataset.density = "hard";
-                }
+ for(let i = start; i <= end; i++){
+  jobs.push(renderPage(i));
+ }
 
-                const canvas = document.createElement("canvas");
-                const context = canvas.getContext("2d", {
-                    alpha: false
-                });
+ await Promise.allSettled(jobs);
 
-                // Limit render resolution to avoid excessive memory usage.
-                const maxDimension = 1800;
-                const renderScale = Math.min(
-                    1.5,
-                    maxDimension / Math.max(
-                        originalViewport.width,
-                        originalViewport.height
-                    )
-                );
+ for(let i = 0; i < totalPages; i++){
+  if(i >= start && i <= end) continue;
+  if(rendering.has(i)) continue;
+  if(!rendered.has(i)) continue;
 
-                const viewport = pdfPage.getViewport({
-                    scale: renderScale
-                });
+  const holder = pageElements[i];
+  const canvas = holder.querySelector("canvas");
 
-                canvas.width = Math.ceil(viewport.width);
-                canvas.height = Math.ceil(viewport.height);
+  if(canvas){
+   canvas.width = 0;
+   canvas.height = 0;
+   canvas.remove();
+  }
 
-                await pdfPage.render({
-                    canvasContext: context,
-                    viewport: viewport
-                }).promise;
+  holder.replaceChildren();
 
-                page.appendChild(canvas);
-                pageElements.push(page);
-            }
+  const placeholder = document.createElement("span");
+  placeholder.className = "placeholder";
+  placeholder.textContent = `Page ${i + 1}`;
+  holder.appendChild(placeholder);
 
-            // Initialize the 3D flipbook.
-            pageFlip = new St.PageFlip(bookElement, {
-                width: pageWidth,
-                height: pageHeight,
-                size: "stretch",
-                minWidth: 280,
-                maxWidth: 1000,
-                minHeight: 350,
-                maxHeight: 1400,
-                autoSize: true,
-                showCover: true,
-                usePortrait: true,
-                drawShadow: true,
-                maxShadowOpacity: 0.45,
-                flippingTime: 800,
-                mobileScrollSupport: true,
-                useMouseEvents: true,
-                startPage: 0
-            });
+  rendered.delete(i);
+ }
+}
 
-            pageFlip.loadFromHTML(pageElements);
+async function init(){
+ try{
+  if(!window.pdfjsLib) throw new Error("PDF.js library did not load.");
+  if(!window.St || !window.St.PageFlip)
+   throw new Error("PageFlip library did not load.");
 
-            pageFlip.on("flip", event => {
-                updateControls(Number(event.data));
-            });
+  const response = await fetch(PDF_URL);
 
-            pageFlip.on("init", event => {
-                updateControls(Number(event.data) || 0);
-            });
+  if(!response.ok){
+   throw new Error(
+    `PDF request failed: HTTP ${response.status}. Check the PDF URL.`
+   );
+  }
 
-            status.style.display = "none";
-            updateControls(0);
+  // PDF is hosted on the same website, so CORS should not be needed.
+  const data = await response.arrayBuffer();
 
-            prevBtn.disabled = true;
-            firstBtn.disabled = true;
-            nextBtn.disabled = pdfDocument.numPages <= 1;
-            lastBtn.disabled = pdfDocument.numPages <= 1;
+  pdf = await pdfjsLib.getDocument({
+   data: new Uint8Array(data)
+  }).promise;
 
-        } catch (error) {
-            console.error("Flipbook error:", error);
+  totalPages = pdf.numPages;
 
-            showError(
-                "Unable to load the magazine. Please check your internet connection " +
-                "and confirm that the PDF link is publicly accessible. " +
-                "If the error persists, open the PDF directly using the Download PDF button."
-            );
-        } finally {
-            isLoading = false;
-        }
-    }
+  if(!totalPages) throw new Error("The PDF has no pages.");
 
-    prevBtn.addEventListener("click", () => {
-        if (pageFlip) pageFlip.flipPrev();
-    });
+  const firstPage = await pdf.getPage(1);
+  const vp = firstPage.getViewport({scale:1});
 
-    nextBtn.addEventListener("click", () => {
-        if (pageFlip) pageFlip.flipNext();
-    });
+  pageWidth = vp.width;
+  pageHeight = vp.height;
 
-    firstBtn.addEventListener("click", () => {
-        if (pageFlip) pageFlip.flip(0);
-    });
+  firstPage.cleanup();
 
-    lastBtn.addEventListener("click", () => {
-        if (pageFlip) {
-            pageFlip.flip(pageFlip.getPageCount() - 1);
-        }
-    });
+  status.textContent = `Preparing ${totalPages} pages...`;
 
-    fullBtn.addEventListener("click", async () => {
-        try {
-            if (!document.fullscreenElement) {
-                await viewer.requestFullscreen();
-            } else {
-                await document.exitFullscreen();
-            }
-        } catch (error) {
-            console.error("Fullscreen error:", error);
-        }
-    });
+  // Create lightweight placeholders for every page.
+  for(let i = 0; i < totalPages; i++){
+   const element = document.createElement("div");
+   element.className = "page";
 
-    document.addEventListener("fullscreenchange", () => {
-        fullBtn.textContent = document.fullscreenElement
-            ? "✕ Exit Fullscreen"
-            : "⛶ Fullscreen";
-    });
+   const placeholder = document.createElement("span");
+   placeholder.className = "placeholder";
+   placeholder.textContent = `Page ${i + 1}`;
 
-    // Keyboard navigation.
-    document.addEventListener("keydown", event => {
-        if (!pageFlip || event.target.matches("input, textarea")) return;
+   element.appendChild(placeholder);
+   pageElements.push(element);
+  }
 
-        if (event.key === "ArrowRight") pageFlip.flipNext();
-        if (event.key === "ArrowLeft") pageFlip.flipPrev();
-    });
+  flip = new St.PageFlip(bookElement,{
+   width:pageWidth,
+   height:pageHeight,
+   size:"stretch",
+   minWidth:280,
+   maxWidth:900,
+   minHeight:350,
+   maxHeight:1200,
+   autoSize:true,
+   showCover:true,
+   usePortrait:true,
+   drawShadow:true,
+   maxShadowOpacity:0.4,
+   flippingTime:700,
+   mobileScrollSupport:true
+  });
 
-    renderPDF();
-})();
+  flip.loadFromHTML(pageElements);
+
+  $("download").href = PDF_URL;
+
+  flip.on("flip", event=>{
+   const index = Number(event.data);
+   updateControls(index);
+   prepareNearby(index);
+  });
+
+  flip.on("init", event=>{
+   const index = Number(event.data) || 0;
+   updateControls(index);
+   prepareNearby(index);
+  });
+
+  status.style.display = "none";
+  updateControls(0);
+  await prepareNearby(0);
+
+ }catch(err){
+  console.error("Flipbook error:",err);
+  showError(
+   "Unable to load the PDF. " + err.message +
+   " Check that the PDF exists at " + PDF_URL +
+   " and is published on the same GitHub Pages website."
+  );
+ }
+}
+
+$("prev").onclick = ()=>flip && flip.flipPrev();
+$("next").onclick = ()=>flip && flip.flipNext();
+$("first").onclick = ()=>flip && flip.flip(0);
+$("last").onclick = ()=>flip && flip.flip(totalPages - 1);
+
+$("fullscreen").onclick = async()=>{
+ try{
+  if(!document.fullscreenElement){
+   await viewer.requestFullscreen();
+  }else{
+   await document.exitFullscreen();
+  }
+ }catch(err){
+  console.error("Fullscreen error:",err);
+ }
+};
+
+document.addEventListener("fullscreenchange",()=>{
+ $("fullscreen").textContent = document.fullscreenElement
+  ? "✕ Exit Fullscreen"
+  : "⛶ Fullscreen";
+});
+
+document.addEventListener("keydown",event=>{
+ if(!flip || /INPUT|TEXTAREA/.test(event.target.tagName)) return;
+ if(event.key === "ArrowRight") flip.flipNext();
+ if(event.key === "ArrowLeft") flip.flipPrev();
+});
+
+init();
 </script>
-
 </body>
 </html>
+```
