@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flipbook PDF Compressor</title>
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+    .card { background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); width: 100%; max-width: 520px; text-align: center; }
+    h2 { color: #1a1a1a; margin-bottom: 8px; }
+    p { color: #666; font-size: 14px; margin-bottom: 24px; }
+    .dropzone { border: 2px dashed #007bff; border-radius: 8px; padding: 30px 20px; background: #f8fbff; cursor: pointer; transition: 0.3s; margin-bottom: 20px; }
+    .dropzone:hover { background: #edf5ff; }
+    input[type="file"] { display: none; }
+    .btn { background: #007bff; color: white; border: none; padding: 12px 24px; font-size: 15px; font-weight: 600; border-radius: 6px; cursor: pointer; width: 100%; transition: 0.2s; }
+    .btn:hover { background: #0056b3; }
+    .btn:disabled { background: #ccc; cursor: not-allowed; }
+    .progress-box { margin-top: 20px; display: none; text-align: left; }
+    .progress-bar-bg { background: #e9ecef; border-radius: 6px; height: 10px; overflow: hidden; margin-top: 6px; }
+    .progress-bar { background: #28a745; height: 100%; width: 0%; transition: width 0.2s; }
+    .status-text { font-size: 13px; color: #444; font-weight: 500; }
+    .download-section { margin-top: 24px; display: none; }
+    .btn-download { background: #28a745; }
+    .btn-download:hover { background: #218838; }
+  </style>
+
+  <!-- PDF Rendering and Modification Engines -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+</head>
+<body>
+
+<div class="card">
+  <h2>Flipbook PDF Compressor</h2>
+  <p>ফ্লিপবুকের জন্য উপযোগী ছোট সাইজ এবং পরিষ্কার কোয়ালিটি</p>
+
+  <div class="dropzone" id="dropArea" onclick="document.getElementById('fileInput').click()">
+    <span id="fileLabel">একটি PDF ফাইল নির্বাচন করুন বা এখানে ড্র্যাগ করুন</span>
+    <input type="file" id="fileInput" accept="application/pdf">
+  </div>
+
+  <button class="btn" id="compressBtn" disabled onclick="startCompression()">কম্প্রেস শুরু করুন</button>
+
+  <div class="progress-box" id="progressBox">
+    <div class="status-text" id="statusText">প্রসেসিং চলছে...</div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+  </div>
+
+  <div class="download-section" id="downloadSection">
+    <button class="btn btn-download" id="downloadBtn">কম্প্রেসড PDF ডাউনলোড করুন</button>
+  </div>
+</div>
+
+<script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  const fileInput = document.getElementById('fileInput');
+  const fileLabel = document.getElementById('fileLabel');
+  const compressBtn = document.getElementById('compressBtn');
+  const progressBox = document.getElementById('progressBox');
+  const progressBar = document.getElementById('progressBar');
+  const statusText = document.getElementById('statusText');
+  const downloadSection = document.getElementById('downloadSection');
+  const downloadBtn = document.getElementById('downloadBtn');
+
+  let selectedFile = null;
+
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+      selectedFile = e.target.files[0];
+      fileLabel.innerText = `${selectedFile.name} (${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB)`;
+      compressBtn.disabled = false;
+      downloadSection.style.display = 'none';
+    }
+  });
+
+  async function startCompression() {
+    if (!selectedFile) return;
+
+    compressBtn.disabled = true;
+    progressBox.style.display = 'block';
+    downloadSection.style.display = 'none';
+
+    try {
+      const fileData = await selectedFile.arrayBuffer();
+      const loadingTask = pdfjsLib.getDocument({ data: fileData });
+      const pdfDoc = await loadingTask.promise;
+      const totalPages = pdfDoc.numPages;
+
+      const newPdf = await PDFLib.PDFDocument.create();
+
+      // প্রতিটি পেজ ফ্লিপবুক রেজোলিউশন (1.5x স্কেল / ~150 DPI) এবং 0.75 JPEG কোয়ালিটিতে কনভার্ট
+      for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+        statusText.innerText = `পেজ প্রসেস হচ্ছে: ${pageNum} / ${totalPages}`;
+        progressBar.style.width = `${Math.round((pageNum / totalPages) * 90)}%`;
+
+        const page = await pdfDoc.getPage(pageNum);
+        const viewport = page.getViewport({ scale: 1.5 }); // ফ্লিপবুক-ফ্রেন্ডলি শার্প স্কেল
+
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+
+        await page.render({ canvasContext: context, viewport: viewport }).promise;
+
+        // ব্যালেন্সড সাইজ ও ক্লিয়ারিটির জন্য 75% কোয়ালিটিতে JPEG এ কনভার্ট
+        const imgDataUrl = canvas.toDataURL('image/jpeg', 0.75);
+        const imgBytes = await fetch(imgDataUrl).then(res => res.arrayBuffer());
+        const embeddedImage = await newPdf.embedJpg(imgBytes);
+
+        // নতুন PDF পেজ যোগ করা
+        const newPage = newPdf.addPage([viewport.width, viewport.height]);
+        newPage.drawImage(embeddedImage, {
+          x: 0,
+          y: 0,
+          width: viewport.width,
+          height: viewport.height,
+        });
+      }
+
+      statusText.innerText = "ফাইল সংরক্ষণ ও অপ্টিমাইজ করা হচ্ছে...";
+      progressBar.style.width = '100%';
+
+      // স্ট্রাকচারাল অবজেক্ট ক্লিনআপ
+      const compressedPdfBytes = await newPdf.save({ useObjectStreams: true });
+      const blob = new Blob([compressedPdfBytes], { type: 'application/pdf' });
+      const downloadUrl = URL.createObjectURL(blob);
+
+      downloadBtn.onclick = () => {
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `flipbook_compressed_${selectedFile.name}`;
+        a.click();
+      };
+
+      downloadSection.style.display = 'block';
+      statusText.innerText = "কম্প্রেস সফলভাবে সম্পন্ন হয়েছে!";
+    } catch (err) {
+      console.error(err);
+      statusText.innerText = "একটি ত্রুটি ঘটেছে। ফাইলটি চেক করে আবার চেষ্টা করুন।";
+    } finally {
+      compressBtn.disabled = false;
+    }
+  }
+</script>
+
+</body>
+</html>
