@@ -5,102 +5,63 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Flipbook PDF Compressor</title>
   <style>
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-    .card { background: #1e293b; padding: 30px; border-radius: 14px; max-width: 500px; width: 100%; border: 1px solid #334155; text-align: center; }
-    h2 { color: #38bdf8; margin-top: 0; }
-    .form-group { text-align: left; margin-bottom: 15px; }
-    label { font-size: 13px; color: #94a3b8; display: block; margin-bottom: 6px; }
-    select, input[type="file"] { width: 100%; padding: 10px; background: #0f172a; color: #f8fafc; border: 1px solid #334155; border-radius: 6px; }
-    button { width: 100%; background: #0284c7; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 15px; }
-    button:hover { background: #0369a1; }
-    button:disabled { background: #475569; cursor: not-allowed; }
-    #status { margin-top: 15px; font-size: 14px; color: #38bdf8; word-break: break-all; }
-    .download-link { display: inline-block; margin-top: 12px; background: #10b981; color: white; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-weight: bold; }
+    * { box-sizing: border-box; }
+    body {
+      background: #0b1120;
+      margin: 0;
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .wrapper {
+      width: 100%;
+      max-width: 820px;
+      background: #1e293b;
+      border-radius: 16px;
+      border: 1px solid #334155;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
+      overflow: hidden;
+      padding: 16px;
+    }
+    .header {
+      text-align: center;
+      padding: 12px 10px 20px;
+    }
+    .header h2 {
+      margin: 0;
+      color: #38bdf8;
+      font-size: 24px;
+    }
+    .header p {
+      margin: 6px 0 0;
+      color: #94a3b8;
+      font-size: 14px;
+    }
+    gradio-app {
+      display: block;
+      width: 100%;
+      min-height: 520px;
+      border: none;
+    }
   </style>
 
-  <!-- Hugging Face Gradio Client JS -->
-  <script type="module">
-    import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
-    window.GradioClient = Client;
-  </script>
+  <!-- Gradio অফিসিয়াল ওয়েব কম্পোনেন্ট স্ক্রিপ্ট -->
+  <script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/4.44.0/gradio.js"></script>
 </head>
 <body>
 
-<div class="card">
-  <h2>⚡ Flipbook PDF Compressor</h2>
-  <p style="color: #94a3b8; font-size: 13px;">Hugging Face ব্যাকএন্ড দ্বারা চালিত</p>
-
-  <div class="form-group">
-    <label>PDF ফাইল নির্বাচন করুন</label>
-    <input type="file" id="pdfFileInput" accept="application/pdf">
+<div class="wrapper">
+  <div class="header">
+    <h2>⚡ Flipbook PDF Compressor</h2>
+    <p>বড় বই ও স্ক্যান করা PDF-এর জন্য অপ্টিমাইজড ইঞ্জিন (PyMuPDF)</p>
   </div>
 
-  <div class="form-group">
-    <label>DPI রেজোলিউশন</label>
-    <select id="dpiSelect">
-      <option value="120">120 DPI (অতিরিক্ত হালকা)</option>
-      <option value="150" selected>150 DPI (ফ্লিপবুক পারফেক্ট)</option>
-      <option value="180">180 DPI (উচ্চ স্বচ্ছতা)</option>
-    </select>
-  </div>
-
-  <div class="form-group">
-    <label>ইমেজ কোয়ালিটি</label>
-    <select id="qualitySelect">
-      <option value="65">65% (ছোট সাইজ)</option>
-      <option value="75" selected>75% (ব্যালেন্সড)</option>
-      <option value="85">85% (হাই ক্লিয়ারিটি)</option>
-    </select>
-  </div>
-
-  <button id="submitBtn" onclick="runCompression()">কম্প্রেস করুন</button>
-
-  <div id="status"></div>
+  <!-- সরাসরি Hugging Face Space এম্বেড -->
+  <gradio-app src="https://shmwbin-flipbook-pdf-compressor.hf.space" theme_mode="dark"></gradio-app>
 </div>
-
-<script>
-  async function runCompression() {
-    const fileInput = document.getElementById('pdfFileInput');
-    const dpi = document.getElementById('dpiSelect').value;
-    const quality = parseFloat(document.getElementById('qualitySelect').value);
-    const statusDiv = document.getElementById('status');
-    const btn = document.getElementById('submitBtn');
-
-    if (!fileInput.files.length) {
-      alert("অনুগ্রহ করে একটি PDF ফাইল নির্বাচন করুন!");
-      return;
-    }
-
-    const file = fileInput.files[0];
-    btn.disabled = true;
-    statusDiv.innerHTML = "সার্ভারে ফাইল আপলোড ও প্রসেসিং চলছে... একটু সময় দিন";
-
-    try {
-      // আপনার তৈরি করা Hugging Face Space-এর সাথে সরাসরি কানেকশন
-      const app = await window.GradioClient.connect("shmwbin/flipbook-pdf-compressor");
-      
-      const result = await app.predict("/compress_pdf", [
-        file,
-        dpi,
-        quality
-      ]);
-
-      const downloadData = result.data[0];
-      const statusMessage = result.data[1];
-
-      statusDiv.innerHTML = `
-        <p style="color: #34d399;">${statusMessage}</p>
-        <a href="${downloadData.url}" download="compressed_${file.name}" class="download-link">কম্প্রেসড PDF ডাউনলোড করুন</a>
-      `;
-    } catch (err) {
-      console.error(err);
-      statusDiv.innerHTML = `<span style="color: #f87171;">ত্রুটি ঘটেছে: ${err.message}</span>`;
-    } finally {
-      btn.disabled = false;
-    }
-  }
-</script>
 
 </body>
 </html>
