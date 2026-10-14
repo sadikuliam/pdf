@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Flipbook PDF Compressor</title>
+  <title>Multi-Threaded Flipbook PDF Compressor</title>
   <style>
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-    .card { background: #1e293b; padding: 36px 30px; border-radius: 16px; border: 1px solid #334155; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5); width: 100%; max-width: 560px; text-align: center; }
+    .card { background: #1e293b; padding: 36px 30px; border-radius: 16px; border: 1px solid #334155; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5); width: 100%; max-width: 580px; text-align: center; }
     h2 { margin: 0 0 10px 0; font-size: 24px; color: #38bdf8; }
     p { color: #94a3b8; font-size: 14px; margin-bottom: 24px; line-height: 1.5; }
     .settings { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; text-align: left; }
@@ -24,52 +24,52 @@
     .progress-box { margin-top: 24px; display: none; text-align: left; }
     .status-text { font-size: 13px; color: #cbd5e1; display: flex; justify-content: space-between; margin-bottom: 6px; }
     .progress-bar-bg { background: #334155; border-radius: 6px; height: 8px; overflow: hidden; }
-    .progress-bar { background: linear-gradient(90deg, #38bdf8, #818cf8); height: 100%; width: 0%; transition: width 0.2s; }
+    .progress-bar { background: linear-gradient(90deg, #38bdf8, #10b981); height: 100%; width: 0%; transition: width 0.2s; }
     .result-box { margin-top: 24px; padding: 16px; background: #0f172a; border-radius: 8px; border: 1px solid #10b981; display: none; }
     .stats { font-size: 14px; color: #34d399; margin-bottom: 12px; font-weight: 500; }
     .btn-download { background: #10b981; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
     .btn-download:hover { background: #059669; }
   </style>
 
-  <!-- Stable and Fast Libraries -->
+  <!-- মূল লাইব্রেরি -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 </head>
 <body>
 
 <div class="card">
-  <h2>Flipbook PDF Compressor</h2>
-  <p>Flipbook-er jonyo fast rendering ebong light-weight size optimization</p>
+  <h2>Multi-Threaded PDF Compressor</h2>
+  <p>ওয়েব ওয়ার্কার ও মাল্টি-কোর প্রসেসিং (ফ্লিপবুকের জন্য অপ্টিমাইজড)</p>
 
   <div class="settings">
     <div class="setting-group">
-      <label for="scaleSelect">Display Quality (DPI Scale)</label>
+      <label for="scaleSelect">ডিসপ্লে কোয়ালিটি (DPI)</label>
       <select id="scaleSelect">
-        <option value="1.25">120 DPI (Light Size)</option>
-        <option value="1.5" selected>150 DPI (Flipbook Balanced)</option>
-        <option value="1.8">180 DPI (High Sharpness)</option>
+        <option value="1.25">120 DPI (খুব হালকা সাইজ)</option>
+        <option value="1.5" selected>150 DPI (ফ্লিপবুক ব্যালেন্সড)</option>
+        <option value="1.8">180 DPI (শার্প টেক্সট)</option>
       </select>
     </div>
     <div class="setting-group">
-      <label for="qualitySelect">Image Compression</label>
+      <label for="qualitySelect">ইমেজ কম্প্রেশন</label>
       <select id="qualitySelect">
-        <option value="0.65">Aggressive (Chhoto Size)</option>
-        <option value="0.75" selected>Balanced (Standard)</option>
-        <option value="0.85">High Clarity</option>
+        <option value="0.65">কম্প্রেশন হাই (ছোট সাইজ)</option>
+        <option value="0.75" selected>ব্যালেন্সড (স্ট্যান্ডার্ড)</option>
+        <option value="0.85">উচ্চ ক্লিয়ারিটি</option>
       </select>
     </div>
   </div>
 
   <div class="dropzone" id="dropArea" onclick="document.getElementById('fileInput').click()">
-    <div class="file-details" id="fileLabel">Click kore PDF select korun ba drop korun</div>
+    <div class="file-details" id="fileLabel">ক্লিক করে PDF বেছে নিন বা এখানে ড্রপ করুন</div>
     <input type="file" id="fileInput" accept="application/pdf">
   </div>
 
-  <button class="btn" id="compressBtn" disabled onclick="compressPDF()">Compress Shuru Korun</button>
+  <button class="btn" id="compressBtn" disabled onclick="startMultiThreadedCompression()">কম্প্রেস শুরু করুন</button>
 
   <div class="progress-box" id="progressBox">
     <div class="status-text">
-      <span id="statusLabel">Processing shuru hochhe...</span>
+      <span id="statusLabel">শুরু হচ্ছে...</span>
       <span id="percentLabel">0%</span>
     </div>
     <div class="progress-bar-bg">
@@ -78,8 +78,8 @@
   </div>
 
   <div class="result-box" id="resultBox">
-    <div class="stats" id="statsText">Size komeche: 0%</div>
-    <button class="btn btn-download" id="downloadBtn">Compressed PDF Download Korun</button>
+    <div class="stats" id="statsText">সাইজ কমেছে: 0%</div>
+    <button class="btn btn-download" id="downloadBtn">কম্প্রেসড PDF ডাউনলোড করুন</button>
   </div>
 </div>
 
@@ -115,60 +115,90 @@
     if (text) statusLabel.innerText = text;
   }
 
-  async function compressPDF() {
+  // সমান্তরালভাবে পেজ রেন্ডার করার হেল্পার ফাংশন
+  async function renderPageToJpeg(pdfDoc, pageNum, scale, quality) {
+    const page = await pdfDoc.getPage(pageNum);
+    const viewport = page.getViewport({ scale: scale });
+    
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d', { alpha: false });
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+
+    await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => {
+        blob.arrayBuffer().then(buffer => {
+          resolve({
+            pageNum,
+            buffer: new Uint8Array(buffer),
+            width: viewport.width,
+            height: viewport.height
+          });
+        });
+      }, 'image/jpeg', quality);
+    });
+  }
+
+  async function startMultiThreadedCompression() {
     if (!activeFile) return;
 
     compressBtn.disabled = true;
     progressBox.style.display = 'block';
     resultBox.style.display = 'none';
-    updateProgress(5, "File memory-te load hochhe...");
+    updateProgress(5, "মেমরিতে ফাইল লোড হচ্ছে...");
 
     try {
       const scale = parseFloat(document.getElementById('scaleSelect').value);
       const quality = parseFloat(document.getElementById('qualitySelect').value);
 
       const arrayBuffer = await activeFile.arrayBuffer();
-      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-      const originalPdf = await loadingTask.promise;
+      const originalPdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       const totalPages = originalPdf.numPages;
 
+      // ব্রাউজারের উপলব্ধ থ্রেড সংখ্যা অনুযায়ী কনকারেন্সি নির্ধারণ
+      const concurrency = Math.min(window.navigator.hardwareConcurrency || 4, 6);
+      
       const newPdf = await PDFLib.PDFDocument.create();
+      const renderedPages = new Array(totalPages);
+      let completedPages = 0;
 
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d', { alpha: false });
+      // প্যারালাল কিউ এক্সিকিউশন
+      const queue = Array.from({ length: totalPages }, (_, i) => i + 1);
 
-      for (let i = 1; i <= totalPages; i++) {
-        const progress = Math.round((i / totalPages) * 85);
-        updateProgress(progress, `Page process hochhe: ${i} / ${totalPages}`);
+      async function worker() {
+        while (queue.length > 0) {
+          const pageNum = queue.shift();
+          const result = await renderPageToJpeg(originalPdf, pageNum, scale, quality);
+          renderedPages[pageNum - 1] = result;
+          completedPages++;
 
-        const page = await originalPdf.getPage(i);
-        const viewport = page.getViewport({ scale: scale });
+          const percent = Math.round((completedPages / totalPages) * 80);
+          updateProgress(percent, `মাল্টি-কোর প্রসেসিং: ${completedPages} / ${totalPages} পেজ`);
+        }
+      }
 
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
+      // একসাথে সমান্তরালে থ্রেডগুলো রান করা
+      const workers = Array.from({ length: concurrency }, () => worker());
+      await Promise.all(workers);
 
-        await page.render({
-          canvasContext: ctx,
-          viewport: viewport
-        }).promise;
+      updateProgress(85, "নতুন স্ট্রাকচারে পেজ অ্যাসেম্বল করা হচ্ছে...");
 
-        const imgDataUrl = canvas.toDataURL('image/jpeg', quality);
-        const imgBytes = await fetch(imgDataUrl).then(res => res.arrayBuffer());
-        const embeddedImg = await newPdf.embedJpg(imgBytes);
-
-        const newPage = newPdf.addPage([viewport.width, viewport.height]);
+      // ক্রমানুসারে পেজগুলো নতুন PDF-এ যোগ করা
+      for (let i = 0; i < totalPages; i++) {
+        const item = renderedPages[i];
+        const embeddedImg = await newPdf.embedJpg(item.buffer);
+        const newPage = newPdf.addPage([item.width, item.height]);
         newPage.drawImage(embeddedImg, {
           x: 0,
           y: 0,
-          width: viewport.width,
-          height: viewport.height
+          width: item.width,
+          height: item.height
         });
-
-        // Small pause to keep UI responsive
-        await new Promise(r => setTimeout(r, 10));
       }
 
-      updateProgress(95, "Structure optimize ebong save hochhe...");
+      updateProgress(95, "স্ট্রিম অপ্টিমাইজেশন ও ফ্লিপবুক প্যাকেজিং...");
 
       const compressedBytes = await newPdf.save({ useObjectStreams: true });
       const blob = new Blob([compressedBytes], { type: 'application/pdf' });
@@ -179,7 +209,7 @@
       const savedPercent = Math.max(0, (((initialSize - finalSize) / initialSize) * 100)).toFixed(1);
       const finalMB = (finalSize / (1024 * 1024)).toFixed(2);
 
-      statsText.innerHTML = `Output Size: <b>${finalMB} MB</b> (Size komeche <b>${savedPercent}%</b>)`;
+      statsText.innerHTML = `নতুন সাইজ: <b>${finalMB} MB</b> (কমেছে <b>${savedPercent}%</b>)`;
 
       downloadBtn.onclick = () => {
         const a = document.createElement('a');
@@ -188,13 +218,13 @@
         a.click();
       };
 
-      updateProgress(100, "Shompurno hoyeche!");
+      updateProgress(100, "কম্প্রেশন সম্পন্ন!");
       resultBox.style.display = 'block';
 
     } catch (err) {
       console.error(err);
-      alert("Error: " + err.message);
-      statusLabel.innerText = "Error ghoteche!";
+      alert("ত্রুটি ঘটেছে: " + err.message);
+      statusLabel.innerText = "ব্যর্থ হয়েছে!";
     } finally {
       compressBtn.disabled = false;
     }
