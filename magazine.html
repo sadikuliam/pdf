@@ -2,311 +2,261 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Touch & Zoom Offline Flipbook</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magazine Flipbook</title>
     
+    <!-- Swiper CSS (Ultra stable touch 3D slider) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
         }
         body {
-            background-color: #1a1a1a;
+            background-color: #111;
             font-family: Arial, sans-serif;
             height: 100vh;
-            overflow: hidden;
             display: flex;
             flex-direction: column;
-            align-items: center;
             justify-content: center;
+            align-items: center;
+            overflow: hidden;
             color: #fff;
-            user-select: none;
         }
 
-        #upload-section {
-            background: #ffffff;
-            padding: 35px 30px;
-            border-radius: 12px;
-            text-align: center;
+        #upload-box {
+            background: #fff;
             color: #333;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-            max-width: 90%;
-            width: 400px;
+            padding: 30px 40px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
-        .upload-btn {
+        .btn-upload {
             display: inline-block;
             margin-top: 15px;
-            padding: 12px 25px;
+            padding: 12px 24px;
             background: #007bff;
             color: #fff;
-            border-radius: 6px;
-            font-weight: bold;
+            border-radius: 5px;
             cursor: pointer;
-            transition: background 0.3s;
-        }
-        .upload-btn:hover {
-            background: #0056b3;
+            font-weight: bold;
         }
         input[type="file"] {
             display: none;
         }
+
         #status {
             margin-top: 15px;
             font-size: 14px;
-            color: #007bff;
             font-weight: bold;
+            color: #007bff;
         }
 
-        #reader-wrapper {
+        /* Swiper Container */
+        #reader-container {
             display: none;
+            width: 100vw;
+            height: 100vh;
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background: #121212;
+            background: #181818;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
         }
 
-        #panzoom-viewport {
-            width: 100%;
-            height: 85%;
+        .swiper {
+            width: 90vw;
+            height: 85vh;
+            max-width: 650px;
+        }
+
+        .swiper-slide {
             display: flex;
-            align-items: center;
             justify-content: center;
-        }
-
-        #flipbook {
-            box-shadow: 0 8px 30px rgba(0,0,0,0.8);
-        }
-        .page {
-            background-color: #ffffff;
+            align-items: center;
+            background: #000;
+            border-radius: 8px;
             overflow: hidden;
-        }
-        .page canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
         }
 
-        .controls {
+        .swiper-slide canvas {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        /* Bottom bar */
+        .toolbar {
             position: absolute;
-            bottom: 15px;
+            bottom: 20px;
             display: flex;
             align-items: center;
-            gap: 10px;
-            background: rgba(30, 30, 30, 0.85);
-            backdrop-filter: blur(8px);
-            padding: 8px 16px;
+            gap: 15px;
+            background: rgba(0,0,0,0.8);
+            padding: 8px 20px;
             border-radius: 30px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-            z-index: 1000;
+            z-index: 10;
         }
-        .controls button {
-            background: #2e2e2e;
-            color: #fff;
-            border: 1px solid #444;
-            padding: 6px 14px;
+
+        .nav-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
             border-radius: 20px;
             cursor: pointer;
-            font-size: 13px;
             font-weight: bold;
         }
-        .controls button:hover, .controls button:active {
-            background: #007bff;
-            border-color: #007bff;
-        }
-        #page-info {
-            font-size: 13px;
-            color: #ddd;
-            margin: 0 6px;
+
+        .nav-btn:hover {
+            background: #0056b3;
         }
 
-        #close-btn {
+        #close-top {
             position: absolute;
             top: 15px;
-            right: 15px;
+            right: 20px;
             background: #dc3545;
             color: white;
             border: none;
-            padding: 8px 14px;
-            border-radius: 6px;
+            padding: 8px 15px;
+            border-radius: 5px;
             cursor: pointer;
             font-weight: bold;
-            font-size: 13px;
-            z-index: 1000;
+            z-index: 10;
         }
     </style>
 </head>
 <body>
 
-    <div id="upload-section">
-        <h2>Offline Touch Flipbook</h2>
-        <p style="margin-top: 6px; color: #666; font-size: 13px;">Je kono boro PDF (Touch & Pinch-to-zoom)</p>
-        <label for="pdf-file" class="upload-btn">PDF File Bachun</label>
-        <input type="file" id="pdf-file" accept="application/pdf">
+    <div id="upload-box">
+        <h2>Offline Magazine Reader</h2>
+        <p style="margin-top: 8px; color: #666;">Boro size PDF touch flipbook</p>
+        <label for="pdf-input" class="btn-upload">PDF File Bachun</label>
+        <input type="file" id="pdf-input" accept="application/pdf">
         <div id="status"></div>
     </div>
 
-    <div id="reader-wrapper">
-        <button id="close-btn" onclick="location.reload()">Bondho Korun</button>
-        
-        <div id="panzoom-viewport">
-            <div id="flipbook"></div>
+    <div id="reader-container">
+        <button id="close-top" onclick="location.reload()">Bondho Korun</button>
+
+        <div class="swiper">
+            <div class="swiper-wrapper" id="swiper-slides"></div>
         </div>
 
-        <div class="controls">
-            <button onclick="prevPage()">◀ Ager Pata</button>
-            <span id="page-info">Pata: 1</span>
-            <button onclick="nextPage()">Porerr Pata ▶</button>
-            <button onclick="zoomIn()">🔍+</button>
-            <button onclick="zoomOut()">🔍-</button>
-            <button onclick="resetZoom()">Reset</button>
+        <div class="toolbar">
+            <button class="nav-btn" id="prev-btn">◀ Pata</button>
+            <span id="page-count">1 / 1</span>
+            <button class="nav-btn" id="next-btn">Pata ▶</button>
         </div>
     </div>
 
-    <!-- Script Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/3/turn.min.js"></script>
+    <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@panzoom/panzoom@4.5.1/dist/panzoom.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
 
-        let panzoomInstance = null;
-        let totalPages = 0;
-        let isZoomed = false;
+        let swiper = null;
+        let pdfDoc = null;
+        let renderedPages = new Set();
 
-        document.getElementById('pdf-file').addEventListener('change', async function(e) {
+        document.getElementById('pdf-input').addEventListener('change', async function(e) {
             const file = e.target.files[0];
             if (!file) return;
 
             const status = document.getElementById('status');
-            status.innerText = "File load hocche, ektu opekha korun...";
+            status.innerText = "File pora hocche...";
 
             const fileReader = new FileReader();
             fileReader.onload = async function() {
                 const typedarray = new Uint8Array(this.result);
-                
                 try {
-                    const pdf = await pdfjsLib.getDocument(typedarray).promise;
-                    totalPages = pdf.numPages;
-                    status.innerText = `Mot ${totalPages} pata toiri hocche...`;
+                    pdfDoc = await pdfjsLib.getDocument(typedarray).promise;
+                    const totalPages = pdfDoc.numPages;
 
-                    document.getElementById('upload-section').style.display = 'none';
-                    document.getElementById('reader-wrapper').style.display = 'flex';
+                    document.getElementById('upload-box').style.display = 'none';
+                    document.getElementById('reader-container').style.display = 'flex';
 
-                    const isMobile = window.innerWidth <= 768;
-                    const firstPage = await pdf.getPage(1);
-                    const viewport = firstPage.getViewport({ scale: 1 });
-                    const ratio = viewport.width / viewport.height;
+                    const wrapper = document.getElementById('swiper-slides');
+                    wrapper.innerHTML = '';
 
-                    const bookHeight = Math.min(window.innerHeight * 0.78, 650);
-                    const bookWidth = isMobile ? (bookHeight * ratio) : (bookHeight * ratio * 2);
-
-                    const flipbook = $('#flipbook');
-                    flipbook.empty();
-
-                    for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
-                        const pageDiv = $('<div />', { class: 'page' });
-                        const canvas = document.createElement('canvas');
-                        pageDiv.append(canvas);
-                        flipbook.append(pageDiv);
-
-                        pdf.getPage(pageNum).then(function(page) {
-                            const scale = 2;
-                            const pageViewport = page.getViewport({ scale: scale });
-                            const context = canvas.getContext('2d');
-                            canvas.height = pageViewport.height;
-                            canvas.width = pageViewport.width;
-
-                            page.render({
-                                canvasContext: context,
-                                viewport: pageViewport
-                            });
-                        });
+                    // Shob patar jonno slide toiri
+                    for (let i = 1; i <= totalPages; i++) {
+                        const slide = document.createElement('div');
+                        slide.className = 'swiper-slide';
+                        slide.setAttribute('data-page', i);
+                        wrapper.appendChild(slide);
                     }
 
-                    flipbook.turn({
-                        width: bookWidth,
-                        height: bookHeight,
-                        autoCenter: true,
-                        display: isMobile ? 'single' : 'double',
-                        acceleration: true,
-                        elevation: 50,
-                        gradients: true,
-                        when: {
-                            turned: function(e, page) {
-                                document.getElementById('page-info').innerText = `Pata: ${page} / ${totalPages}`;
+                    // 3D Flip effect Swiper
+                    swiper = new Swiper('.swiper', {
+                        effect: 'flip',
+                        grabCursor: true,
+                        speed: 500,
+                        flipEffect: {
+                            slideShadows: true,
+                            limitRotation: true
+                        },
+                        navigation: {
+                            nextEl: '#next-btn',
+                            prevEl: '#prev-btn',
+                        },
+                        on: {
+                            slideChange: function() {
+                                const current = swiper.activeIndex + 1;
+                                document.getElementById('page-count').innerText = `${current} / ${totalPages}`;
+                                renderPage(current);
+                                if (current + 1 <= totalPages) renderPage(current + 1);
+                                if (current - 1 >= 1) renderPage(current - 1);
                             }
                         }
                     });
 
-                    // Panzoom initialization & Correct event binding
-                    const flipbookElem = document.getElementById('flipbook');
-                    const viewportElem = document.getElementById('panzoom-viewport');
+                    // Prothom 2 to pata aage render kora
+                    renderPage(1);
+                    if (totalPages >= 2) renderPage(2);
 
-                    panzoomInstance = Panzoom(flipbookElem, {
-                        maxScale: 4,
-                        minScale: 1,
-                        contain: 'outside',
-                        disablePan: true
-                    });
-
-                    viewportElem.addEventListener('wheel', panzoomInstance.zoomWithWheel);
-
-                    // Standard DOM event listener for Panzoom
-                    flipbookElem.addEventListener('panzoomzoom', (e) => {
-                        const currentScale = e.detail.scale;
-                        if (currentScale > 1.05) {
-                            isZoomed = true;
-                            panzoomInstance.setOptions({ disablePan: false });
-                            flipbook.turn('disable', true);
-                        } else {
-                            isZoomed = false;
-                            panzoomInstance.setOptions({ disablePan: true });
-                            flipbook.turn('disable', false);
-                        }
-                    });
+                    document.getElementById('page-count').innerText = `1 / ${totalPages}`;
 
                 } catch (err) {
-                    alert('PDF render korte somosya hoyeche: ' + err.message);
+                    alert("Error: " + err.message);
                     location.reload();
                 }
             };
-
             fileReader.readAsArrayBuffer(file);
         });
 
-        function nextPage() {
-            if (!isZoomed) $('#flipbook').turn('next');
-        }
+        // Dynamic single-page render logic (Memory crash thekate)
+        async function renderPage(pageNum) {
+            if (renderedPages.has(pageNum)) return;
+            renderedPages.add(pageNum);
 
-        function prevPage() {
-            if (!isZoomed) $('#flipbook').turn('previous');
-        }
+            const slide = document.querySelector(`.swiper-slide[data-page="${pageNum}"]`);
+            if (!slide) return;
 
-        function zoomIn() {
-            if (panzoomInstance) panzoomInstance.zoomIn();
-        }
+            const page = await pdfDoc.getPage(pageNum);
+            const scale = 1.8;
+            const viewport = page.getViewport({ scale: scale });
 
-        function zoomOut() {
-            if (panzoomInstance) panzoomInstance.zoomOut();
-        }
+            const canvas = document.createElement('canvas');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            const ctx = canvas.getContext('2d');
 
-        function resetZoom() {
-            if (panzoomInstance) {
-                panzoomInstance.reset();
-                isZoomed = false;
-                panzoomInstance.setOptions({ disablePan: true });
-                $('#flipbook').turn('disable', false);
-            }
+            slide.appendChild(canvas);
+
+            page.render({
+                canvasContext: ctx,
+                viewport: viewport
+            });
         }
     </script>
 </body>
