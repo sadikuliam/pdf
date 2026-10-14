@@ -1,357 +1,158 @@
-```html
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#101827">
-<title>Digital Magazine | SHM</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>অফলাইন PDF ফ্লিপবুক রিডার</title>
+    
+    <!-- dFlip CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/dflip/css/dflip.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/dflip/css/themify-icons.min.css" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #2c3e50;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* আপলোড বক্স ডিজাইন */
+        #upload-container {
+            background: #ffffff;
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            text-align: center;
+            z-index: 10;
+        }
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .file-input-label {
+            display: inline-block;
+            padding: 14px 28px;
+            background-color: #007bff;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .file-input-label:hover {
+            background-color: #0056b3;
+        }
+        input[type="file"] {
+            display: none;
+        }
 
-<style>
-*{box-sizing:border-box}
-body{
- margin:0;background:radial-gradient(ellipse at top,#243b59,#101827 75%);
- color:#f8fafc;font-family:Arial,sans-serif;min-height:100vh
-}
-header{text-align:center;padding:22px 10px 8px}
-h1{font-size:clamp(24px,4vw,38px);margin:0}
-header p{font-size:13px;color:#bdcde0}
-.toolbar{
- display:flex;justify-content:center;align-items:center;
- flex-wrap:wrap;gap:8px;padding:10px
-}
-button,.action{
- border:1px solid #ffffff22;border-radius:9px;
- padding:11px 14px;background:#24344b;color:white;
- font-weight:bold;cursor:pointer;text-decoration:none;font-size:13px
-}
-button:hover,.action:hover{background:#087da8}
-button:disabled{opacity:.4;cursor:not-allowed}
-.primary{background:#0284c7}
-#viewer{
- width:100%;min-height:450px;display:flex;
- align-items:center;justify-content:center;overflow:hidden;padding:10px
-}
-#book{margin:auto}
-.page{
- background:#fff;overflow:hidden;position:relative;
- display:flex;align-items:center;justify-content:center
-}
-.page canvas{width:100%;height:100%;display:block}
-.placeholder{color:#64748b;font-size:14px}
-#status{text-align:center;color:#cbd5e1;padding:12px}
-#error{
- display:none;max-width:650px;margin:10px auto;padding:15px;
- background:#542c3b;border-radius:10px;text-align:center;
- line-height:1.6;overflow-wrap:anywhere
-}
-footer{text-align:center;padding:20px;color:#94a3b8;font-size:12px}
-@media(max-width:600px){
- #viewer{min-height:330px;padding:4px}
- button,.action{padding:10px;font-size:12px}
-}
-</style>
+        /* ফ্লিপবুক ফুলস্ক্রিন কন্টেইনার */
+        #flipbook-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            background-color: #1a1a1a;
+            z-index: 20;
+        }
+        #flipbook-container {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* অন্য ফাইল দেখার বাটন */
+        #close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            padding: 8px 16px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            z-index: 999;
+        }
+        #close-btn:hover {
+            background-color: #c0392b;
+        }
+    </style>
 </head>
 <body>
 
-<header>
- <h1>📖 Digital Magazine</h1>
- <p>Enjoy a realistic page-turning experience</p>
-</header>
+    <!-- ফাইল সিলেক্ট বক্স -->
+    <div id="upload-container">
+        <h2>আপনার ম্যাগাজিন বা বই সিলেক্ট করুন</h2>
+        <label for="pdf-input" class="file-input-label">কম্পিউটার থেকে PDF বাছুন</label>
+        <input type="file" id="pdf-input" accept="application/pdf">
+        <p style="margin-top: 15px; color: #777; font-size: 13px;">যেকোনো সাইজের (১০০ MB+ হলেও) PDF পড়তে পারবেন</p>
+    </div>
 
-<div class="toolbar">
- <button id="prev" disabled>❮ Previous</button>
- <span id="counter">Loading...</span>
- <button id="next" disabled>Next ❯</button>
-</div>
+    <!-- ফুলস্ক্রিন ফ্লিপবুক এরিয়া -->
+    <div id="flipbook-wrapper">
+        <button id="close-btn" onclick="closeBook()">নতুন বই খুলুন</button>
+        <div id="flipbook-container"></div>
+    </div>
 
-<div class="toolbar">
- <button id="first" disabled>⏮ First</button>
- <button id="last" disabled>Last ⏭</button>
- <button id="fullscreen">⛶ Fullscreen</button>
- <a class="action primary" id="download" download="magazine.pdf">
-  ⬇ Download PDF
- </a>
-</div>
+    <!-- স্ক্রিপ্ট ফাইল -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dflip/js/dflip.min.js"></script>
 
-<div id="status">Loading magazine...</div>
-<div id="error"></div>
+    <script>
+        var dFlipLocation = "https://cdn.jsdelivr.net/npm/dflip/";
+        var currentFlipbook = null;
 
-<main id="viewer">
- <div id="book"></div>
-</main>
+        document.getElementById('pdf-input').addEventListener('change', function(e) {
+            var file = e.target.files[0];
+            if (!file || file.type !== 'application/pdf') {
+                alert('অনুগ্রহ করে একটি সঠিক PDF ফাইল সিলেক্ট করুন।');
+                return;
+            }
 
-<footer>SHM Digital Technology • Digital Magazine</footer>
+            // লোকাল ফাইল থেকে সরাসরি ব্রাউজারে Blob URL তৈরি
+            var fileUrl = URL.createObjectURL(file);
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.min.js"></script>
+            // ভিউয়ার দৃশ্যমান করা
+            document.getElementById('upload-container').style.display = 'none';
+            document.getElementById('flipbook-wrapper').style.display = 'block';
 
-<script>
-"use strict";
+            // dFlip অপশন
+            var options = {
+                source: fileUrl,
+                pdfRenderQuality: 2,
+                backgroundColor: "#2c3e50",
+                hard: "cover",
+                webgl: true
+            };
 
-/*
- IMPORTANT:
- Replace this path only if your PDF is stored elsewhere
- on the SAME GitHub Pages website.
-*/
-const PDF_URL = "./pdf/magazine.pdf";
+            // ফ্লিপবুক লোড করা
+            currentFlipbook = $("#flipbook-container").dFlip(options);
+        });
 
-pdfjsLib.GlobalWorkerOptions.workerSrc =
- "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-
-const $ = id => document.getElementById(id);
-const status = $("status");
-const errorBox = $("error");
-const bookElement = $("book");
-const viewer = $("viewer");
-
-let pdf = null;
-let flip = null;
-let rendering = new Map();
-let rendered = new Set();
-let pageElements = [];
-let pageWidth = 420;
-let pageHeight = 594;
-let totalPages = 0;
-
-function showError(message){
- status.style.display = "none";
- errorBox.style.display = "block";
- errorBox.textContent = message;
-}
-
-function updateControls(index){
- if(!flip) return;
-
- const total = flip.getPageCount();
- index = Math.max(0, Math.min(index, total - 1));
-
- $("counter").textContent =
-  `Page ${index + 1} of ${total}`;
-
- $("prev").disabled = index === 0;
- $("first").disabled = index === 0;
- $("next").disabled = index >= total - 1;
- $("last").disabled = index >= total - 1;
-}
-
-/*
- Render only the requested page.
- The canvas is released when the page is far away
- from the currently visible pages.
-*/
-async function renderPage(index){
- if(index < 0 || index >= totalPages) return;
- if(rendered.has(index)) return;
- if(rendering.has(index)) return rendering.get(index);
-
- const task = (async()=>{
-  const page = await pdf.getPage(index + 1);
-
-  // Limit canvas dimensions to control memory usage.
-  const original = page.getViewport({scale:1});
-  const maxPixelsSide = 1500;
-  const scale = Math.min(
-   1.5,
-   maxPixelsSide / Math.max(original.width, original.height)
-  );
-  const viewport = page.getViewport({scale});
-
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.ceil(viewport.width);
-  canvas.height = Math.ceil(viewport.height);
-
-  const context = canvas.getContext("2d", {alpha:false});
-
-  await page.render({
-   canvasContext:context,
-   viewport
-  }).promise;
-
-  const holder = pageElements[index];
-
-  holder.replaceChildren(canvas);
-  rendered.add(index);
-
-  page.cleanup();
- })();
-
- rendering.set(index, task);
-
- try{
-  await task;
- }finally{
-  rendering.delete(index);
- }
-}
-
-/*
- Keep nearby pages ready for animation.
- Pages outside this window release their canvases.
-*/
-async function prepareNearby(index){
- const start = Math.max(0, index - 2);
- const end = Math.min(totalPages - 1, index + 3);
-
- const jobs = [];
-
- for(let i = start; i <= end; i++){
-  jobs.push(renderPage(i));
- }
-
- await Promise.allSettled(jobs);
-
- for(let i = 0; i < totalPages; i++){
-  if(i >= start && i <= end) continue;
-  if(rendering.has(i)) continue;
-  if(!rendered.has(i)) continue;
-
-  const holder = pageElements[i];
-  const canvas = holder.querySelector("canvas");
-
-  if(canvas){
-   canvas.width = 0;
-   canvas.height = 0;
-   canvas.remove();
-  }
-
-  holder.replaceChildren();
-
-  const placeholder = document.createElement("span");
-  placeholder.className = "placeholder";
-  placeholder.textContent = `Page ${i + 1}`;
-  holder.appendChild(placeholder);
-
-  rendered.delete(i);
- }
-}
-
-async function init(){
- try{
-  if(!window.pdfjsLib) throw new Error("PDF.js library did not load.");
-  if(!window.St || !window.St.PageFlip)
-   throw new Error("PageFlip library did not load.");
-
-  const response = await fetch(PDF_URL);
-
-  if(!response.ok){
-   throw new Error(
-    `PDF request failed: HTTP ${response.status}. Check the PDF URL.`
-   );
-  }
-
-  // PDF is hosted on the same website, so CORS should not be needed.
-  const data = await response.arrayBuffer();
-
-  pdf = await pdfjsLib.getDocument({
-   data: new Uint8Array(data)
-  }).promise;
-
-  totalPages = pdf.numPages;
-
-  if(!totalPages) throw new Error("The PDF has no pages.");
-
-  const firstPage = await pdf.getPage(1);
-  const vp = firstPage.getViewport({scale:1});
-
-  pageWidth = vp.width;
-  pageHeight = vp.height;
-
-  firstPage.cleanup();
-
-  status.textContent = `Preparing ${totalPages} pages...`;
-
-  // Create lightweight placeholders for every page.
-  for(let i = 0; i < totalPages; i++){
-   const element = document.createElement("div");
-   element.className = "page";
-
-   const placeholder = document.createElement("span");
-   placeholder.className = "placeholder";
-   placeholder.textContent = `Page ${i + 1}`;
-
-   element.appendChild(placeholder);
-   pageElements.push(element);
-  }
-
-  flip = new St.PageFlip(bookElement,{
-   width:pageWidth,
-   height:pageHeight,
-   size:"stretch",
-   minWidth:280,
-   maxWidth:900,
-   minHeight:350,
-   maxHeight:1200,
-   autoSize:true,
-   showCover:true,
-   usePortrait:true,
-   drawShadow:true,
-   maxShadowOpacity:0.4,
-   flippingTime:700,
-   mobileScrollSupport:true
-  });
-
-  flip.loadFromHTML(pageElements);
-
-  $("download").href = PDF_URL;
-
-  flip.on("flip", event=>{
-   const index = Number(event.data);
-   updateControls(index);
-   prepareNearby(index);
-  });
-
-  flip.on("init", event=>{
-   const index = Number(event.data) || 0;
-   updateControls(index);
-   prepareNearby(index);
-  });
-
-  status.style.display = "none";
-  updateControls(0);
-  await prepareNearby(0);
-
- }catch(err){
-  console.error("Flipbook error:",err);
-  showError(
-   "Unable to load the PDF. " + err.message +
-   " Check that the PDF exists at " + PDF_URL +
-   " and is published on the same GitHub Pages website."
-  );
- }
-}
-
-$("prev").onclick = ()=>flip && flip.flipPrev();
-$("next").onclick = ()=>flip && flip.flipNext();
-$("first").onclick = ()=>flip && flip.flip(0);
-$("last").onclick = ()=>flip && flip.flip(totalPages - 1);
-
-$("fullscreen").onclick = async()=>{
- try{
-  if(!document.fullscreenElement){
-   await viewer.requestFullscreen();
-  }else{
-   await document.exitFullscreen();
-  }
- }catch(err){
-  console.error("Fullscreen error:",err);
- }
-};
-
-document.addEventListener("fullscreenchange",()=>{
- $("fullscreen").textContent = document.fullscreenElement
-  ? "✕ Exit Fullscreen"
-  : "⛶ Fullscreen";
-});
-
-document.addEventListener("keydown",event=>{
- if(!flip || /INPUT|TEXTAREA/.test(event.target.tagName)) return;
- if(event.key === "ArrowRight") flip.flipNext();
- if(event.key === "ArrowLeft") flip.flipPrev();
-});
-
-init();
-</script>
+        // অন্য ফাইল খোলার জন্য রিসেট ফাংশন
+        function closeBook() {
+            if (currentFlipbook && currentFlipbook.destroy) {
+                currentFlipbook.destroy();
+            }
+            document.getElementById('flipbook-container').innerHTML = '';
+            document.getElementById('pdf-input').value = '';
+            document.getElementById('flipbook-wrapper').style.display = 'none';
+            document.getElementById('upload-container').style.display = 'block';
+        }
+    </script>
 </body>
 </html>
-```
