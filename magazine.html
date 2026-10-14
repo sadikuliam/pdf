@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>টাচ ও জুম সুবিধাসহ অফলাইন ফ্লিপবুক</title>
+    <title>Touch & Zoom Offline Flipbook</title>
     
     <style>
         * {
@@ -25,7 +25,6 @@
             user-select: none;
         }
 
-        /* আপলোড সেকশন */
         #upload-section {
             background: #ffffff;
             padding: 35px 30px;
@@ -60,7 +59,6 @@
             font-weight: bold;
         }
 
-        /* রিডার স্ক্রিন */
         #reader-wrapper {
             display: none;
             position: fixed;
@@ -73,22 +71,18 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            touch-action: none;
         }
 
-        /* জুম কন্টেইনার */
         #panzoom-viewport {
             width: 100%;
             height: 85%;
             display: flex;
             align-items: center;
             justify-content: center;
-            touch-action: none;
         }
 
         #flipbook {
             box-shadow: 0 8px 30px rgba(0,0,0,0.8);
-            touch-action: pan-y;
         }
         .page {
             background-color: #ffffff;
@@ -100,7 +94,6 @@
             display: block;
         }
 
-        /* নিচের কন্ট্রোল বার */
         .controls {
             position: absolute;
             bottom: 15px;
@@ -134,7 +127,6 @@
             margin: 0 6px;
         }
 
-        /* ক্লোজ বাটন */
         #close-btn {
             position: absolute;
             top: 15px;
@@ -154,31 +146,31 @@
 <body>
 
     <div id="upload-section">
-        <h2>অফলাইন টাচ ফ্লিপবুক</h2>
-        <p style="margin-top: 6px; color: #666; font-size: 13px;">যেকোনো বড় সাইজের PDF (টাচ ও পিঞ্চ জুম সমর্থিত)</p>
-        <label for="pdf-file" class="upload-btn">PDF ফাইল বাছুন</label>
+        <h2>Offline Touch Flipbook</h2>
+        <p style="margin-top: 6px; color: #666; font-size: 13px;">Je kono boro PDF (Touch & Pinch-to-zoom)</p>
+        <label for="pdf-file" class="upload-btn">PDF File Bachun</label>
         <input type="file" id="pdf-file" accept="application/pdf">
         <div id="status"></div>
     </div>
 
     <div id="reader-wrapper">
-        <button id="close-btn" onclick="location.reload()">বন্ধ করুন</button>
+        <button id="close-btn" onclick="location.reload()">Bondho Korun</button>
         
         <div id="panzoom-viewport">
             <div id="flipbook"></div>
         </div>
 
         <div class="controls">
-            <button onclick="prevPage()">◀ আগের পাতা</button>
-            <span id="page-info">পৃষ্ঠা: ১</span>
-            <button onclick="nextPage()">পরের পাতা ▶</button>
+            <button onclick="prevPage()">◀ Ager Pata</button>
+            <span id="page-info">Pata: 1</span>
+            <button onclick="nextPage()">Porerr Pata ▶</button>
             <button onclick="zoomIn()">🔍+</button>
             <button onclick="zoomOut()">🔍-</button>
-            <button onclick="resetZoom()">রিসেট</button>
+            <button onclick="resetZoom()">Reset</button>
         </div>
     </div>
 
-    <!-- স্ক্রিপ্ট লাইব্রেরিসমূহ -->
+    <!-- Script Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/3/turn.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
@@ -196,7 +188,7 @@
             if (!file) return;
 
             const status = document.getElementById('status');
-            status.innerText = "ফাইল লোড হচ্ছে, কিছুক্ষণ অপেক্ষা করুন...";
+            status.innerText = "File load hocche, ektu opekha korun...";
 
             const fileReader = new FileReader();
             fileReader.onload = async function() {
@@ -205,12 +197,11 @@
                 try {
                     const pdf = await pdfjsLib.getDocument(typedarray).promise;
                     totalPages = pdf.numPages;
-                    status.innerText = `মোট ${totalPages} পৃষ্ঠা প্রস্তুত হচ্ছে...`;
+                    status.innerText = `Mot ${totalPages} pata toiri hocche...`;
 
                     document.getElementById('upload-section').style.display = 'none';
                     document.getElementById('reader-wrapper').style.display = 'flex';
 
-                    // ডিভাইস ও সাইজ অনুযায়ী ডাইমেনশন নির্ধারণ
                     const isMobile = window.innerWidth <= 768;
                     const firstPage = await pdf.getPage(1);
                     const viewport = firstPage.getViewport({ scale: 1 });
@@ -222,7 +213,6 @@
                     const flipbook = $('#flipbook');
                     flipbook.empty();
 
-                    // পেজ ও ক্যানভাস তৈরি
                     for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
                         const pageDiv = $('<div />', { class: 'page' });
                         const canvas = document.createElement('canvas');
@@ -230,7 +220,7 @@
                         flipbook.append(pageDiv);
 
                         pdf.getPage(pageNum).then(function(page) {
-                            const scale = 2; // হাই-রেজোলিউশন রেন্ডারিং
+                            const scale = 2;
                             const pageViewport = page.getViewport({ scale: scale });
                             const context = canvas.getContext('2d');
                             canvas.height = pageViewport.height;
@@ -243,7 +233,6 @@
                         });
                     }
 
-                    // Turn.js সেটআপ
                     flipbook.turn({
                         width: bookWidth,
                         height: bookHeight,
@@ -254,39 +243,40 @@
                         gradients: true,
                         when: {
                             turned: function(e, page) {
-                                document.getElementById('page-info').innerText = `পৃষ্ঠা: ${page} / ${totalPages}`;
+                                document.getElementById('page-info').innerText = `Pata: ${page} / ${totalPages}`;
                             }
                         }
                     });
 
-                    // পিঞ্চ-টু-জুম ও টাচ প্যান সেটআপ
+                    // Panzoom initialization & Correct event binding
+                    const flipbookElem = document.getElementById('flipbook');
                     const viewportElem = document.getElementById('panzoom-viewport');
-                    panzoomInstance = Panzoom(document.getElementById('flipbook'), {
+
+                    panzoomInstance = Panzoom(flipbookElem, {
                         maxScale: 4,
                         minScale: 1,
                         contain: 'outside',
-                        disablePan: true // ডিফল্ট অবস্থায় পেজ সোয়াইপের জন্য প্যান বন্ধ থাকবে
+                        disablePan: true
                     });
 
-                    // মাউস হুইল দিয়ে জুম
                     viewportElem.addEventListener('wheel', panzoomInstance.zoomWithWheel);
 
-                    // জুম অবস্থায় সোয়াইপ এবং সাধারণ অবস্থায় পাতা উল্টানোর লজিক
-                    panzoomInstance.on('zoom', (e) => {
+                    // Standard DOM event listener for Panzoom
+                    flipbookElem.addEventListener('panzoomzoom', (e) => {
                         const currentScale = e.detail.scale;
                         if (currentScale > 1.05) {
                             isZoomed = true;
                             panzoomInstance.setOptions({ disablePan: false });
-                            flipbook.turn('disable', true); // জুম থাকা অবস্থায় পেজ ফ্লিপ লক
+                            flipbook.turn('disable', true);
                         } else {
                             isZoomed = false;
                             panzoomInstance.setOptions({ disablePan: true });
-                            flipbook.turn('disable', false); // সাধারণ অবস্থায় পেজ ফ্লিপ অন
+                            flipbook.turn('disable', false);
                         }
                     });
 
                 } catch (err) {
-                    alert('PDF রেন্ডার করতে সমস্যা হয়েছে: ' + err.message);
+                    alert('PDF render korte somosya hoyeche: ' + err.message);
                     location.reload();
                 }
             };
@@ -294,7 +284,6 @@
             fileReader.readAsArrayBuffer(file);
         });
 
-        // নেভিগেশন কন্ট্রোল
         function nextPage() {
             if (!isZoomed) $('#flipbook').turn('next');
         }
@@ -303,7 +292,6 @@
             if (!isZoomed) $('#flipbook').turn('previous');
         }
 
-        // জুম ফাংশনসমূহ
         function zoomIn() {
             if (panzoomInstance) panzoomInstance.zoomIn();
         }
