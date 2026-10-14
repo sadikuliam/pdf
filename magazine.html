@@ -2,8 +2,8 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
-    <title>3D Touch Flipbook</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=no">
+    <title>3D Touch & Pinch Flipbook</title>
     
     <style>
         * {
@@ -13,7 +13,7 @@
             -webkit-tap-highlight-color: transparent;
         }
         body {
-            background-color: #1a1a1a;
+            background-color: #111;
             font-family: Arial, sans-serif;
             height: 100vh;
             overflow: hidden;
@@ -22,9 +22,9 @@
             align-items: center;
             justify-content: center;
             color: #fff;
+            user-select: none;
         }
 
-        /* আপলোড উইন্ডো */
         #upload-box {
             position: fixed;
             top: 50%;
@@ -61,7 +61,6 @@
             font-weight: bold;
         }
 
-        /* ফ্লিপবুক মূল ভিউয়ার */
         #flipbook-wrapper {
             display: none;
             width: 100vw;
@@ -73,14 +72,16 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            touch-action: none;
         }
 
         #zoom-wrapper {
-            transition: transform 0.2s ease-out;
             transform-origin: center center;
             display: flex;
             align-items: center;
             justify-content: center;
+            will-change: transform;
+            touch-action: none;
         }
 
         .page-flip-container {
@@ -100,15 +101,14 @@
             display: block;
         }
 
-        /* কন্ট্রোল বার */
         .controls {
             position: fixed;
             bottom: 15px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             background: rgba(30, 30, 30, 0.9);
-            padding: 8px 16px;
+            padding: 8px 14px;
             border-radius: 30px;
             z-index: 500;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
@@ -117,10 +117,10 @@
             background: #333;
             color: #fff;
             border: 1px solid #555;
-            padding: 7px 14px;
+            padding: 7px 12px;
             border-radius: 20px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: bold;
         }
         .controls button:active {
@@ -129,7 +129,7 @@
         #page-info {
             font-size: 13px;
             color: #eee;
-            margin: 0 5px;
+            margin: 0 4px;
         }
 
         #close-btn {
@@ -150,31 +150,30 @@
 <body>
 
     <div id="upload-box">
-        <h2 style="font-size: 20px;">অফলাইন টাচ ফ্লিপবুক</h2>
-        <p style="margin-top: 8px; color: #666; font-size: 13px;">মোবাইল ও ট্যাবলেটে সরাসরি টাচ ফ্লিপ</p>
-        <label for="pdf-input" class="upload-btn">PDF ফাইল বাছুন</label>
+        <h2 style="font-size: 20px;">Touch Flip & Pinch Zoom</h2>
+        <p style="margin-top: 8px; color: #666; font-size: 13px;">Mobile/Tab touch flip ebong pinch zoom</p>
+        <label for="pdf-input" class="upload-btn">PDF File Bachun</label>
         <input type="file" id="pdf-input" accept="application/pdf">
         <div id="status"></div>
     </div>
 
     <div id="flipbook-wrapper">
-        <button id="close-btn" onclick="location.reload()">বন্ধ করুন</button>
+        <button id="close-btn" onclick="location.reload()">Bondho</button>
         
         <div id="zoom-wrapper">
             <div id="book" class="page-flip-container"></div>
         </div>
 
         <div class="controls">
-            <button onclick="flipPrev()">◀ পাতা</button>
-            <span id="page-info">১ / ১</span>
-            <button onclick="flipNext()">পাতা ▶</button>
+            <button onclick="flipPrev()">◀ Pata</button>
+            <span id="page-info">1 / 1</span>
+            <button onclick="flipNext()">Pata ▶</button>
             <button onclick="zoomIn()">🔍+</button>
             <button onclick="zoomOut()">🔍-</button>
-            <button onclick="resetZoom()">রিসেট</button>
+            <button onclick="resetZoom()">Reset</button>
         </div>
     </div>
 
-    <!-- PDF.js এবং StPageFlip (আধুনিক 3D টাচ ইঞ্জিন) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/page-flip/dist/js/page-flip.browser.js"></script>
 
@@ -183,14 +182,23 @@
 
         let pageFlip = null;
         let pdfDoc = null;
-        let currentZoom = 1;
+        let scale = 1;
+        let panX = 0;
+        let panY = 0;
+        let startDist = 0;
+        let startScale = 1;
+        let startPanX = 0;
+        let startPanY = 0;
+        let isPanning = false;
+
+        const zoomWrapper = document.getElementById('zoom-wrapper');
+        const flipbookWrapper = document.getElementById('flipbook-wrapper');
 
         document.getElementById('pdf-input').addEventListener('change', async function(e) {
             const file = e.target.files[0];
             if (!file) return;
 
-            const status = document.getElementById('status');
-            status.innerText = "ফাইলটি প্রস্তুত করা হচ্ছে...";
+            document.getElementById('status').innerText = "File processing...";
 
             const fileReader = new FileReader();
             fileReader.onload = async function() {
@@ -200,17 +208,15 @@
                     const totalPages = pdfDoc.numPages;
 
                     document.getElementById('upload-box').style.display = 'none';
-                    document.getElementById('flipbook-wrapper').style.display = 'flex';
+                    flipbookWrapper.style.display = 'flex';
 
-                    // স্ক্রিনের সাইজ অনুযায়ী পাতার মাপ নির্ধারণ
                     const isMobile = window.innerWidth <= 768;
-                    const bookWidth = isMobile ? Math.min(window.innerWidth * 0.92, 450) : 480;
+                    const bookWidth = isMobile ? Math.min(window.innerWidth * 0.94, 450) : 480;
                     const bookHeight = isMobile ? Math.min(window.innerHeight * 0.8, 650) : 680;
 
                     const bookElem = document.getElementById('book');
                     bookElem.innerHTML = '';
 
-                    // প্রতিটি পাতার জন্য কনটেইনার তৈরি
                     for (let i = 1; i <= totalPages; i++) {
                         const pageDiv = document.createElement('div');
                         pageDiv.className = 'page';
@@ -219,7 +225,6 @@
                         bookElem.appendChild(pageDiv);
                     }
 
-                    // 3D টাচ ফ্লিপবুক ইঞ্জিন সক্রিয় করা
                     pageFlip = new St.PageFlip(bookElem, {
                         width: bookWidth,
                         height: bookHeight,
@@ -231,30 +236,29 @@
                         maxShadowOpacity: 0.5,
                         showCover: true,
                         mobileScrollSupport: false,
-                        usePortrait: isMobile // মোবাইলে অটো সিঙ্গেল পেজ ফ্লিপ
+                        usePortrait: isMobile
                     });
 
                     pageFlip.loadFromHTML(document.querySelectorAll('.page'));
 
-                    // পেজ পরিবর্তনের সাথে পেজ কাউন্টার আপডেট
-                    pageFlip.on('flip', (e) => {
-                        document.getElementById('page-info').innerText = `${e.data + 1} / ${totalPages}`;
-                        renderNearbyPages(e.data + 1, totalPages);
+                    pageFlip.on('flip', (ev) => {
+                        document.getElementById('page-info').innerText = `${ev.data + 1} / ${totalPages}`;
+                        renderNearbyPages(ev.data + 1, totalPages);
                     });
 
-                    // প্রথম পেজগুলো রেন্ডার করা
                     renderNearbyPages(1, totalPages);
-                    document.getElementById('page-info').innerText = `১ / ${totalPages}`;
+                    document.getElementById('page-info').innerText = `1 / ${totalPages}`;
+
+                    setupTouchGestures();
 
                 } catch (err) {
-                    alert("সমস্যা হয়েছে: " + err.message);
+                    alert("Error: " + err.message);
                     location.reload();
                 }
             };
             fileReader.readAsArrayBuffer(file);
         });
 
-        // ডায়নামিক মেমোরি-ফ্রেন্ডলি রেন্ডারিং
         const rendered = new Set();
         async function renderNearbyPages(current, total) {
             const pagesToRender = [current, current + 1, current + 2, current - 1].filter(p => p >= 1 && p <= total);
@@ -263,7 +267,7 @@
                 rendered.add(p);
 
                 const page = await pdfDoc.getPage(p);
-                const viewport = page.getViewport({ scale: 1.8 });
+                const viewport = page.getViewport({ scale: 2 });
                 const pageElems = document.querySelectorAll('.page');
                 const canvas = pageElems[p - 1].querySelector('canvas');
                 
@@ -278,37 +282,85 @@
             }
         }
 
-        // নেভিগেশন ফাংশন
         function flipNext() {
-            if (pageFlip) pageFlip.flipNext();
+            if (pageFlip && scale === 1) pageFlip.flipNext();
         }
 
         function flipPrev() {
-            if (pageFlip) pageFlip.flipPrev();
+            if (pageFlip && scale === 1) pageFlip.flipPrev();
         }
 
-        // জুম কন্ট্রোল
+        function updateTransform() {
+            zoomWrapper.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+        }
+
         function zoomIn() {
-            if (currentZoom < 2.5) {
-                currentZoom += 0.25;
-                applyZoom();
-            }
+            scale = Math.min(scale + 0.3, 3.5);
+            updateTransform();
         }
 
         function zoomOut() {
-            if (currentZoom > 0.8) {
-                currentZoom -= 0.25;
-                applyZoom();
+            scale = Math.max(scale - 0.3, 1);
+            if (scale === 1) {
+                panX = 0;
+                panY = 0;
             }
+            updateTransform();
         }
 
         function resetZoom() {
-            currentZoom = 1;
-            applyZoom();
+            scale = 1;
+            panX = 0;
+            panY = 0;
+            updateTransform();
         }
 
-        function applyZoom() {
-            document.getElementById('zoom-wrapper').style.transform = `scale(${currentZoom})`;
+        // Dedicated Touch Pinch & Pan Engine
+        function setupTouchGestures() {
+            let startX = 0, startY = 0;
+
+            function getDistance(t1, t2) {
+                const dx = t1.clientX - t2.clientX;
+                const dy = t1.clientY - t2.clientY;
+                return Math.sqrt(dx * dx + dy * dy);
+            }
+
+            flipbookWrapper.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 2) {
+                    // Two fingers: Pinch detection
+                    startDist = getDistance(e.touches[0], e.touches[1]);
+                    startScale = scale;
+                } else if (e.touches.length === 1 && scale > 1) {
+                    // One finger pan when zoomed
+                    isPanning = true;
+                    startX = e.touches[0].clientX - panX;
+                    startY = e.touches[0].clientY - panY;
+                }
+            }, { passive: false });
+
+            flipbookWrapper.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 2) {
+                    e.preventDefault();
+                    const newDist = getDistance(e.touches[0], e.touches[1]);
+                    const factor = newDist / startDist;
+                    scale = Math.min(Math.max(startScale * factor, 1), 3.5);
+                    if (scale === 1) {
+                        panX = 0;
+                        panY = 0;
+                    }
+                    updateTransform();
+                } else if (e.touches.length === 1 && isPanning && scale > 1) {
+                    e.preventDefault();
+                    panX = e.touches[0].clientX - startX;
+                    panY = e.touches[0].clientY - startY;
+                    updateTransform();
+                }
+            }, { passive: false });
+
+            flipbookWrapper.addEventListener('touchend', (e) => {
+                if (e.touches.length < 2) startDist = 0;
+                if (e.touches.length === 0) isPanning = false;
+            });
         }
     </script>
 </body>
