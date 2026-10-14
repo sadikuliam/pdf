@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ultra-Fast WASM PDF Compressor (Flipbook Ready)</title>
+  <title>Flipbook PDF Compressor</title>
   <style>
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; }
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
     .card { background: #1e293b; padding: 36px 30px; border-radius: 16px; border: 1px solid #334155; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5); width: 100%; max-width: 560px; text-align: center; }
-    h2 { margin: 0 0 10px 0; font-size: 24px; color: #38bdf8; letter-spacing: -0.5px; }
+    h2 { margin: 0 0 10px 0; font-size: 24px; color: #38bdf8; }
     p { color: #94a3b8; font-size: 14px; margin-bottom: 24px; line-height: 1.5; }
     .settings { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; text-align: left; }
     .setting-group { background: #0f172a; padding: 12px; border-radius: 8px; border: 1px solid #334155; }
@@ -24,51 +24,52 @@
     .progress-box { margin-top: 24px; display: none; text-align: left; }
     .status-text { font-size: 13px; color: #cbd5e1; display: flex; justify-content: space-between; margin-bottom: 6px; }
     .progress-bar-bg { background: #334155; border-radius: 6px; height: 8px; overflow: hidden; }
-    .progress-bar { background: linear-gradient(90deg, #38bdf8, #818cf8); height: 100%; width: 0%; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .progress-bar { background: linear-gradient(90deg, #38bdf8, #818cf8); height: 100%; width: 0%; transition: width 0.2s; }
     .result-box { margin-top: 24px; padding: 16px; background: #0f172a; border-radius: 8px; border: 1px solid #10b981; display: none; }
     .stats { font-size: 14px; color: #34d399; margin-bottom: 12px; font-weight: 500; }
     .btn-download { background: #10b981; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
     .btn-download:hover { background: #059669; }
   </style>
 
-  <!-- High-Performance WebAssembly Ghostscript Module -->
-  <script src="https://cdn.jsdelivr.net/npm/@wasmer/ghostscript@0.1.0/lib/index.umd.js"></script>
+  <!-- Stable and Fast Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 </head>
 <body>
 
 <div class="card">
-  <h2>WebAssembly PDF Optimizer</h2>
-  <p>হাই-পারফরম্যান্স ফ্লিপবুক কম্প্রেসার (Fast Web View + ভেক্টর ক্লিয়ারিটি)</p>
+  <h2>Flipbook PDF Compressor</h2>
+  <p>Flipbook-er jonyo fast rendering ebong light-weight size optimization</p>
 
   <div class="settings">
     <div class="setting-group">
-      <label for="dpiSelect">টার্গেট রেজোলিউশন</label>
-      <select id="dpiSelect">
-        <option value="150" selected>150 DPI (ফ্লিপবুকের জন্য পারফেক্ট)</option>
-        <option value="120">120 DPI (অতিরিক্ত ছোট সাইজ)</option>
-        <option value="200">200 DPI (হাই-রেজোলিউশন রিডিং)</option>
+      <label for="scaleSelect">Display Quality (DPI Scale)</label>
+      <select id="scaleSelect">
+        <option value="1.25">120 DPI (Light Size)</option>
+        <option value="1.5" selected>150 DPI (Flipbook Balanced)</option>
+        <option value="1.8">180 DPI (High Sharpness)</option>
       </select>
     </div>
     <div class="setting-group">
-      <label for="qualitySelect">ইমেজ কোয়ালিটি</label>
+      <label for="qualitySelect">Image Compression</label>
       <select id="qualitySelect">
-        <option value="/ebook" selected>ই-বুক স্ট্যান্ডার্ড (ব্যালেন্সড)</option>
-        <option value="/screen">স্ক্রিন ভিউ (সবচেয়ে ছোট)</option>
-        <option value="/prepress">হাই কোয়ালিটি</option>
+        <option value="0.65">Aggressive (Chhoto Size)</option>
+        <option value="0.75" selected>Balanced (Standard)</option>
+        <option value="0.85">High Clarity</option>
       </select>
     </div>
   </div>
 
   <div class="dropzone" id="dropArea" onclick="document.getElementById('fileInput').click()">
-    <div class="file-details" id="fileLabel">ক্লিক করে PDF সিলেক্ট করুন বা ফাইল ড্রপ করুন</div>
+    <div class="file-details" id="fileLabel">Click kore PDF select korun ba drop korun</div>
     <input type="file" id="fileInput" accept="application/pdf">
   </div>
 
-  <button class="btn" id="compressBtn" disabled onclick="processWithWASM()">কম্প্রেস শুরু করুন</button>
+  <button class="btn" id="compressBtn" disabled onclick="compressPDF()">Compress Shuru Korun</button>
 
   <div class="progress-box" id="progressBox">
     <div class="status-text">
-      <span id="statusLabel">WASM কোর লোড হচ্ছে...</span>
+      <span id="statusLabel">Processing shuru hochhe...</span>
       <span id="percentLabel">0%</span>
     </div>
     <div class="progress-bar-bg">
@@ -77,12 +78,14 @@
   </div>
 
   <div class="result-box" id="resultBox">
-    <div class="stats" id="statsText">সাইজ কমেছে: ০%</div>
-    <button class="btn btn-download" id="downloadBtn">ডাউনলোড অপ্টিমাইজড PDF</button>
+    <div class="stats" id="statsText">Size komeche: 0%</div>
+    <button class="btn btn-download" id="downloadBtn">Compressed PDF Download Korun</button>
   </div>
 </div>
 
 <script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
   const fileInput = document.getElementById('fileInput');
   const fileLabel = document.getElementById('fileLabel');
   const compressBtn = document.getElementById('compressBtn');
@@ -106,101 +109,77 @@
     }
   });
 
-  // ড্র্যাগ অ্যান্ড ড্রপ সাপোর্ট
-  const dropArea = document.getElementById('dropArea');
-  ['dragenter', 'dragover'].forEach(name => {
-    dropArea.addEventListener(name, (e) => { e.preventDefault(); dropArea.style.borderColor = '#38bdf8'; }, false);
-  });
-  ['dragleave', 'drop'].forEach(name => {
-    dropArea.addEventListener(name, (e) => { e.preventDefault(); dropArea.style.borderColor = '#38bdf8'; }, false);
-  });
-  dropArea.addEventListener('drop', (e) => {
-    if (e.dataTransfer.files.length > 0) {
-      fileInput.files = e.dataTransfer.files;
-      fileInput.dispatchEvent(new Event('change'));
-    }
-  });
-
   function updateProgress(percent, text) {
     progressBar.style.width = `${percent}%`;
     percentLabel.innerText = `${percent}%`;
     if (text) statusLabel.innerText = text;
   }
 
-  async function processWithWASM() {
+  async function compressPDF() {
     if (!activeFile) return;
 
     compressBtn.disabled = true;
     progressBox.style.display = 'block';
     resultBox.style.display = 'none';
-    updateProgress(15, "ফাইল মেমরিতে প্রস্তুত হচ্ছে...");
+    updateProgress(5, "File memory-te load hochhe...");
 
     try {
-      const fileBuffer = await activeFile.arrayBuffer();
-      const inputBytes = new Uint8Array(fileBuffer);
-      
-      updateProgress(35, "নেটিভ WASM ইঞ্জিন শুরু হচ্ছে...");
-      
-      const targetDPI = document.getElementById('dpiSelect').value;
-      const pdfProfile = document.getElementById('qualitySelect').value;
+      const scale = parseFloat(document.getElementById('scaleSelect').value);
+      const quality = parseFloat(document.getElementById('qualitySelect').value);
 
-      // Wasmer Ghostscript ইনিশিয়ালাইজেশন
-      const { Ghostscript } = window.GhostscriptWasm || window.Ghostscript || {};
-      
-      if (!Ghostscript) {
-        throw new Error("WASM মডিউল লোড করা যায়নি। ইন্টারনেট সংযোগ চেক করুন।");
+      const arrayBuffer = await activeFile.arrayBuffer();
+      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+      const originalPdf = await loadingTask.promise;
+      const totalPages = originalPdf.numPages;
+
+      const newPdf = await PDFLib.PDFDocument.create();
+
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d', { alpha: false });
+
+      for (let i = 1; i <= totalPages; i++) {
+        const progress = Math.round((i / totalPages) * 85);
+        updateProgress(progress, `Page process hochhe: ${i} / ${totalPages}`);
+
+        const page = await originalPdf.getPage(i);
+        const viewport = page.getViewport({ scale: scale });
+
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+
+        await page.render({
+          canvasContext: ctx,
+          viewport: viewport
+        }).promise;
+
+        const imgDataUrl = canvas.toDataURL('image/jpeg', quality);
+        const imgBytes = await fetch(imgDataUrl).then(res => res.arrayBuffer());
+        const embeddedImg = await newPdf.embedJpg(imgBytes);
+
+        const newPage = newPdf.addPage([viewport.width, viewport.height]);
+        newPage.drawImage(embeddedImg, {
+          x: 0,
+          y: 0,
+          width: viewport.width,
+          height: viewport.height
+        });
+
+        // Small pause to keep UI responsive
+        await new Promise(r => setTimeout(r, 10));
       }
 
-      const instance = await Ghostscript.init();
+      updateProgress(95, "Structure optimize ebong save hochhe...");
 
-      updateProgress(55, "অপ্টিমাইজেশন ও লিনিয়ারাইজেশন চলছে...");
-
-      // ফাইল সিস্টেম ভার্চুয়ালাইজেশন
-      instance.fs.writeFile('input.pdf', inputBytes);
-
-      // নিখুঁত ফ্লিপবুক প্যারামিটার
-      const gsArgs = [
-        'gs',
-        '-sDEVICE=pdfwrite',
-        '-dCompatibilityLevel=1.6',
-        `-dPDFSETTINGS=${pdfProfile}`,
-        '-dNOPAUSE',
-        '-dQUIET',
-        '-dBATCH',
-        '-dFastWebView=true',
-        '-dColorImageDownsampleType=/Bicubic',
-        `-dColorImageResolution=${targetDPI}`,
-        `-dGrayImageResolution=${targetDPI}`,
-        '-dMonoImageResolution=300',
-        '-dEmbedAllFonts=true',
-        '-dSubsetFonts=true',
-        '-dAutoRotatePages=/None',
-        '-sOutputFile=output.pdf',
-        'input.pdf'
-      ];
-
-      await instance.run(gsArgs);
-
-      updateProgress(85, "ফাইল আউটপুট প্রসেস হচ্ছে...");
-
-      const outputBytes = instance.fs.readFile('output.pdf');
-      
-      // ভার্চুয়াল মেমরি ক্লিনআপ
-      instance.fs.unlink('input.pdf');
-      instance.fs.unlink('output.pdf');
-
-      updateProgress(100, "কম্প্রেশন সম্পন্ন!");
-
-      const blob = new Blob([outputBytes], { type: 'application/pdf' });
+      const compressedBytes = await newPdf.save({ useObjectStreams: true });
+      const blob = new Blob([compressedBytes], { type: 'application/pdf' });
       const downloadUrl = URL.createObjectURL(blob);
 
-      // সাইজ কম্প্যারিজন ক্যালকুলেশন
       const initialSize = activeFile.size;
-      const finalSize = outputBytes.length;
+      const finalSize = compressedBytes.length;
       const savedPercent = Math.max(0, (((initialSize - finalSize) / initialSize) * 100)).toFixed(1);
       const finalMB = (finalSize / (1024 * 1024)).toFixed(2);
 
-      statsText.innerHTML = `আউটপুট সাইজ: <b>${finalMB} MB</b> (সাইজ কমেছে <b>${savedPercent}%</b>)`;
+      statsText.innerHTML = `Output Size: <b>${finalMB} MB</b> (Size komeche <b>${savedPercent}%</b>)`;
 
       downloadBtn.onclick = () => {
         const a = document.createElement('a');
@@ -209,11 +188,13 @@
         a.click();
       };
 
+      updateProgress(100, "Shompurno hoyeche!");
       resultBox.style.display = 'block';
-    } catch (error) {
-      console.error(error);
-      statusLabel.innerText = "প্রসেসিং ব্যর্থ হয়েছে। ফাইল ফরম্যাট চেক করুন।";
-      alert("ত্রুটি: " + error.message);
+
+    } catch (err) {
+      console.error(err);
+      alert("Error: " + err.message);
+      statusLabel.innerText = "Error ghoteche!";
     } finally {
       compressBtn.disabled = false;
     }
