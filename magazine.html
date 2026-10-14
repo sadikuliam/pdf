@@ -36,34 +36,51 @@
             cursor: pointer;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             display: inline-block;
+            transition: background 0.3s ease;
+        }
+
+        .read-btn:hover {
+            background-color: #0056b3;
         }
 
         /* Lightbox Theme */
-        .df-lightbox-wrapper, .df-container { background-color: #f4f4f4 !important; }
-        .df-ui-controls { background-color: #f4f4f4 !important; box-shadow: 0 -2px 10px rgba(0,0,0,0.05) !important;}
-        .df-ui-btn, .df-ui-page-info { color: #333333 !important; }
-        .df-ui-btn:hover { background-color: #e6e6e6 !important; }
-        .df-ui-btn.df-ui-close { color: #333333 !important; background-color: transparent !important; }
+        .df-lightbox-wrapper, .df-container { 
+            background-color: #f4f4f4 !important; 
+        }
+        .df-ui-controls { 
+            background-color: #f4f4f4 !important; 
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05) !important;
+        }
+        .df-ui-btn, .df-ui-page-info { 
+            color: #333333 !important; 
+        }
+        .df-ui-btn:hover { 
+            background-color: #e6e6e6 !important; 
+        }
+        .df-ui-btn.df-ui-close { 
+            color: #333333 !important; 
+            background-color: transparent !important; 
+        }
     </style>
 </head>
 <body>
 
-    <!-- PDF লোড হওয়ার পপ-আপ বাটন (সরাসরি GitHub Releases লিংক যুক্ত করা হয়েছে) -->
-    <div class="_df_button read-btn" source="https://github.com/sadikuliam/pdf/releases/download/v1.0/magazine.pdf">ম্যাগাজিন পড়ুন</div>
+    <!-- PDF লোড হওয়ার বাটন (CORS প্রক্সি লিংক যুক্ত) -->
+    <div class="_df_button read-btn" source="https://corsproxy.io/?url=https%3A%2F%2Fgithub.com%2Fsadikuliam%2Fpdf%2Freleases%2Fdownload%2Fv1.0%2Fmagazine.pdf">ম্যাগাজিন পড়ুন</div>
 
     <!-- স্ক্রিপ্ট ফাইলগুলো -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dflip/js/dflip.min.js"></script>
     
-    <!-- dFlip সেটিংস (জুম কোয়ালিটি এবং ফাস্ট লোডিং) -->
+    <!-- dFlip কনফিগারেশন -->
     <script>
         var dFlipLocation = "https://cdn.jsdelivr.net/npm/dflip/"; 
         var dFlip = dFlip || {};
         dFlip.defaults = {
-            pdfRenderQuality: 2,
-            webgl: false,
+            pdfRenderQuality: 2, // জুমের সময় টেক্সট স্পষ্ট রাখার জন্য
+            webgl: false,        // হালকা ও সব ডিভাইসে মসৃণ চলার জন্য
             backgroundColor: "#f4f4f4",
-            pageMode: 1
+            pageMode: 1          // মোবাইলে অটো সিঙ্গেল পেজ ভিউ
         };
     </script>
     
