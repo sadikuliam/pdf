@@ -48,25 +48,24 @@
 </head>
 <body>
 
-    <!-- dFlip সেটিংস (জুম কোয়ালিটি এবং ফাস্ট লোডিং) -->
-    <script>
-        var dFlipLocation = "https://cdn.jsdelivr.net/npm/dflip/"; 
-        var dFlip = dFlip || {};
-        dFlip.defaults = {
-            pdfRenderQuality: 2, // জুম করার পর লেখা স্পষ্ট দেখানোর জন্য
-            webgl: false, // পুরোনো বা দুর্বল ডিভাইসেও দ্রুত চলার জন্য
-            backgroundColor: "#f4f4f4", // লাইট থিম
-            pageMode: 1 // মোবাইলে অটো সিঙ্গেল পেজ
-        };
-    </script>
-
-    <!-- PDF লোড হওয়ার পপ-আপ বাটন -->
-    <!-- লক্ষ রাখবেন: আপনার PDF ফাইলটি যদি 'magazine' ফোল্ডারের ভেতরে থাকে, তবে source="https://github.com/sadikuliam/pdf/releases/download/v1.0/magazine.pdf" দেবেন। আর যদি বাইরে থাকে তবে শুধু source="magazine.pdf" রাখবেন। -->
-    <div class="_df_button read-btn" source="magazine.pdf">ম্যাগাজিন পড়ুন</div>
+    <!-- PDF লোড হওয়ার পপ-আপ বাটন (সরাসরি GitHub Releases লিংক যুক্ত করা হয়েছে) -->
+    <div class="_df_button read-btn" source="https://github.com/sadikuliam/pdf/releases/download/v1.0/magazine.pdf">ম্যাগাজিন পড়ুন</div>
 
     <!-- স্ক্রিপ্ট ফাইলগুলো -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dflip/js/dflip.min.js"></script>
+    
+    <!-- dFlip সেটিংস (জুম কোয়ালিটি এবং ফাস্ট লোডিং) -->
+    <script>
+        var dFlipLocation = "https://cdn.jsdelivr.net/npm/dflip/"; 
+        var dFlip = dFlip || {};
+        dFlip.defaults = {
+            pdfRenderQuality: 2,
+            webgl: false,
+            backgroundColor: "#f4f4f4",
+            pageMode: 1
+        };
+    </script>
     
 </body>
 </html>
