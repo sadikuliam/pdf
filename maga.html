@@ -36,7 +36,7 @@
             color: #f1f3f5;
         }
 
-        /* Top Header Bar */
+        /* Top Header Navigation Bar */
         .magazine-header {
             position: absolute;
             top: 0;
@@ -131,7 +131,7 @@
             background: radial-gradient(circle at center, #23252a 0%, #131417 100%);
         }
 
-        /* Loading / Preloader Overlay */
+        /* Loading Preloader */
         .loading-overlay {
             position: absolute;
             inset: 0;
@@ -172,7 +172,6 @@
             font-weight: 500;
         }
 
-        /* Responsive Mobile Tuning */
         @media (max-width: 640px) {
             .magazine-header {
                 height: 46px;
@@ -203,7 +202,7 @@
 
 <body>
 
-    <!-- Header Navigation -->
+    <!-- Top Navigation Header -->
     <header class="magazine-header" id="mainHeader">
         <div class="header-title-box">
             <span class="header-badge">ম্যাগাজিন</span>
@@ -219,16 +218,15 @@
         </div>
     </header>
 
-    <!-- Flipbook Host Container -->
+    <!-- Flipbook Host Element -->
     <div id="shm_flipbook">
-        <!-- Preloader -->
         <div class="loading-overlay" id="loadingOverlay">
             <div class="spinner"></div>
             <div class="loading-text">ম্যাগাজিন লোড হচ্ছে... অনুগ্রহ করে অপেক্ষা করুন</div>
         </div>
     </div>
 
-    <!-- Scripts -->
+    <!-- jQuery & DearFlip Core Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dflip/js/dflip.min.js"></script>
 
@@ -236,88 +234,82 @@
         jQuery(function ($) {
 
             /* =========================================================================
-               1. PDF SOURCE & CORS BYPASS
+               1. PDF SOURCE (CORS-ENABLED PROXY STREAM)
                -------------------------------------------------------------------------
-               DearFlip / PDF.js downloads PDFs via JavaScript fetch/XHR.
-               OpenDrive (od.lk) does not send Access-Control-Allow-Origin headers,
-               which causes the browser to trigger a "CROSS ORIGIN!!" error.
+               DearFlip downloads PDFs using JavaScript fetch/XHR.
+               OpenDrive blocks direct cross-origin access by default.
+               Wrapping the URL in corsproxy.io fixes the "CROSS ORIGIN!!" error.
                
-               To bypass this:
-               - We pass the OpenDrive URL through a secure CORS proxy.
-               - OR you can save the PDF locally as "magazine.pdf" in the same folder.
+               Note: If you download magazine.pdf and place it in the same folder as
+               this index.html, you can simply change this to: var activePdfUrl = "magazine.pdf";
             ========================================================================= */
 
             var rawOpenDriveUrl = "https://od.lk/s/MzZfMTI1NzMzMzM1X0w4U3h0/magazine.pdf";
-            
-            // CORS-enabled streaming proxy URL:
             var corsProxyPdf = "https://corsproxy.io/?" + encodeURIComponent(rawOpenDriveUrl);
-
-            // If you keep the file locally in the same repo/folder, uncomment below:
-            // var localPdf = "magazine.pdf";
 
             var activePdfUrl = corsProxyPdf;
 
             /* =========================================================================
-               2. DEARFLIP SETTINGS
+               2. DEARFLIP ADVANCED CONFIGURATION
             ========================================================================= */
             var options = {
-                /* 3D Realistic Rendering with WebGL */
+                /* 3D Realistic Curved Page Physics via WebGL (auto-falls back to 2D) */
                 webgl: true,
 
-                /* Realistic 3D Hardcover for front and back pages */
+                /* Realistic 3D Hardbound Cover */
                 hard: "cover",
 
-                /* Reading Direction */
+                /* Reading Direction: Left-to-Right */
                 direction: DFLIP.DIRECTION.LTR,
 
-                /* Background styling */
+                /* Viewer Background */
                 backgroundColor: "#16171a",
 
                 /* Flip Animation Speed (ms) */
                 duration: 700,
 
-                /* Auto-layout: 2 pages on desktop, 1 page on mobile */
+                /* Responsive Spread: 2 pages on desktop, 1 page on mobile */
                 pageMode: DFLIP.PAGE_MODE.AUTO,
                 singlePageMode: DFLIP.SINGLE_PAGE_MODE.AUTO,
 
-                /* Enhanced Bengali Font Sharpness */
+                /* Enhanced Bengali Font Sharpness & High-DPI Rendering */
                 pdfRenderQuality: 1.6,
                 maxTextureSize: 2048,
 
-                /* Responsive auto-fit */
+                /* Responsive fitting */
                 forceFit: true,
                 autoSize: true,
 
-                /* Sound Effects */
+                /* Interactive Page Turn Audio */
                 soundEnable: true,
 
-                /* Controls */
+                /* Reader Controls */
                 showDownloadControl: true,
                 showPrintControl: true,
                 showSearchControl: true,
                 enableDownload: true,
 
-                /* Navigation & Outline */
+                /* Navigation & Outline Drawers */
                 autoEnableOutline: false,
                 autoEnableThumbnail: false,
 
-                /* Toolbar Controls */
+                /* Bottom Toolbar Layout */
                 controlsPosition: DFLIP.CONTROLSPOSITION.BOTTOM,
                 allControls: "altPrev,pageNumber,altNext,play,outline,thumbnail,zoomIn,zoomOut,fullScreen,download,more",
                 moreControls: "download,print,search",
 
-                /* Callbacks */
+                /* Ready Hook */
                 onReady: function (flipbook) {
                     $("#loadingOverlay").addClass("hidden");
                 }
             };
 
             /* =========================================================================
-               3. INITIALIZE FLIPBOOK
+               3. INITIALIZE THE FLIPBOOK
             ========================================================================= */
             var flipBook = $("#shm_flipbook").flipBook(activePdfUrl, options);
 
-            // Safety timeout for preloader
+            // Safety fallback to dismiss preloader
             setTimeout(function () {
                 $("#loadingOverlay").addClass("hidden");
             }, 4000);
