@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>অফলাইন PDF ফ্লিপবুক রিডার</title>
+    <title>Offline PDF Flipbook Reader</title>
     
     <!-- dFlip CSS -->
     <link href="https://cdn.jsdelivr.net/npm/dflip/css/dflip.min.css" rel="stylesheet">
@@ -26,12 +26,11 @@
             justify-content: center;
         }
         
-        /* আপলোড বক্স ডিজাইন */
         #upload-container {
             background: #ffffff;
-            padding: 30px 40px;
+            padding: 35px 45px;
             border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
             text-align: center;
             z-index: 10;
         }
@@ -57,7 +56,6 @@
             display: none;
         }
 
-        /* ফ্লিপবুক ফুলস্ক্রিন কন্টেইনার */
         #flipbook-wrapper {
             position: fixed;
             top: 0;
@@ -65,7 +63,7 @@
             width: 100%;
             height: 100%;
             display: none;
-            background-color: #1a1a1a;
+            background-color: #222222;
             z-index: 20;
         }
         #flipbook-container {
@@ -73,19 +71,19 @@
             height: 100%;
         }
         
-        /* অন্য ফাইল দেখার বাটন */
         #close-btn {
             position: absolute;
             top: 15px;
             right: 20px;
-            padding: 8px 16px;
+            padding: 9px 18px;
             background-color: #e74c3c;
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             font-size: 14px;
-            z-index: 999;
+            font-weight: bold;
+            z-index: 99999;
         }
         #close-btn:hover {
             background-color: #c0392b;
@@ -94,59 +92,57 @@
 </head>
 <body>
 
-    <!-- ফাইল সিলেক্ট বক্স -->
     <div id="upload-container">
-        <h2>আপনার ম্যাগাজিন বা বই সিলেক্ট করুন</h2>
-        <label for="pdf-input" class="file-input-label">কম্পিউটার থেকে PDF বাছুন</label>
+        <h2>Apnar PDF Magazine Select Korun</h2>
+        <label for="pdf-input" class="file-input-label">Computer theke PDF Bachun</label>
         <input type="file" id="pdf-input" accept="application/pdf">
-        <p style="margin-top: 15px; color: #777; font-size: 13px;">যেকোনো সাইজের (১০০ MB+ হলেও) PDF পড়তে পারবেন</p>
+        <p style="margin-top: 15px; color: #666; font-size: 13px;">(25 MB ba tar besi boro file-o shorashori cholbe)</p>
     </div>
 
-    <!-- ফুলস্ক্রিন ফ্লিপবুক এরিয়া -->
     <div id="flipbook-wrapper">
-        <button id="close-btn" onclick="closeBook()">নতুন বই খুলুন</button>
+        <button id="close-btn" onclick="closeBook()">Notun Boi Khulun</button>
         <div id="flipbook-container"></div>
     </div>
 
-    <!-- স্ক্রিপ্ট ফাইল -->
+    <!-- Required Dependancy Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dflip/js/dflip.min.js"></script>
 
     <script>
+        // PDF worker path setting
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+        
         var dFlipLocation = "https://cdn.jsdelivr.net/npm/dflip/";
-        var currentFlipbook = null;
+        var currentBookInstance = null;
 
         document.getElementById('pdf-input').addEventListener('change', function(e) {
             var file = e.target.files[0];
-            if (!file || file.type !== 'application/pdf') {
-                alert('অনুগ্রহ করে একটি সঠিক PDF ফাইল সিলেক্ট করুন।');
-                return;
-            }
+            if (!file) return;
 
-            // লোকাল ফাইল থেকে সরাসরি ব্রাউজারে Blob URL তৈরি
-            var fileUrl = URL.createObjectURL(file);
+            // Browser internal blob URL create
+            var blobUrl = URL.createObjectURL(file);
 
-            // ভিউয়ার দৃশ্যমান করা
             document.getElementById('upload-container').style.display = 'none';
             document.getElementById('flipbook-wrapper').style.display = 'block';
 
-            // dFlip অপশন
-            var options = {
-                source: fileUrl,
+            var bookOptions = {
+                source: blobUrl,
                 pdfRenderQuality: 2,
-                backgroundColor: "#2c3e50",
+                backgroundColor: "#222222",
                 hard: "cover",
-                webgl: true
+                webgl: false, // Compatibility ensure korar jonno
+                pageMode: 1
             };
 
-            // ফ্লিপবুক লোড করা
-            currentFlipbook = $("#flipbook-container").dFlip(options);
+            // Init dFlip
+            currentBookInstance = $("#flipbook-container").dFlip(bookOptions);
         });
 
-        // অন্য ফাইল খোলার জন্য রিসেট ফাংশন
         function closeBook() {
-            if (currentFlipbook && currentFlipbook.destroy) {
-                currentFlipbook.destroy();
+            if (currentBookInstance && currentBookInstance.destroy) {
+                currentBookInstance.destroy();
             }
             document.getElementById('flipbook-container').innerHTML = '';
             document.getElementById('pdf-input').value = '';
