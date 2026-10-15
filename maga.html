@@ -5,14 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#141517">
-    <meta name="description" content="SHM কিশোর দিগন্ত - Digital 3D Flipbook Magazine">
-
-    <title>SHM কিশোর দিগন্ত - Digital Flipbook</title>
-
-    <!-- Google Fonts for Bengali & UI typography -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>Digital Flipbook</title>
 
     <!-- DearFlip CSS & Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dflip/css/dflip.min.css">
@@ -32,136 +25,25 @@
             height: 100%;
             overflow: hidden;
             background-color: #141517;
-            font-family: 'Hind Siliguri', 'Inter', system-ui, -apple-system, sans-serif;
-            color: #f1f3f5;
         }
 
-        /* Top Header Navigation Bar */
-        .magazine-header {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 54px;
-            background: linear-gradient(180deg, rgba(20, 21, 23, 0.98) 0%, rgba(20, 21, 23, 0.88) 100%);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 1.25rem;
-            z-index: 9999;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .header-title-box {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .header-badge {
-            background: linear-gradient(135deg, #ff416c, #ff4b2b);
-            color: #ffffff;
-            font-size: 0.75rem;
-            font-weight: 700;
-            padding: 3px 8px;
-            border-radius: 4px;
-            letter-spacing: 0.5px;
-        }
-
-        .header-title {
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: #ffffff;
-            letter-spacing: 0.2px;
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .header-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 6px 12px;
-            font-size: 0.82rem;
-            font-weight: 600;
-            font-family: inherit;
-            border-radius: 6px;
-            text-decoration: none;
-            cursor: pointer;
-            border: none;
-            transition: all 0.2s ease;
-        }
-
-        .header-btn-primary {
-            background: #2563eb;
-            color: #ffffff;
-        }
-
-        .header-btn-primary:hover {
-            background: #1d4ed8;
-            transform: translateY(-1px);
-        }
-
-        .header-btn-outline {
-            background: rgba(255, 255, 255, 0.08);
-            color: #e2e8f0;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-        }
-
-        .header-btn-outline:hover {
-            background: rgba(255, 255, 255, 0.16);
-            color: #ffffff;
-        }
-
-        /* Main Flipbook Container */
+        /* Fullscreen Flipbook Viewport */
         #shm_flipbook {
             position: absolute;
-            top: 54px;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            inset: 0;
             width: 100%;
-            height: calc(100vh - 54px);
+            height: 100%;
             background: radial-gradient(circle at center, #23252a 0%, #131417 100%);
         }
 
-        /* Google Viewer Iframe Container (Fallback) */
-        #fallback_iframe_container {
-            display: none;
-            position: absolute;
-            top: 54px;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            width: 100%;
-            height: calc(100vh - 54px);
-            background: #141517;
-            z-index: 500;
-        }
-
-        #fallback_iframe_container iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        /* Loading & Fallback Overlay */
+        /* Minimal Loading Spinner */
         .loading-overlay {
             position: absolute;
             inset: 0;
             background: #141517;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 1.5rem;
-            text-align: center;
             z-index: 1000;
             transition: opacity 0.3s ease, visibility 0.3s ease;
         }
@@ -173,13 +55,12 @@
         }
 
         .spinner {
-            width: 48px;
-            height: 48px;
-            border: 3.5px solid rgba(255, 255, 255, 0.1);
+            width: 44px;
+            height: 44px;
+            border: 3.5px solid rgba(255, 255, 255, 0.12);
             border-radius: 50%;
             border-top-color: #ff4b2b;
-            animation: spin 0.8s linear infinite;
-            margin-bottom: 1.2rem;
+            animation: spin 0.75s linear infinite;
         }
 
         @keyframes spin {
@@ -187,210 +68,36 @@
                 transform: rotate(360deg);
             }
         }
-
-        .loading-title {
-            font-size: 1.1rem;
-            color: #f8fafc;
-            font-weight: 600;
-            margin-bottom: 0.4rem;
-        }
-
-        .loading-subtext {
-            font-size: 0.88rem;
-            color: #94a3b8;
-            max-width: 420px;
-            margin-bottom: 1rem;
-        }
-
-        .progress-bar-wrap {
-            width: 250px;
-            height: 5px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 99px;
-            overflow: hidden;
-            margin-bottom: 1.25rem;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            width: 25%;
-            background: linear-gradient(90deg, #ff416c, #ff4b2b);
-            border-radius: 99px;
-            transition: width 0.3s ease;
-        }
-
-        /* Fallback Box */
-        .fallback-box {
-            display: none;
-            background: #1e2025;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 12px;
-            padding: 1.5rem;
-            max-width: 460px;
-            width: 100%;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-        }
-
-        .fallback-box h3 {
-            font-size: 1.15rem;
-            color: #ffffff;
-            margin-bottom: 0.5rem;
-        }
-
-        .fallback-box p {
-            font-size: 0.88rem;
-            color: #cbd5e1;
-            line-height: 1.5;
-            margin-bottom: 1.25rem;
-        }
-
-        .fallback-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 0.65rem;
-        }
-
-        .fallback-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            width: 100%;
-            padding: 10px 16px;
-            font-size: 0.92rem;
-            font-weight: 600;
-            font-family: inherit;
-            border-radius: 8px;
-            cursor: pointer;
-            border: none;
-            text-decoration: none;
-            transition: all 0.2s ease;
-        }
-
-        .fallback-btn-flipbook {
-            background: linear-gradient(135deg, #ff416c, #ff4b2b);
-            color: #ffffff;
-        }
-
-        .fallback-btn-viewer {
-            background: #2563eb;
-            color: #ffffff;
-        }
-
-        .fallback-btn-secondary {
-            background: rgba(255, 255, 255, 0.08);
-            color: #e2e8f0;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-        }
-
-        #localFileInput {
-            display: none;
-        }
-
-        @media (max-width: 640px) {
-            .magazine-header {
-                height: 48px;
-                padding: 0 0.75rem;
-            }
-
-            .header-title {
-                font-size: 0.9rem;
-            }
-
-            .header-badge {
-                font-size: 0.65rem;
-                padding: 2px 6px;
-            }
-
-            .header-btn {
-                padding: 5px 8px;
-                font-size: 0.75rem;
-            }
-
-            #shm_flipbook,
-            #fallback_iframe_container {
-                top: 48px;
-                height: calc(100vh - 48px);
-            }
-        }
     </style>
 </head>
 
 <body>
 
-    <input type="file" id="localFileInput" accept="application/pdf">
-
-    <!-- Top Navigation Header -->
-    <header class="magazine-header" id="mainHeader">
-        <div class="header-title-box">
-            <span class="header-badge">ম্যাগাজিন</span>
-            <h1 class="header-title">SHM কিশোর দিগন্ত</h1>
-        </div>
-        <div class="header-actions">
-            <button class="header-btn header-btn-outline" id="openLocalBtn" title="ডিভাইস থেকে PDF ফাইল সিলেক্ট করুন">
-                <i class="ti-folder"></i> <span>PDF ফাইল ওপেন</span>
-            </button>
-            <button class="header-btn header-btn-outline" id="toggleSoundBtn" title="শব্দ অন/অফ">
-                <i class="ti-volume"></i> <span id="soundStatus">সাউন্ড</span>
-            </button>
-            <a href="https://od.lk/s/MzZfMTI1NzMzMzM1X0w4U3h0/maga.pdf" download="maga.pdf" target="_blank" rel="noopener noreferrer" class="header-btn header-btn-primary" title="সরাসরি ডাউনলোড">
-                <i class="ti-download"></i> ডাউনলোড
-            </a>
-        </div>
-    </header>
-
-    <!-- Flipbook Host Element -->
+    <!-- Main Fullscreen Flipbook Container -->
     <div id="shm_flipbook">
         <div class="loading-overlay" id="loadingOverlay">
-            <div class="spinner" id="loaderSpinner"></div>
-            <div class="loading-title" id="loadingTitle">ম্যাগাজিন প্রস্তুত করা হচ্ছে...</div>
-            <div class="loading-subtext" id="loadingSubtext">দ্রুততম সার্ভারের সাথে সংযোগ স্থাপন করা হচ্ছে...</div>
-            <div class="progress-bar-wrap" id="progressWrap">
-                <div class="progress-bar-fill" id="progressBar"></div>
-            </div>
-
-            <!-- Fallback Options -->
-            <div class="fallback-box" id="fallbackBox">
-                <h3>সরাসরি লিংক লোড হতে সমস্যা হয়েছে</h3>
-                <p>OpenDrive এর সরাসরি CORS রেস্ট্রিকশনের কারণে নিচের যেকোনো বিকল্প বেছে নিন:</p>
-                <div class="fallback-actions">
-                    <button class="fallback-btn fallback-btn-viewer" id="useGoogleViewerBtn">
-                        <i class="ti-book"></i> সরাসরি Google Viewer এ পড়ুন
-                    </button>
-                    <button class="fallback-btn fallback-btn-flipbook" id="selectLocalPdfBtn">
-                        <i class="ti-import"></i> ডিভাইস থেকে maga.pdf সিলেক্ট করুন
-                    </button>
-                    <a href="https://od.lk/s/MzZfMTI1NzMzMzM1X0w4U3h0/maga.pdf" target="_blank" rel="noopener noreferrer" class="fallback-btn fallback-btn-secondary">
-                        <i class="ti-download"></i> OpenDrive থেকে maga.pdf ডাউনলোড
-                    </a>
-                </div>
-            </div>
+            <div class="spinner"></div>
         </div>
     </div>
 
-    <!-- Embedded Google PDF Viewer Fallback Container -->
-    <div id="fallback_iframe_container"></div>
-
-    <!-- jQuery & DearFlip Core Scripts -->
+    <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dflip/js/dflip.min.js"></script>
 
     <script>
         jQuery(function ($) {
-            var rawOpenDriveUrl = "https://od.lk/s/MzZfMTI1NzMzMzM1X0w4U3h0/maga.pdf";
-            var CACHE_KEY = "shm_maga_pdf_cache_v1";
-            var flipBookInstance = null;
+            // GitHub repository root path
+            var pdfPath = "maga.pdf";
 
-            // DearFlip 3D Optimized Configuration
             var dflipOptions = {
                 webgl: true,
                 hard: "cover",
                 direction: DFLIP.DIRECTION.LTR,
-                backgroundColor: "#16171a",
-                duration: 600,
+                backgroundColor: "#141517",
+                duration: 550,
                 pageMode: DFLIP.PAGE_MODE.AUTO,
                 singlePageMode: DFLIP.SINGLE_PAGE_MODE.AUTO,
-                pdfRenderQuality: 1.25,
+                pdfRenderQuality: 1.3,
                 maxTextureSize: 1536,
                 forceFit: true,
                 autoSize: true,
@@ -408,149 +115,8 @@
                 }
             };
 
-            function startFlipbookWithBlobUrl(blobUrl, fromCache) {
-                $("#fallback_iframe_container").hide().empty();
-                $("#shm_flipbook").show();
-                $("#progressBar").css("width", "100%");
-                $("#loadingTitle").text(fromCache ? "ক্যাশ থেকে তাত্ক্ষণিকভাবে রেন্ডার হচ্ছে..." : "3D ফ্লিপবুক তৈরি হচ্ছে...");
-                $("#loadingSubtext").text("পৃষ্ঠাগুলো তৈরি হচ্ছে...");
-
-                if (flipBookInstance && flipBookInstance.dispose) {
-                    try { flipBookInstance.dispose(); } catch (e) {}
-                }
-
-                flipBookInstance = $("#shm_flipbook").flipBook(blobUrl, dflipOptions);
-
-                setTimeout(function () {
-                    $("#loadingOverlay").addClass("hidden");
-                }, 1200);
-            }
-
-            function isPdfSignature(uint8Chunk) {
-                if (!uint8Chunk || uint8Chunk.length < 4) return false;
-                return uint8Chunk[0] === 0x25 && uint8Chunk[1] === 0x50 && uint8Chunk[2] === 0x44 && uint8Chunk[3] === 0x46;
-            }
-
-            // High-Speed Cached Fetcher & Parallel Proxy Race
-            async function fastFetchPdf() {
-                // Step 1: Check Local Browser Cache for Instant launch
-                if ('caches' in window) {
-                    try {
-                        var cache = await caches.open("shm-maga-cache");
-                        var cachedResponse = await cache.match(CACHE_KEY);
-                        if (cachedResponse) {
-                            var cachedBlob = await cachedResponse.blob();
-                            if (cachedBlob.size > 1000) {
-                                var cachedBlobUrl = URL.createObjectURL(cachedBlob);
-                                startFlipbookWithBlobUrl(cachedBlobUrl, true);
-                                return;
-                            }
-                        }
-                    } catch (e) {
-                        console.warn("Cache API bypass:", e);
-                    }
-                }
-
-                $("#progressBar").css("width", "40%");
-
-                // Step 2: Fastest Candidates (Local maga.pdf first + Parallel CORS Proxies)
-                var proxyUrls = [
-                    "maga.pdf",
-                    "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(rawOpenDriveUrl),
-                    "https://corsproxy.io/?url=" + encodeURIComponent(rawOpenDriveUrl),
-                    "https://api.allorigins.win/raw?url=" + encodeURIComponent(rawOpenDriveUrl)
-                ];
-
-                var fetchSingle = function (url) {
-                    return new Promise(function (resolve, reject) {
-                        var controller = new AbortController();
-                        var timeout = setTimeout(function () {
-                            controller.abort();
-                            reject(new Error("Timeout for " + url));
-                        }, 12000);
-
-                        fetch(url, { signal: controller.signal, credentials: "omit" })
-                            .then(function (res) {
-                                if (!res.ok) throw new Error("HTTP error " + res.status);
-                                return res.arrayBuffer();
-                            })
-                            .then(function (buf) {
-                                clearTimeout(timeout);
-                                var arr = new Uint8Array(buf);
-                                if (!isPdfSignature(arr)) {
-                                    throw new Error("Invalid PDF header");
-                                }
-                                var blob = new Blob([arr], { type: "application/pdf" });
-                                resolve(blob);
-                            })
-                            .catch(function (err) {
-                                clearTimeout(timeout);
-                                reject(err);
-                            });
-                    });
-                };
-
-                try {
-                    // Promise.any races all endpoints concurrently
-                    var fastestBlob = await Promise.any(proxyUrls.map(fetchSingle));
-                    
-                    // Save to CacheStorage in background
-                    if ('caches' in window) {
-                        caches.open("shm-maga-cache").then(function (cache) {
-                            cache.put(CACHE_KEY, new Response(fastestBlob.slice(0), {
-                                headers: { "Content-Type": "application/pdf" }
-                            }));
-                        }).catch(function () {});
-                    }
-
-                    var activeBlobUrl = URL.createObjectURL(fastestBlob);
-                    startFlipbookWithBlobUrl(activeBlobUrl, false);
-                } catch (err) {
-                    console.error("All sources failed:", err);
-                    $("#loaderSpinner, #loadingTitle, #loadingSubtext, #progressWrap").hide();
-                    $("#fallbackBox").fadeIn(200);
-                }
-            }
-
-            // Start loading
-            fastFetchPdf();
-
-            // Local file picker
-            $("#openLocalBtn, #selectLocalPdfBtn").on("click", function () {
-                $("#localFileInput").trigger("click");
-            });
-
-            $("#localFileInput").on("change", function (e) {
-                var file = e.target.files && e.target.files[0];
-                if (!file) return;
-
-                $("#fallbackBox").hide();
-                $("#loaderSpinner, #loadingTitle, #loadingSubtext, #progressWrap").show();
-                $("#loadingOverlay").removeClass("hidden");
-
-                var localBlobUrl = URL.createObjectURL(file);
-                startFlipbookWithBlobUrl(localBlobUrl, false);
-            });
-
-            // Fallback Google Viewer
-            $("#useGoogleViewerBtn").on("click", function () {
-                $("#loadingOverlay").addClass("hidden");
-                var googleViewerUrl = "https://docs.google.com/viewer?url=" + encodeURIComponent(rawOpenDriveUrl) + "&embedded=true";
-                $("#fallback_iframe_container")
-                    .html('<iframe src="' + googleViewerUrl + '" allowfullscreen></iframe>')
-                    .fadeIn(200);
-            });
-
-            // Sound Toggle
-            var soundOn = true;
-            $("#toggleSoundBtn").on("click", function () {
-                soundOn = !soundOn;
-                if (flipBookInstance && flipBookInstance.ui) {
-                    flipBookInstance.soundEnable = soundOn;
-                }
-                $(this).find("i").attr("class", soundOn ? "ti-volume" : "ti-volume-off");
-                $("#soundStatus").text(soundOn ? "সাউন্ড" : "নিঃশব্দ");
-            });
+            // Initialize DearFlip directly
+            $("#shm_flipbook").flipBook(pdfPath, dflipOptions);
         });
     </script>
 
