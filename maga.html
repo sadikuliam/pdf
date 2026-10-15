@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#141517">
-    <title>Digital Flipbook</title>
+    <title>Flipbook</title>
 
     <!-- DearFlip CSS & Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dflip/css/dflip.min.css">
@@ -27,7 +27,7 @@
             background-color: #141517;
         }
 
-        /* Fullscreen Flipbook Viewport */
+        /* Fullscreen Viewport */
         #shm_flipbook {
             position: absolute;
             inset: 0;
@@ -73,7 +73,7 @@
 
 <body>
 
-    <!-- Main Fullscreen Flipbook Container -->
+    <!-- Main Flipbook Container with DearFlip Bottom Controls -->
     <div id="shm_flipbook">
         <div class="loading-overlay" id="loadingOverlay">
             <div class="spinner"></div>
@@ -86,7 +86,7 @@
 
     <script>
         jQuery(function ($) {
-            // GitHub repository root path
+            // Direct GitHub PDF reference
             var pdfPath = "maga.pdf";
 
             var dflipOptions = {
@@ -108,6 +108,7 @@
                 enableDownload: true,
                 autoEnableOutline: false,
                 autoEnableThumbnail: false,
+                // নিচের ডিরেকশন ও কন্ট্রোল বার আগের মতোই সক্রিয় থাকবে
                 controlsPosition: DFLIP.CONTROLSPOSITION.BOTTOM,
                 allControls: "altPrev,pageNumber,altNext,play,outline,thumbnail,zoomIn,zoomOut,fullScreen,download",
                 onReady: function () {
@@ -115,7 +116,7 @@
                 }
             };
 
-            // Initialize DearFlip directly
+            // Initialize Flipbook directly from maga.pdf
             $("#shm_flipbook").flipBook(pdfPath, dflipOptions);
         });
     </script>
