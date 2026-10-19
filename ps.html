@@ -6,146 +6,206 @@
     <title>প্রো সাইবার ক্যাফে ফটো এডিটর</title>
     <style>
         :root {
-            --primary: #2c3e50;
-            --secondary: #34495e;
-            --accent: #3498db;
-            --light: #ecf0f1;
-            --danger: #e74c3c;
-            --success: #27ae60;
+            --primary: #1e293b;
+            --secondary: #334155;
+            --accent: #2563eb;
+            --light: #f8fafc;
+            --danger: #ef4444;
+            --success: #16a34a;
+            --warning: #f59e0b;
         }
+
+        * { box-sizing: border-box; }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7f6;
+            background-color: #f1f5f9;
             margin: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
+            color: #1e293b;
         }
 
         header {
             background-color: var(--primary);
             color: white;
             width: 100%;
-            padding: 15px 0;
+            padding: 14px 20px;
             text-align: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+            letter-spacing: 0.5px;
         }
 
         .main-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
+            display: grid;
+            grid-template-columns: 320px 1fr;
             gap: 20px;
             padding: 20px;
-            max-width: 1200px;
+            max-width: 1320px;
             width: 100%;
+            align-items: start;
+        }
+
+        @media (max-width: 860px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
         }
 
         .toolbar {
-            flex: 1;
-            min-width: 280px;
             background: white;
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 14px;
+        }
+
+        .file-upload-label {
+            background-color: var(--accent);
+            color: white;
+            padding: 13px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            display: block;
+            font-weight: bold;
+            font-size: 15px;
+            transition: background 0.2s;
+            box-shadow: 0 3px 10px rgba(37, 99, 235, 0.25);
+        }
+        .file-upload-label:hover { background-color: #1d4ed8; }
+        #fileInput { display: none; }
+
+        .crop-banner {
+            display: none;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e40af;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            line-height: 1.45;
         }
 
         .tool-group {
-            margin-bottom: 5px;
+            margin-bottom: 2px;
         }
 
         .tool-group label {
-            display: block;
+            display: flex;
+            justify-content: space-between;
             margin-bottom: 5px;
-            font-weight: bold;
+            font-weight: 600;
             color: var(--secondary);
-            font-size: 14px;
+            font-size: 13.5px;
         }
 
         input[type=range] {
             width: 100%;
             cursor: pointer;
+            accent-color: var(--accent);
         }
 
         .btn-group {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 10px;
+            gap: 8px;
+            margin-top: 4px;
         }
 
         button {
-            padding: 10px;
+            padding: 10px 12px;
             border: none;
-            border-radius: 4px;
+            border-radius: 7px;
             cursor: pointer;
-            font-weight: bold;
-            transition: background 0.2s;
+            font-weight: 600;
+            transition: all 0.15s;
             font-size: 13px;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .btn-primary { background-color: var(--accent); color: white; }
-        .btn-primary:hover { background-color: #2980b9; }
+        .btn-primary:hover:not(:disabled) { background-color: #1d4ed8; }
 
         .btn-success { background-color: var(--success); color: white; }
-        .btn-success:hover { background-color: #219150; }
+        .btn-success:hover:not(:disabled) { background-color: #15803d; }
 
         .btn-danger { background-color: var(--danger); color: white; }
-        .btn-danger:hover { background-color: #c0392b; }
+        .btn-danger:hover:not(:disabled) { background-color: #dc2626; }
 
-        .btn-warning { background-color: #f39c12; color: white; }
-        .btn-warning:hover { background-color: #d68910; }
+        .btn-warning { background-color: var(--warning); color: white; }
+        .btn-warning:hover:not(:disabled) { background-color: #d97706; }
 
-        .file-upload-label {
-            background-color: var(--secondary);
-            color: white;
-            padding: 12px;
-            text-align: center;
-            border-radius: 4px;
-            cursor: pointer;
-            display: block;
-        }
-        .file-upload-label:hover { background-color: #2c3e50; }
-        #fileInput { display: none; }
+        .btn-secondary { background-color: #64748b; color: white; }
+        .btn-secondary:hover:not(:disabled) { background-color: #475569; }
 
         .canvas-container {
-            flex: 2;
-            min-width: 300px;
             background: white;
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
+            min-height: 480px;
             position: relative;
             overflow: auto;
-            max-height: 600px;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            display: inline-block;
+            background-image: 
+                linear-gradient(45deg, #e2e8f0 25%, transparent 25%), 
+                linear-gradient(-45deg, #e2e8f0 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #e2e8f0 75%), 
+                linear-gradient(-45deg, transparent 75%, #e2e8f0 75%);
+            background-size: 16px 16px;
+            background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+            border: 2px solid #cbd5e1;
+            border-radius: 4px;
+            line-height: 0;
+            user-select: none;
         }
 
         canvas {
             max-width: 100%;
+            max-height: 70vh;
+            width: auto;
             height: auto;
-            border: 1px solid #ddd;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            cursor: crosshair;
+            display: block;
+            touch-action: none;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #64748b;
+            padding: 40px 20px;
         }
 
         .info-panel {
-            width: 100%;
-            max-width: 1200px;
-            margin-top: 20px;
+            width: calc(100% - 40px);
+            max-width: 1280px;
+            margin: 0 20px 30px;
             background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
             display: flex;
-            justify-content: space-around;
+            justify-content: space-between;
             flex-wrap: wrap;
             gap: 15px;
             align-items: center;
@@ -155,26 +215,24 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            font-size: 14px;
+            font-weight: 600;
         }
 
-        select, input[type="checkbox"] {
-            padding: 6px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
+        select {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            font-weight: 600;
             cursor: pointer;
+            background: #f8fafc;
         }
 
-        #loadingOverlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.8);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            font-size: 18px;
-            color: var(--accent);
-            font-weight: bold;
+        input[type="checkbox"] {
+            width: 17px;
+            height: 17px;
+            cursor: pointer;
+            accent-color: var(--accent);
         }
     </style>
 </head>
@@ -184,68 +242,92 @@
         <h1>প্রো সাইবার ক্যাফে ফটো এডিটর</h1>
     </header>
 
-    <div id="loadingOverlay">প্রসেস করা হচ্ছে...</div>
-
     <div class="main-container">
-        <!-- টুলবার প্যানেল -->
+        <!-- বাম পাশের টুলবার -->
         <aside class="toolbar">
-            <label for="fileInput" class="file-upload-label">ছবি আপলোড করুন</label>
+            <label for="fileInput" class="file-upload-label">📁 ছবি আপলোড করুন</label>
             <input type="file" id="fileInput" accept="image/*">
 
+            <!-- ক্রপ নির্দেশিকা ও বাটন -->
+            <div class="crop-banner" id="cropBanner">
+                <strong>✂️ ক্রপ মোড চালু আছে:</strong><br>
+                চারপাশের <b>নীল রঙের স্কোয়ারগুলো</b> টেনে ক্রপ ছোট-বড় করুন অথবা বক্সের ভেতরে ধরে সরান। এরপর সবুজ বাটনে ক্লিক করুন।
+            </div>
+
+            <div class="btn-group" id="cropActionGroup" style="display:none;">
+                <button class="btn-success" id="applyCropBtn">✔ ক্রপ নিশ্চিত করুন</button>
+                <button class="btn-secondary" id="skipCropBtn">✖ পূর্ণ ছবি রাখুন</button>
+            </div>
+
+            <div class="btn-group" id="normalCropGroup">
+                <button class="btn-warning" id="startCropBtn" disabled>✂️ পুনরায় ক্রপ</button>
+                <button class="btn-secondary" id="rotateBtn" disabled>🔄 ৯০° ঘোরান</button>
+            </div>
+
+            <hr style="border:0; border-top:1px solid #e2e8f0; width:100%; margin:4px 0;">
+
+            <!-- এডিটিং স্লাইডারসমূহ -->
             <div class="tool-group">
-                <label for="brightness">উজ্জ্বলতা (Brightness): <span id="bVal">100</span>%</label>
-                <input type="range" id="brightness" min="0" max="200" value="100">
+                <label for="brightness"><span>উজ্জ্বলতা (Brightness)</span> <span id="bVal">100%</span></label>
+                <input type="range" id="brightness" min="20" max="200" value="100" disabled>
             </div>
 
             <div class="tool-group">
-                <label for="contrast">কন্ট্রাস্ট (Contrast): <span id="cVal">100</span>%</label>
-                <input type="range" id="contrast" min="0" max="200" value="100">
+                <label for="contrast"><span>কন্ট্রাস্ট (Contrast)</span> <span id="cVal">100%</span></label>
+                <input type="range" id="contrast" min="20" max="200" value="100" disabled>
             </div>
 
             <div class="tool-group">
-                <label for="saturation">স্যাচুরেশন (Saturation): <span id="sVal">100</span>%</label>
-                <input type="range" id="saturation" min="0" max="200" value="100">
+                <label for="saturation"><span>স্যাচুরেশন (Saturation)</span> <span id="sVal">100%</span></label>
+                <input type="range" id="saturation" min="0" max="200" value="100" disabled>
             </div>
 
             <div class="tool-group">
-                <label for="sharpness">শার্পনেস (Sharpness): <span id="shVal">0</span></label>
-                <input type="range" id="sharpness" min="0" max="10" value="0">
+                <label for="sharpness"><span>শার্পনেস (Sharpness)</span> <span id="shVal">0</span></label>
+                <input type="range" id="sharpness" min="0" max="10" value="0" disabled>
+            </div>
+
+            <!-- সাদা ব্যাকগ্রাউন্ড রিমুভ (ম্যাজিক ট্রান্সপারেন্ট) -->
+            <div class="tool-group">
+                <label for="whiteRemove"><span>সাদা ব্যাকগ্রাউন্ড রিমুভ (PNG)</span> <span id="wrVal">0</span></label>
+                <input type="range" id="whiteRemove" min="0" max="60" value="0" disabled>
             </div>
 
             <div class="btn-group">
-                <button class="btn-warning" id="cropBtn">পুনরায় ক্রপ (Crop)</button>
-                <button class="btn-success" id="applyCropBtn" style="display:none;">ক্রপ নিশ্চিত করুন</button>
-            </div>
-
-            <div class="btn-group">
-                <button class="btn-danger" id="resetBtn">রিসেট (Reset)</button>
-                <button class="btn-primary" id="grayscaleBtn">গ্রে-স্কেল</button>
+                <button class="btn-danger" id="resetBtn" disabled>↺ রিসেট (Reset)</button>
+                <button class="btn-primary" id="grayscaleBtn" disabled>⚫ সাদাকালো</button>
             </div>
         </aside>
 
-        <!-- ক্যানভাস এলাকা -->
+        <!-- ডান পাশের ক্যানভাস এরিয়া -->
         <section class="canvas-container">
-            <canvas id="photoCanvas"></canvas>
+            <div id="emptyState" class="empty-state">
+                <h3>কোনো ছবি আপলোড করা হয়নি</h3>
+                <p>বাম পাশের <b>"ছবি আপলোড করুন"</b> বাটনে ক্লিক করে আপনার কম্পিউটার বা ফোন থেকে ছবি সিলেক্ট করুন।</p>
+            </div>
+            <div class="canvas-wrapper" id="canvasWrapper" style="display:none;">
+                <canvas id="photoCanvas"></canvas>
+            </div>
         </section>
     </div>
 
-    <!-- নিচের প্যানেল: ফরম্যাট ও ডাউনলোড -->
+    <!-- নিচের ডাউনলোড প্যানেল -->
     <section class="info-panel">
         <div class="info-box">
-            <label for="fileFormat">ফরম্যাট:</label>
+            <label for="fileFormat">ডাউনলোড ফরম্যাট:</label>
             <select id="fileFormat">
-                <option value="png">PNG</option>
-                <option value="jpg">JPG</option>
+                <option value="png">PNG (উচ্চ মানের)</option>
+                <option value="jpg">JPG (ছোট সাইজ)</option>
             </select>
         </div>
 
         <div class="info-box" id="transparentOptionBox">
-            <input type="checkbox" id="transparentBg">
-            <label for="transparentBg">স্বচ্ছ ব্যাকগ্রাউন্ড (Transparent PNG)</label>
+            <input type="checkbox" id="transparentBg" checked>
+            <label for="transparentBg" style="cursor:pointer;">স্বচ্ছ ব্যাকগ্রাউন্ড (Transparent PNG)</label>
         </div>
 
         <div class="info-box">
-            <button class="btn-success" id="downloadBtn" style="padding: 10px 20px; font-size: 15px;">ছবি ডাউনলোড</button>
+            <button class="btn-success" id="downloadBtn" style="padding: 12px 24px; font-size: 15px;" disabled>⬇ ছবি ডাউনলোড করুন</button>
         </div>
     </section>
 
@@ -253,106 +335,492 @@
         const fileInput = document.getElementById('fileInput');
         const canvas = document.getElementById('photoCanvas');
         const ctx = canvas.getContext('2d');
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        
+        const canvasWrapper = document.getElementById('canvasWrapper');
+        const emptyState = document.getElementById('emptyState');
+
+        const cropBanner = document.getElementById('cropBanner');
+        const cropActionGroup = document.getElementById('cropActionGroup');
+        const normalCropGroup = document.getElementById('normalCropGroup');
+
+        const startCropBtn = document.getElementById('startCropBtn');
+        const applyCropBtn = document.getElementById('applyCropBtn');
+        const skipCropBtn = document.getElementById('skipCropBtn');
+        const rotateBtn = document.getElementById('rotateBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const grayscaleBtn = document.getElementById('grayscaleBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+
         const sliders = {
             brightness: document.getElementById('brightness'),
             contrast: document.getElementById('contrast'),
             saturation: document.getElementById('saturation'),
-            sharpness: document.getElementById('sharpness')
+            sharpness: document.getElementById('sharpness'),
+            whiteRemove: document.getElementById('whiteRemove')
         };
 
-        let baseImage = null; // এটি ক্রপ করার পর মূল ছবি হিসেবে থাকবে
+        const labels = {
+            brightness: document.getElementById('bVal'),
+            contrast: document.getElementById('cVal'),
+            saturation: document.getElementById('sVal'),
+            sharpness: document.getElementById('shVal'),
+            whiteRemove: document.getElementById('wrVal')
+        };
+
+        let originalUploadedImage = null;
+        let baseImage = null;
         let isCropping = false;
-        let cropStart = { x: 0, y: 0 };
-        let cropEnd = { x: 0, y: 0 };
-        let isDragging = false;
+
+        // ক্রপ বক্সের স্টেট ও হ্যান্ডেল অ্যাকশন
+        let cropRect = { x: 0, y: 0, w: 0, h: 0 };
+        let dragAction = null; // 'nw','n','ne','e','se','s','sw','w','move','new'
+        let dragStart = { x: 0, y: 0 };
+        let initialCropRect = { x: 0, y: 0, w: 0, h: 0 };
 
         let filters = {
             brightness: 100,
             contrast: 100,
             saturation: 100,
             sharpness: 0,
+            whiteRemove: 0,
             grayscale: false
         };
 
-        // ছবি আপলোড হওয়ার সাথে সাথেই ক্রপ মোড চালু হবে
-        fileInput.addEventListener('change', (e) => {
+        // ১. ছবি আপলোড হ্যান্ডলার
+        fileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
 
             const reader = new FileReader();
-            reader.onload = (event) => {
+            reader.onload = function(event) {
                 const img = new Image();
-                img.onload = () => {
+                img.onload = function() {
+                    originalUploadedImage = img;
                     baseImage = img;
-                    resetAllFilters();
                     
-                    // ক্যানভাসে ছবি লোড করে সরাসরি ক্রপ মোড শুরু করা
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    ctx.drawImage(img, 0, 0);
-                    
-                    // অটো ক্রপ মোড অন
-                    isCropping = true;
-                    document.getElementById('cropBtn').style.display = 'none';
-                    document.getElementById('applyCropBtn').style.display = 'block';
+                    emptyState.style.display = 'none';
+                    canvasWrapper.style.display = 'inline-block';
+
+                    resetFilterValues();
+                    enterCropMode();
                 };
                 img.src = event.target.result;
             };
             reader.readAsDataURL(file);
+            fileInput.value = '';
         });
 
-        // স্লাইডার পরিবর্তন হলে শুধু ক্রপ করা ছবির ওপর ইফেক্ট পড়বে
-        Object.keys(sliders).forEach(key => {
-            sliders[key].addEventListener('input', (e) => {
-                if (isCropping) return; // ক্রপ মোডে থাকলে স্লাইডার কাজ করবে না
-                filters[key] = e.target.value;
-                document.getElementById(key.charAt(0) + 'Val')?.innerText = filters[key];
-                applyFiltersToCanvas();
-            });
-        });
+        // ২. ক্রপ মোড চালু করা
+        function enterCropMode() {
+            if (!baseImage) return;
+            isCropping = true;
 
-        function resetAllFilters() {
-            filters = { brightness: 100, contrast: 100, saturation: 100, sharpness: 0, grayscale: false };
-            Object.keys(sliders).forEach(key => {
-                sliders[key].value = filters[key];
-                document.getElementById(key.charAt(0) + 'Val')?.innerText = filters[key];
-            });
+            cropBanner.style.display = 'block';
+            cropActionGroup.style.display = 'grid';
+            normalCropGroup.style.display = 'none';
+            setEditingToolsEnabled(false);
+
+            canvas.width = baseImage.width;
+            canvas.height = baseImage.height;
+            ctx.filter = 'none';
+
+            // ডিফল্ট ৮০% সাইজের ক্রপ বক্স সেট করা
+            const padX = Math.round(canvas.width * 0.1);
+            const padY = Math.round(canvas.height * 0.1);
+            cropRect = {
+                x: padX,
+                y: padY,
+                w: canvas.width - (padX * 2),
+                h: canvas.height - (padY * 2)
+            };
+            drawCropOverlay();
         }
 
-        document.getElementById('resetBtn').addEventListener('click', () => {
+        // স্ক্রিন অনুযায়ী নীল স্কোয়ার হ্যান্ডেলের সাইজ নির্ধারণ
+        function getHandleSize() {
+            const rect = canvas.getBoundingClientRect();
+            const scale = canvas.width / (rect.width || canvas.width);
+            return Math.max(10, Math.round(12 * scale));
+        }
+
+        // ৮টি নীল রঙের স্কোয়ার হ্যান্ডেলের পজিশন বের করা
+        function getHandles() {
+            const { x, y, w, h } = cropRect;
+            return {
+                nw: { x: x,         y: y },
+                n:  { x: x + w / 2, y: y },
+                ne: { x: x + w,     y: y },
+                e:  { x: x + w,     y: y + h / 2 },
+                se: { x: x + w,     y: y + h },
+                s:  { x: x + w / 2, y: y + h },
+                sw: { x: x,         y: y + h },
+                w:  { x: x,         y: y + h / 2 }
+            };
+        }
+
+        // ক্রপ বক্স এবং চারপাশের নীল স্কোয়ার আঁকা
+        function drawCropOverlay() {
             if (!baseImage) return;
-            resetAllFilters();
-            applyFiltersToCanvas();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(baseImage, 0, 0);
+
+            // চারপাশের অংশ অন্ধকার করা
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (cropRect.w > 0 && cropRect.h > 0) {
+                // সিলেক্ট করা অংশ পরিষ্কার দেখানো
+                ctx.drawImage(
+                    baseImage,
+                    cropRect.x, cropRect.y, cropRect.w, cropRect.h,
+                    cropRect.x, cropRect.y, cropRect.w, cropRect.h
+                );
+
+                const rect = canvas.getBoundingClientRect();
+                const scale = canvas.width / (rect.width || canvas.width);
+                const borderWidth = Math.max(2, 2 * scale);
+
+                // নীল রঙের বর্ডার আঁকা
+                ctx.strokeStyle = '#2563eb';
+                ctx.lineWidth = borderWidth;
+                ctx.strokeRect(cropRect.x, cropRect.y, cropRect.w, cropRect.h);
+
+                // ভেতরের হালকা গাইডলাইন (Rule of Thirds Grid)
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+                ctx.lineWidth = Math.max(1, 1 * scale);
+                ctx.beginPath();
+                // লম্বা লাইন
+                ctx.moveTo(cropRect.x + cropRect.w / 3, cropRect.y);
+                ctx.lineTo(cropRect.x + cropRect.w / 3, cropRect.y + cropRect.h);
+                ctx.moveTo(cropRect.x + (cropRect.w * 2) / 3, cropRect.y);
+                ctx.lineTo(cropRect.x + (cropRect.w * 2) / 3, cropRect.y + cropRect.h);
+                // আড়াআড়ি লাইন
+                ctx.moveTo(cropRect.x, cropRect.y + cropRect.h / 3);
+                ctx.lineTo(cropRect.x + cropRect.w, cropRect.y + cropRect.h / 3);
+                ctx.moveTo(cropRect.x, cropRect.y + (cropRect.h * 2) / 3);
+                ctx.lineTo(cropRect.x + cropRect.w, cropRect.y + (cropRect.h * 2) / 3);
+                ctx.stroke();
+
+                // চারপাশের ৮টি নীল রঙের ছোট স্কোয়ার (Small Blue Squares) আঁকা
+                const hs = getHandleSize();
+                const handles = getHandles();
+                ctx.fillStyle = '#2563eb'; // নীল রঙ
+                ctx.strokeStyle = '#ffffff'; // সাদা বর্ডার যাতে যেকোনো ছবিতে স্পষ্ট বোঝা যায়
+                ctx.lineWidth = Math.max(1.5, 1.5 * scale);
+
+                Object.values(handles).forEach(pt => {
+                    ctx.fillRect(pt.x - hs / 2, pt.y - hs / 2, hs, hs);
+                    ctx.strokeRect(pt.x - hs / 2, pt.y - hs / 2, hs, hs);
+                });
+            }
+        }
+
+        function getCanvasCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            return {
+                x: Math.max(0, Math.min(canvas.width, (clientX - rect.left) * scaleX)),
+                y: Math.max(0, Math.min(canvas.height, (clientY - rect.top) * scaleY))
+            };
+        }
+
+        // মাউস কোন নীল স্কোয়ারের ওপর আছে তা চেক করা
+        function hitTestHandles(pos) {
+            const hs = getHandleSize() * 1.4; // ধরার সুবিধার্থে সামান্য বড় হিট এরিয়া
+            const handles = getHandles();
+            for (const [key, pt] of Object.entries(handles)) {
+                if (Math.abs(pos.x - pt.x) <= hs / 2 && Math.abs(pos.y - pt.y) <= hs / 2) {
+                    return key;
+                }
+            }
+            // বক্সের ভেতরে ক্লিক করেছে কি না
+            if (
+                pos.x >= cropRect.x && pos.x <= cropRect.x + cropRect.w &&
+                pos.y >= cropRect.y && pos.y <= cropRect.y + cropRect.h
+            ) {
+                return 'move';
+            }
+            return 'new';
+        }
+
+        // কার্সার পরিবর্তন করা
+        function updateCursor(action) {
+            const cursors = {
+                nw: 'nwse-resize',
+                se: 'nwse-resize',
+                ne: 'nesw-resize',
+                sw: 'nesw-resize',
+                n: 'ns-resize',
+                s: 'ns-resize',
+                e: 'ew-resize',
+                w: 'ew-resize',
+                move: 'move',
+                new: 'crosshair'
+            };
+            canvas.style.cursor = cursors[action] || 'default';
+        }
+
+        function startPointer(e) {
+            if (!isCropping) return;
+            if (e.cancelable) e.preventDefault();
+            const pos = getCanvasCoordinates(e);
+            dragAction = hitTestHandles(pos);
+            dragStart = pos;
+            initialCropRect = { ...cropRect };
+
+            if (dragAction === 'new') {
+                cropRect = { x: pos.x, y: pos.y, w: 0, h: 0 };
+            }
+        }
+
+        function movePointer(e) {
+            if (!isCropping) {
+                canvas.style.cursor = 'default';
+                return;
+            }
+            const pos = getCanvasCoordinates(e);
+
+            if (!dragAction) {
+                const hoverAction = hitTestHandles(pos);
+                updateCursor(hoverAction);
+                return;
+            }
+
+            if (e.cancelable) e.preventDefault();
+            const dx = pos.x - dragStart.x;
+            const dy = pos.y - dragStart.y;
+            const minSize = 20;
+
+            let { x, y, w, h } = initialCropRect;
+
+            if (dragAction === 'move') {
+                cropRect.x = Math.max(0, Math.min(canvas.width - w, x + dx));
+                cropRect.y = Math.max(0, Math.min(canvas.height - h, y + dy));
+            } else if (dragAction === 'new') {
+                cropRect.x = Math.min(dragStart.x, pos.x);
+                cropRect.y = Math.min(dragStart.y, pos.y);
+                cropRect.w = Math.abs(pos.x - dragStart.x);
+                cropRect.h = Math.abs(pos.y - dragStart.y);
+            } else {
+                // ৮টি নীল স্কোয়ার হ্যান্ডেল ধরে ছোট-বড় করার লজিক
+                if (dragAction.includes('w')) {
+                    const newX = Math.max(0, Math.min(x + w - minSize, x + dx));
+                    w = (x + w) - newX;
+                    x = newX;
+                }
+                if (dragAction.includes('e')) {
+                    w = Math.max(minSize, Math.min(canvas.width - x, w + dx));
+                }
+                if (dragAction.includes('n')) {
+                    const newY = Math.max(0, Math.min(y + h - minSize, y + dy));
+                    h = (y + h) - newY;
+                    y = newY;
+                }
+                if (dragAction.includes('s')) {
+                    h = Math.max(minSize, Math.min(canvas.height - y, h + dy));
+                }
+                cropRect = { x, y, w, h };
+            }
+
+            drawCropOverlay();
+        }
+
+        function endPointer() {
+            dragAction = null;
+        }
+
+        canvas.addEventListener('mousedown', startPointer);
+        canvas.addEventListener('mousemove', movePointer);
+        window.addEventListener('mouseup', endPointer);
+
+        canvas.addEventListener('touchstart', startPointer, { passive: false });
+        canvas.addEventListener('touchmove', movePointer, { passive: false });
+        window.addEventListener('touchend', endPointer);
+
+        // ক্রপ নিশ্চিত করুন বাটন
+        applyCropBtn.addEventListener('click', () => {
+            if (!baseImage || !isCropping) return;
+
+            if (cropRect.w < 15 || cropRect.h < 15) {
+                alert('দয়া করে ক্রপ বক্সটি সঠিক সাইজে টেনে সিলেক্ট করুন।');
+                return;
+            }
+
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = Math.round(cropRect.w);
+            tempCanvas.height = Math.round(cropRect.h);
+            const tempCtx = tempCanvas.getContext('2d');
+
+            tempCtx.drawImage(
+                baseImage,
+                Math.round(cropRect.x), Math.round(cropRect.y), Math.round(cropRect.w), Math.round(cropRect.h),
+                0, 0, Math.round(cropRect.w), Math.round(cropRect.h)
+            );
+
+            const croppedImg = new Image();
+            croppedImg.onload = function() {
+                baseImage = croppedImg; // এখন থেকে সব এডিটিং এই ক্রপ করা ছবির ওপর কাজ করবে
+                exitCropMode();
+            };
+            croppedImg.src = tempCanvas.toDataURL('image/png');
         });
 
-        document.getElementById('grayscaleBtn').addEventListener('click', () => {
+        skipCropBtn.addEventListener('click', () => {
+            if (!baseImage) return;
+            exitCropMode();
+        });
+
+        function exitCropMode() {
+            isCropping = false;
+            canvas.style.cursor = 'default';
+            cropBanner.style.display = 'none';
+            cropActionGroup.style.display = 'none';
+            normalCropGroup.style.display = 'grid';
+            setEditingToolsEnabled(true);
+            renderEditedPhoto();
+        }
+
+        startCropBtn.addEventListener('click', () => {
+            if (!baseImage) return;
+            enterCropMode();
+        });
+
+        rotateBtn.addEventListener('click', () => {
+            if (!baseImage || isCropping) return;
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = baseImage.height;
+            tempCanvas.height = baseImage.width;
+            const tempCtx = tempCanvas.getContext('2d');
+
+            tempCtx.translate(tempCanvas.width / 2, tempCanvas.height / 2);
+            tempCtx.rotate(Math.PI / 2);
+            tempCtx.drawImage(baseImage, -baseImage.width / 2, -baseImage.height / 2);
+
+            const rotatedImg = new Image();
+            rotatedImg.onload = function() {
+                baseImage = rotatedImg;
+                renderEditedPhoto();
+            };
+            rotatedImg.src = tempCanvas.toDataURL('image/png');
+        });
+
+        function setEditingToolsEnabled(enabled) {
+            Object.values(sliders).forEach(s => s.disabled = !enabled);
+            startCropBtn.disabled = !enabled;
+            rotateBtn.disabled = !enabled;
+            resetBtn.disabled = !enabled;
+            grayscaleBtn.disabled = !enabled;
+            downloadBtn.disabled = !enabled;
+        }
+
+        function resetFilterValues() {
+            filters = {
+                brightness: 100,
+                contrast: 100,
+                saturation: 100,
+                sharpness: 0,
+                whiteRemove: 0,
+                grayscale: false
+            };
+            sliders.brightness.value = 100;
+            sliders.contrast.value = 100;
+            sliders.saturation.value = 100;
+            sliders.sharpness.value = 0;
+            sliders.whiteRemove.value = 0;
+
+            labels.brightness.innerText = '100%';
+            labels.contrast.innerText = '100%';
+            labels.saturation.innerText = '100%';
+            labels.sharpness.innerText = '0';
+            labels.whiteRemove.innerText = '0';
+        }
+
+        sliders.brightness.addEventListener('input', (e) => {
+            filters.brightness = e.target.value;
+            labels.brightness.innerText = filters.brightness + '%';
+            renderEditedPhoto();
+        });
+
+        sliders.contrast.addEventListener('input', (e) => {
+            filters.contrast = e.target.value;
+            labels.contrast.innerText = filters.contrast + '%';
+            renderEditedPhoto();
+        });
+
+        sliders.saturation.addEventListener('input', (e) => {
+            filters.saturation = e.target.value;
+            labels.saturation.innerText = filters.saturation + '%';
+            renderEditedPhoto();
+        });
+
+        sliders.sharpness.addEventListener('input', (e) => {
+            filters.sharpness = e.target.value;
+            labels.sharpness.innerText = filters.sharpness;
+            renderEditedPhoto();
+        });
+
+        sliders.whiteRemove.addEventListener('input', (e) => {
+            filters.whiteRemove = e.target.value;
+            labels.whiteRemove.innerText = filters.whiteRemove;
+            renderEditedPhoto();
+        });
+
+        grayscaleBtn.addEventListener('click', () => {
             if (!baseImage || isCropping) return;
             filters.grayscale = !filters.grayscale;
-            applyFiltersToCanvas();
+            renderEditedPhoto();
         });
 
-        // ক্রপ করা ছবির ওপর ফিল্টার প্রয়োগ করার ফাংশন
-        function applyFiltersToCanvas() {
-            if (!baseImage) return;
+        resetBtn.addEventListener('click', () => {
+            if (!originalUploadedImage) return;
+            baseImage = originalUploadedImage;
+            resetFilterValues();
+            if (isCropping) {
+                exitCropMode();
+            } else {
+                renderEditedPhoto();
+            }
+        });
+
+        function renderEditedPhoto() {
+            if (!baseImage || isCropping) return;
 
             canvas.width = baseImage.width;
             canvas.height = baseImage.height;
 
-            ctx.filter = `
-                brightness(${filters.brightness}%)
-                contrast(${filters.contrast}%)
-                saturate(${filters.saturation}%)
-                grayscale(${filters.grayscale ? '100%' : '0%'})
-            `;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+            ctx.filter = `brightness(${filters.brightness}%) contrast(${filters.contrast}%) saturate(${filters.saturation}%) grayscale(${filters.grayscale ? '100%' : '0%'})`;
             ctx.drawImage(baseImage, 0, 0);
             ctx.filter = 'none';
 
-            if (parseInt(filters.sharpness) > 0) {
-                applySharpness(canvas, parseInt(filters.sharpness) * 0.1);
+            if (parseInt(filters.whiteRemove) > 0) {
+                removeWhiteBackground(canvas, parseInt(filters.whiteRemove));
             }
+
+            if (parseInt(filters.sharpness) > 0) {
+                applySharpness(canvas, parseInt(filters.sharpness) * 0.12);
+            }
+        }
+
+        function removeWhiteBackground(cvs, tolerance) {
+            const w = cvs.width;
+            const h = cvs.height;
+            const imgData = ctx.getImageData(0, 0, w, h);
+            const data = imgData.data;
+            const threshold = 255 - (tolerance * 2.2);
+
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+                if (r >= threshold && g >= threshold && b >= threshold) {
+                    data[i + 3] = 0;
+                }
+            }
+            ctx.putImageData(imgData, 0, 0);
         }
 
         function applySharpness(cvs, strength) {
@@ -371,135 +839,55 @@
 
             for (let y = 1; y < h - 1; y++) {
                 for (let x = 1; x < w - 1; x++) {
+                    const pixelIndex = (y * w + x) * 4;
                     for (let c = 0; c < 3; c++) {
                         let sum = 0;
                         for (let ky = 0; ky < 3; ky++) {
                             for (let kx = 0; kx < 3; kx++) {
-                                let idx = ((y + ky - 1) * w + (x + kx - 1)) * 4 + c;
+                                const idx = ((y + ky - 1) * w + (x + kx - 1)) * 4 + c;
                                 sum += data[idx] * kernel[ky * 3 + kx];
                             }
                         }
-                        dst[(y * w + x) * 4 + c] = Math.min(255, Math.max(0, sum));
+                        dst[pixelIndex + c] = Math.min(255, Math.max(0, sum));
                     }
-                    dst[(y * w + x) * 4 + 3] = data[(y * w + x) * 4 + 3];
+                    dst[pixelIndex + 3] = data[pixelIndex + 3];
                 }
             }
             ctx.putImageData(output, 0, 0);
         }
-
-        // ক্রপ মোড ম্যানুয়ালি চালু করার বাটন
-        document.getElementById('cropBtn').addEventListener('click', () => {
-            if (!baseImage) return;
-            isCropping = true;
-            document.getElementById('cropBtn').style.display = 'none';
-            document.getElementById('applyCropBtn').style.display = 'block';
-            
-            // বর্তমান বেস ইমেজটি ক্যানভাসে ড্র করে ক্রপ বক্সের জন্য প্রস্তুত করা
-            canvas.width = baseImage.width;
-            canvas.height = baseImage.height;
-            ctx.drawImage(baseImage, 0, 0);
-        });
-
-        canvas.addEventListener('mousedown', (e) => {
-            if (!isCropping) return;
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            cropStart.x = (e.clientX - rect.left) * scaleX;
-            cropStart.y = (e.clientY - rect.top) * scaleY;
-            isDragging = true;
-        });
-
-        canvas.addEventListener('mousemove', (e) => {
-            if (!isCropping || !isDragging) return;
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            cropEnd.x = (e.clientX - rect.left) * scaleX;
-            cropEnd.y = (e.clientY - rect.top) * scaleY;
-
-            // প্রিভিউ দেখানোর জন্য বেস ইমেজ রি-ড্র করা
-            ctx.drawImage(baseImage, 0, 0);
-            ctx.strokeStyle = '#e74c3c';
-            ctx.lineWidth = 3;
-            ctx.strokeRect(cropStart.x, cropStart.y, cropEnd.x - cropStart.x, cropEnd.y - cropStart.y);
-        });
-
-        canvas.addEventListener('mouseup', () => {
-            if (isCropping) isDragging = false;
-        });
-
-        // ক্রপ নিশ্চিত করার পর নতুন ক্রপ করা অংশটি নতুন baseImage হিসেবে সেট হবে
-        document.getElementById('applyCropBtn').addEventListener('click', () => {
-            if (!baseImage) return;
-            const width = Math.abs(cropEnd.x - cropStart.x);
-            const height = Math.abs(cropEnd.y - cropStart.y);
-            
-            if (width < 10 || height < 10) {
-                alert('দয়া করে সঠিক সাইজে ক্রপ এরিয়া সিলেক্ট করুন।');
-                return;
-            }
-
-            const startX = Math.min(cropStart.x, cropEnd.x);
-            const startY = Math.min(cropStart.y, cropEnd.y);
-
-            const croppedData = ctx.getImageData(startX, startY, width, height);
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = width;
-            tempCanvas.height = height;
-            tempCanvas.getContext('2d').putImageData(croppedData, 0, 0);
-
-            // নতুন ক্রপ করা ছবিকে বেস ইমেজ বানানো
-            const newImg = new Image();
-            newImg.onload = () => {
-                baseImage = newImg;
-                isCropping = false;
-                document.getElementById('cropBtn').style.display = 'block';
-                document.getElementById('applyCropBtn').style.display = 'none';
-                resetAllFilters();
-                applyFiltersToCanvas(); // এখন থেকে সমস্ত এডিটিং এই ক্রপ করা ছবির ওপর কাজ করবে
-            };
-            newImg.src = tempCanvas.toDataURL();
-        });
 
         document.getElementById('fileFormat').addEventListener('change', (e) => {
             const isPng = e.target.value === 'png';
             document.getElementById('transparentOptionBox').style.display = isPng ? 'flex' : 'none';
         });
 
-        // ডাউনলোড
-        document.getElementById('downloadBtn').addEventListener('click', () => {
-            if (!baseImage || isCropping) {
-                alert('আগে ক্রপ নিশ্চিত করুন অথবা ছবি আপলোড করুন।');
-                return;
+        downloadBtn.addEventListener('click', () => {
+            if (!baseImage || isCropping) return;
+
+            const format = document.getElementById('fileFormat').value;
+            const isTransparent = document.getElementById('transparentBg').checked;
+            const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
+
+            let dataUrl = '';
+            if (format === 'jpg' || !isTransparent) {
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = canvas.width;
+                tempCanvas.height = canvas.height;
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCtx.fillStyle = '#FFFFFF';
+                tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+                tempCtx.drawImage(canvas, 0, 0);
+                dataUrl = tempCanvas.toDataURL(mimeType, 0.95);
+            } else {
+                dataUrl = canvas.toDataURL('image/png');
             }
-            loadingOverlay.style.display = 'flex';
 
-            setTimeout(() => {
-                const format = document.getElementById('fileFormat').value;
-                const isTransparent = document.getElementById('transparentBg').checked;
-                let mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
-                
-                let dataUrl = '';
-                if (format === 'jpg' || !isTransparent) {
-                    const tempCanvas = document.createElement('canvas');
-                    tempCanvas.width = canvas.width;
-                    tempCanvas.height = canvas.height;
-                    const tempCtx = tempCanvas.getContext('2d');
-                    tempCtx.fillStyle = '#FFFFFF';
-                    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-                    tempCtx.drawImage(canvas, 0, 0);
-                    dataUrl = tempCanvas.toDataURL(mimeType, 0.95);
-                } else {
-                    dataUrl = canvas.toDataURL(mimeType);
-                }
-
-                const link = document.createElement('a');
-                link.download = `cyber-cafe-edit.${format}`;
-                link.href = dataUrl;
-                link.click();
-                loadingOverlay.style.display = 'none';
-            }, 300);
+            const link = document.createElement('a');
+            link.download = `edited-photo.${format}`;
+            link.href = dataUrl;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
         });
     </script>
 </body>
