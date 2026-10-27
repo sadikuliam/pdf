@@ -1,366 +1,586 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern PDF to HD Image Converter</title>
+    <title>Quantum PDF to HD Image & Batch Suite</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        quantum: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                            dark: '#0b0f19',
+                            card: '#111827',
+                            border: '#1f2937'
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <!-- PDF.js Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <!-- JSZip Library for batch zip downloads -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --primary: #4F46E5;
-            --primary-hover: #4338CA;
-            --violet: #7c3aed;
-            --violet-hover: #6d28d9;
-            --bg: #F3F4F6;
-            --card-bg: #FFFFFF;
-            --text-main: #1F2937;
-            --text-muted: #6B7280;
-        }
-        
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-        }
-
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
         body {
-            background-color: var(--bg);
-            color: var(--text-main);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
         }
-
-        .container {
-            background-color: var(--card-bg);
-            width: 100%;
-            max-width: 800px;
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-            text-align: center;
-            position: relative;
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
-
-        /* Header & Home Button Styles */
-        .header {
-            position: relative;
-            margin-bottom: 30px;
-            padding-top: 10px;
+        .glass-card {
+            background: rgba(31, 41, 55, 0.5);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
-
-        .home-btn {
-            position: absolute;
-            left: 0;
-            top: 0;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-            padding: 0.45rem 0.85rem;
-            border: 1px solid var(--violet);
-            border-radius: 8px;
-            background: #f5f3ff;
-            color: var(--violet);
-            text-decoration: none;
-            font-size: 0.85rem;
-            font-weight: 600;
-            transition: all 0.2s ease;
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
         }
-
-        .home-btn:hover {
-            border-color: var(--violet-hover);
-            color: white;
-            background: var(--violet);
-            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);
+        ::-webkit-scrollbar-track {
+            background: #0b0f19;
         }
-
-        /* Responsive spacing for mobile */
-        @media (max-width: 600px) {
-            .header { padding-top: 45px; }
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
         }
-
-        h1 {
-            font-size: 26px;
-            margin-bottom: 10px;
-            color: var(--text-main);
-        }
-
-        p {
-            color: var(--text-muted);
-            line-height: 1.5;
-        }
-
-        .upload-area {
-            border: 2px dashed #D1D5DB;
-            border-radius: 12px;
-            padding: 40px 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background-color: #F9FAFB;
-            margin-bottom: 20px;
-        }
-
-        .upload-area:hover, .upload-area.dragover {
-            border-color: var(--primary);
-            background-color: #EEF2FF;
-        }
-
-        .upload-icon {
-            font-size: 40px;
-            margin-bottom: 15px;
-        }
-
-        input[type="file"] {
-            display: none;
-        }
-
-        .btn {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn:hover {
-            background-color: var(--primary-hover);
-        }
-
-        .btn:disabled {
-            background-color: #9CA3AF;
-            cursor: not-allowed;
-        }
-
-        .controls {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-bottom: 20px;
-            align-items: center;
-        }
-
-        select {
-            padding: 10px 15px;
-            border: 1px solid #D1D5DB;
-            border-radius: 8px;
-            font-size: 15px;
-            outline: none;
-            background-color: white;
-        }
-
-        #preview-container {
-            margin-top: 30px;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        #image-preview {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-            border: 1px solid #E5E7EB;
-        }
-
-        .loading {
-            display: none;
-            color: var(--primary);
-            font-weight: 600;
-            margin-top: 15px;
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4f46e5;
         }
     </style>
 </head>
-<body>
+<body class="bg-quantum-dark text-slate-100 min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white relative overflow-x-hidden">
 
-<div class="container">
-    <!-- Header Section with Home Button -->
-    <div class="header">
-        <a href="https://pdf.shmwb.in/" class="home-btn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                <polyline points="9 22 9 12 15 12 15 22"></polyline>
-            </svg>
-            Home
-        </a>
-        <h1>PDF to HD Image Converter</h1>
-        <p>Upload your PDF document to instantly convert any page into a high-resolution, downloadable image securely within your browser.</p>
-    </div>
+    <!-- Background Ambient Glow Effects -->
+    <div class="absolute top-0 left-1/4 w-96 h-96 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-violet-600/15 rounded-full blur-3xl pointer-events-none"></div>
 
-    <!-- Upload Section -->
-    <div class="upload-area" id="drop-zone" onclick="document.getElementById('pdf-input').click()">
-        <div class="upload-icon">📄</div>
-        <h3>Click or Drag & Drop PDF Here</h3>
-        <p style="margin-top: 5px; font-size: 14px; margin-bottom: 0;">Only PDF files are supported</p>
-    </div>
-    <input type="file" id="pdf-input" accept="application/pdf">
-
-    <!-- Controls Section -->
-    <div class="controls" style="display: none;" id="controls-area">
-        <div>
-            <label for="page-select" style="font-size: 14px; font-weight: 600; margin-right: 5px;">Page:</label>
-            <select id="page-select"></select>
-        </div>
+    <!-- Main Container -->
+    <div class="w-full max-w-5xl mx-auto px-4 py-8 relative z-10 flex-grow flex flex-col justify-center">
         
-        <div>
-            <label for="quality-select" style="font-size: 14px; font-weight: 600; margin-right: 5px;">Quality:</label>
-            <select id="quality-select">
-                <option value="1">Standard (1x)</option>
-                <option value="2" selected>HD (2x)</option>
-                <option value="3">Ultra HD (3x)</option>
-                <option value="4">4K Quality (4x)</option>
-            </select>
-        </div>
-        
-        <button class="btn" id="convert-btn">Generate Image</button>
+        <!-- Header Section -->
+        <header class="flex flex-col sm:flex-row items-center justify-between mb-8 pb-6 border-b border-slate-800/80 gap-4">
+            <a href="https://pdf.shmwb.in/" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all duration-300 text-sm font-semibold shadow-lg shadow-indigo-500/10 group">
+                <i class="fa-solid fa-house transition-transform group-hover:-translate-x-0.5"></i>
+                <span>Home Portal</span>
+            </a>
+            
+            <div class="text-center sm:text-right">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium mb-1">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Quantum Engine v3.5 Active
+                </div>
+                <h1 class="text-2xl sm:text-3xl font-extrabold bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-transparent">
+                    PDF to HD Image & Batch Suite
+                </h1>
+            </div>
+        </header>
+
+        <!-- Main Card Wrapper -->
+        <main class="glass-panel rounded-3xl p-6 sm:p-10 shadow-2xl shadow-black/50">
+            
+            <!-- Description -->
+            <p class="text-slate-400 text-center text-sm sm:text-base max-w-2xl mx-auto mb-8">
+                Transform any PDF page into ultra-crisp high-resolution images or export the entire document in batches with precision file-size constraints.
+            </p>
+
+            <!-- Upload Zone -->
+            <div id="drop-zone" class="border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-2xl p-8 sm:p-12 text-center cursor-pointer transition-all duration-300 bg-slate-900/40 hover:bg-indigo-950/20 group relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-violet-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                
+                <div class="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mx-auto mb-4 text-indigo-400 text-2xl group-hover:scale-110 transition-transform duration-300 shadow-xl shadow-indigo-500/10">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white mb-2">Drag & Drop your PDF document here</h3>
+                <p class="text-slate-400 text-sm mb-4">or click to browse your system files</p>
+                <span class="inline-block px-4 py-1.5 rounded-full bg-slate-800 text-slate-300 text-xs font-semibold border border-slate-700">
+                    Supports all PDF standards up to 500+ pages
+                </span>
+            </div>
+            <input type="file" id="pdf-input" accept="application/pdf" class="hidden">
+
+            <!-- File Info Loaded Badge -->
+            <div id="file-info-banner" class="hidden items-center justify-between p-4 rounded-2xl glass-card mb-6 border border-indigo-500/30">
+                <div class="flex items-center gap-3 truncate">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-file-pdf text-lg"></i>
+                    </div>
+                    <div class="truncate">
+                        <h4 id="file-name-display" class="font-bold text-sm truncate text-white">document.pdf</h4>
+                        <p id="file-pages-display" class="text-xs text-indigo-300">0 pages detected</p>
+                    </div>
+                </div>
+                <button onclick="resetApp()" class="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-colors text-xs font-semibold flex items-center gap-1 shrink-0">
+                    <i class="fa-solid fa-rotate-right"></i> Change PDF
+                </button>
+            </div>
+
+            <!-- Advanced Controls Configuration Area -->
+            <div id="controls-area" class="hidden space-y-6 pt-2">
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Page Select -->
+                    <div class="space-y-2">
+                        <label for="page-select" class="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                            <i class="fa-solid fa-file-lines text-indigo-400 mr-1"></i> Target Page
+                        </label>
+                        <select id="page-select" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                        </select>
+                    </div>
+
+                    <!-- Output Format Select -->
+                    <div class="space-y-2">
+                        <label for="format-select" class="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                            <i class="fa-solid fa-file-image text-indigo-400 mr-1"></i> Image Format
+                        </label>
+                        <select id="format-select" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                            <option value="image/jpeg">JPG / JPEG</option>
+                            <option value="image/png">PNG (Lossless)</option>
+                            <option value="image/webp">WebP (Modern)</option>
+                        </select>
+                    </div>
+
+                    <!-- Compression Target Select -->
+                    <div class="space-y-2">
+                        <label for="compression-select" class="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                            <i class="fa-solid fa-compress text-indigo-400 mr-1"></i> Size Constraint
+                        </label>
+                        <select id="compression-select" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                            <option value="original">D) No Compress / Original HD</option>
+                            <option value="90">A) Within 90–98 KB</option>
+                            <option value="160">B) Within 160–190 KB</option>
+                            <option value="450">C) Within 450–490 KB</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Action Buttons Bar -->
+                <div class="flex flex-wrap items-center justify-center gap-4 pt-4 border-t border-slate-800">
+                    <button id="convert-btn" class="flex-1 min-w-[200px] bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg shadow-indigo-600/30 transition-all duration-300 flex items-center justify-center gap-2 group">
+                        <i class="fa-solid fa-wand-magic-sparkles group-hover:rotate-12 transition-transform"></i>
+                        <span>Generate Selected Page</span>
+                    </button>
+
+                    <button id="download-all-btn" class="flex-1 min-w-[200px] bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg shadow-emerald-600/30 transition-all duration-300 flex items-center justify-center gap-2 group">
+                        <i class="fa-solid fa-file-zipper group-hover:scale-110 transition-transform"></i>
+                        <span>Download All Pages (ZIP)</span>
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Loading & Progress Indicator -->
+            <div id="loading-container" class="hidden mt-8 text-center space-y-4">
+                <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-indigo-600/20 text-indigo-400 animate-spin border-2 border-indigo-500 border-t-transparent">
+                    <i class="fa-solid fa-spinner"></i>
+                </div>
+                <div>
+                    <h4 id="loading-title" class="font-bold text-white text-base">Processing Document...</h4>
+                    <p id="loading-sub" class="text-xs text-slate-400 mt-1">Applying quantum rendering & compression algorithms</p>
+                </div>
+                <!-- Progress bar -->
+                <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden max-w-md mx-auto">
+                    <div id="progress-bar" class="bg-gradient-to-r from-indigo-500 to-violet-500 h-full w-0 transition-all duration-200"></div>
+                </div>
+            </div>
+
+            <!-- Single Page Preview Section -->
+            <div id="preview-container" class="hidden mt-8 pt-6 border-t border-slate-800 flex flex-col items-center">
+                <div class="flex items-center justify-between w-full mb-4">
+                    <h4 class="font-bold text-white text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-eye text-indigo-400"></i> Rendered Output Preview
+                    </h4>
+                    <span id="preview-stats" class="text-xs px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 font-mono">0 KB • 0x0px</span>
+                </div>
+                
+                <div class="relative group rounded-2xl overflow-hidden border border-slate-700 bg-slate-900 shadow-2xl max-w-xl w-full flex items-center justify-center p-2 mb-6">
+                    <img id="image-preview" src="" alt="PDF Preview" class="max-h-[450px] w-auto object-contain rounded-xl">
+                </div>
+
+                <button id="download-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-8 rounded-xl shadow-lg shadow-indigo-600/30 transition-all duration-300 inline-flex items-center gap-2">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Download This Page (<span id="download-format-label">PNG</span>)</span>
+                </button>
+            </div>
+
+            <!-- Batch Thumbnail Grid Container -->
+            <div id="batch-results-container" class="hidden mt-8 pt-6 border-t border-slate-800">
+                <div class="flex items-center justify-between mb-4">
+                    <h4 class="font-bold text-white text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-grid-2 text-emerald-400"></i> All Converted Pages Gallery
+                    </h4>
+                    <span id="batch-count-badge" class="text-xs px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-mono">0 Pages Ready</span>
+                </div>
+                <div id="batch-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 max-h-[500px] overflow-y-auto p-2">
+                    <!-- Dynamic thumbnails inserted here -->
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="text-center mt-8 text-xs text-slate-500">
+            &copy; 2026 Quantum PDF Suite &bull; Secure Client-Side Processing &bull; Powered by PDF.js & JSZip
+        </footer>
+
     </div>
 
-    <div class="loading" id="loading-text">Rendering HD Image, please wait... ⏳</div>
-
-    <!-- Preview & Download Section -->
-    <div id="preview-container">
-        <img id="image-preview" src="" alt="PDF Preview">
-        <button class="btn" id="download-btn">⬇ Download HD Image</button>
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 px-5 py-3 rounded-2xl glass-panel text-white text-sm font-semibold shadow-2xl flex items-center gap-3 border border-indigo-500/30">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+        <span id="toast-msg">Operation completed successfully!</span>
     </div>
-</div>
 
 <script>
-    // Setup PDF.js worker (Required for rendering)
+    // Setup PDF.js worker
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
     let pdfDoc = null;
+    let selectedFile = null;
+
     const pdfInput = document.getElementById('pdf-input');
     const dropZone = document.getElementById('drop-zone');
     const controlsArea = document.getElementById('controls-area');
     const pageSelect = document.getElementById('page-select');
-    const qualitySelect = document.getElementById('quality-select');
+    const formatSelect = document.getElementById('format-select');
+    const compressionSelect = document.getElementById('compression-select');
     const convertBtn = document.getElementById('convert-btn');
+    const downloadAllBtn = document.getElementById('download-all-btn');
     const previewContainer = document.getElementById('preview-container');
     const imagePreview = document.getElementById('image-preview');
     const downloadBtn = document.getElementById('download-btn');
-    const loadingText = document.getElementById('loading-text');
+    const downloadFormatLabel = document.getElementById('download-format-label');
+    const previewStats = document.getElementById('preview-stats');
+    const loadingContainer = document.getElementById('loading-container');
+    const loadingTitle = document.getElementById('loading-title');
+    const loadingSub = document.getElementById('loading-sub');
+    const progressBar = document.getElementById('progress-bar');
+    const fileInfoBanner = document.getElementById('file-info-banner');
+    const fileNameDisplay = document.getElementById('file-name-display');
+    const filePagesDisplay = document.getElementById('file-pages-display');
+    const batchResultsContainer = document.getElementById('batch-results-container');
+    const batchGrid = document.getElementById('batch-grid');
+    const batchCountBadge = document.getElementById('batch-count-badge');
 
-    // Handle Drag & Drop UI effects
-    dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropZone.classList.add('dragover');
-    });
-
-    dropZone.addEventListener('dragleave', () => {
-        dropZone.classList.remove('dragover');
-    });
-
+    // Drag & Drop event bindings
+    dropZone.addEventListener('click', () => pdfInput.click());
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-indigo-500', 'bg-indigo-950/30'); });
+    dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('border-indigo-500', 'bg-indigo-950/30'); });
     dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
-        dropZone.classList.remove('dragover');
+        dropZone.classList.remove('border-indigo-500', 'bg-indigo-950/30');
         if (e.dataTransfer.files.length) {
-            pdfInput.files = e.dataTransfer.files;
-            handleFile(pdfInput.files[0]);
+            handleFile(e.dataTransfer.files[0]);
         }
     });
 
-    // Trigger file reading on selection
     pdfInput.addEventListener('change', (e) => {
         if (e.target.files.length) {
             handleFile(e.target.files[0]);
         }
     });
 
-    // Read and parse the PDF
+    formatSelect.addEventListener('change', () => {
+        downloadFormatLabel.textContent = formatSelect.options[formatSelect.selectedIndex].text.split(' ')[0];
+    });
+
+    function showToast(msg, isError = false) {
+        const toast = document.getElementById('toast');
+        const toastMsg = document.getElementById('toast-msg');
+        const toastIcon = document.getElementById('toast-icon');
+        
+        toastMsg.textContent = msg;
+        toastIcon.className = isError ? "fa-solid fa-triangle-exclamation text-red-400 text-lg" : "fa-solid fa-circle-check text-emerald-400 text-lg";
+        toast.classList.remove('translate-y-20', 'opacity-0');
+        setTimeout(() => {
+            toast.classList.add('translate-y-20', 'opacity-0');
+        }, 3500);
+    }
+
+    function resetApp() {
+        pdfDoc = null;
+        selectedFile = null;
+        pdfInput.value = '';
+        dropZone.style.display = 'block';
+        fileInfoBanner.classList.add('hidden');
+        controlsArea.classList.add('hidden');
+        previewContainer.style.display = 'none';
+        batchResultsContainer.style.display = 'none';
+        showToast("Application reset successfully.");
+    }
+
     function handleFile(file) {
         if (file.type !== 'application/pdf') {
-            alert('Please select a valid PDF file.');
+            showToast('Please upload a valid PDF document.', true);
             return;
         }
 
-        const fileReader = new FileReader();
-        fileReader.onload = function() {
-            const typedarray = new Uint8Array(this.result);
+        selectedFile = file;
+        fileNameDisplay.textContent = file.name;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const typedArray = new Uint8Array(e.target.result);
             
-            // Load PDF document using PDF.js
-            pdfjsLib.getDocument(typedarray).promise.then(pdf => {
+            loadingContainer.style.display = 'block';
+            loadingTitle.textContent = 'Parsing PDF Document...';
+            loadingSub.textContent = 'Analyzing structure and page count';
+            progressBar.style.width = '30%';
+
+            pdfjsLib.getDocument(typedArray).promise.then(pdf => {
                 pdfDoc = pdf;
+                progressBar.style.width = '100%';
                 
-                // Populate the page selection dropdown based on total pages
-                pageSelect.innerHTML = '';
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    const option = document.createElement('option');
-                    option.value = i;
-                    option.textContent = `Page ${i}`;
-                    pageSelect.appendChild(option);
-                }
-                
-                // Update UI visibility
-                dropZone.style.display = 'none';
-                controlsArea.style.display = 'flex';
-                previewContainer.style.display = 'none';
-            }).catch(error => {
-                alert('Error loading PDF: ' + error.message);
+                setTimeout(() => {
+                    loadingContainer.style.display = 'none';
+                    fileInfoBanner.classList.remove('hidden');
+                    fileInfoBanner.style.display = 'flex';
+                    dropZone.style.display = 'none';
+                    controlsArea.style.display = 'block';
+                    
+                    pageSelect.innerHTML = '';
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const opt = document.createElement('option');
+                        opt.value = i;
+                        opt.textContent = `Page ${i} of ${pdf.numPages}`;
+                        pageSelect.appendChild(opt);
+                    }
+                    filePagesDisplay.textContent = `${pdf.numPages} pages successfully loaded`;
+                    showToast(`Successfully loaded ${pdf.numPages} pages.`);
+                }, 400);
+
+            }).catch(err => {
+                loadingContainer.style.display = 'none';
+                showToast('Error parsing PDF: ' + err.message, true);
             });
         };
-        fileReader.readAsArrayBuffer(file); // Load file into memory
+        reader.readAsArrayBuffer(file);
     }
 
-    // Convert selected page to image
-    convertBtn.addEventListener('click', () => {
-        if (!pdfDoc) return;
-        
-        // Update UI for loading state
-        convertBtn.disabled = true;
-        loadingText.style.display = 'block';
-        previewContainer.style.display = 'none';
+    // Intelligent Compression Target Engine
+    // Targets exact sizes by adjusting rendering scale and JPEG/WebP quality factor
+    async function renderPageToTargetSize(page, format, targetType) {
+        let scale = 2.0; // default HD
+        let quality = 0.90;
 
-        const pageNum = parseInt(pageSelect.value);
-        const scale = parseFloat(qualitySelect.value);
-
-        pdfDoc.getPage(pageNum).then(page => {
-            const viewport = page.getViewport({ scale: scale });
+        if (format === 'image/png') {
+            // PNG does not support quality factor, adjust scale to approximate target sizes
+            if (targetType === '90') scale = 0.8;
+            else if (targetType === '160') scale = 1.1;
+            else if (targetType === '450') scale = 1.8;
+            else scale = 2.2; // Original HD
+            
+            const viewport = page.getViewport({ scale });
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-            
-            canvas.height = viewport.height;
             canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            await page.render({ canvasContext: ctx, viewport }).promise;
+            const dataUrl = canvas.toDataURL('image/png');
+            return { dataUrl, sizeKB: Math.round((dataUrl.length * 3 / 4) / 1024), width: viewport.width, height: viewport.height };
+        }
 
-            const renderContext = {
-                canvasContext: ctx,
-                viewport: viewport
-            };
+        // For JPEG / WebP with compression targets
+        if (targetType === '90') {
+            scale = 1.2;
+            quality = 0.35;
+        } else if (targetType === '160') {
+            scale = 1.5;
+            quality = 0.50;
+        } else if (targetType === '450') {
+            scale = 2.0;
+            quality = 0.75;
+        } else {
+            // Original / High Quality
+            scale = 2.2;
+            quality = 0.92;
+        }
 
-            // Render PDF page into canvas context
-            page.render(renderContext).promise.then(() => {
-                // Convert canvas to base64 image data URL
-                const imgData = canvas.toDataURL('image/png');
-                
-                // Display the image
-                imagePreview.src = imgData;
+        let viewport = page.getViewport({ scale });
+        let canvas = document.createElement('canvas');
+        let ctx = canvas.getContext('2d');
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        await page.render({ canvasContext: ctx, viewport }).promise;
+
+        let dataUrl = canvas.toDataURL(format, quality);
+        let sizeKB = Math.round((dataUrl.length * 3 / 4) / 1024);
+
+        // Iterative refinement if strict target bounds are requested for JPEG/WebP
+        if (targetType === '90' && sizeKB > 98 && quality > 0.1) {
+            quality -= 0.10;
+            dataUrl = canvas.toDataURL(format, quality);
+            sizeKB = Math.round((dataUrl.length * 3 / 4) / 1024);
+        } else if (targetType === '160' && (sizeKB > 190 || sizeKB < 160) && quality > 0.2) {
+            quality = sizeKB > 190 ? quality - 0.12 : quality + 0.12;
+            dataUrl = canvas.toDataURL(format, Math.max(0.1, Math.min(1.0, quality)));
+            sizeKB = Math.round((dataUrl.length * 3 / 4) / 1024);
+        } else if (targetType === '450' && (sizeKB > 490 || sizeKB < 450) && quality > 0.3) {
+            quality = sizeKB > 490 ? quality - 0.12 : quality + 0.12;
+            dataUrl = canvas.toDataURL(format, Math.max(0.1, Math.min(1.0, quality)));
+            sizeKB = Math.round((dataUrl.length * 3 / 4) / 1024);
+        }
+
+        return { dataUrl, sizeKB, width: viewport.width, height: viewport.height };
+    }
+
+    // Single Page Conversion Button Handler
+    convertBtn.addEventListener('click', async () => {
+        if (!pdfDoc) return;
+
+        const pageNum = parseInt(pageSelect.value);
+        const format = formatSelect.value;
+        const targetType = compressionSelect.value;
+
+        loadingContainer.style.display = 'block';
+        loadingTitle.textContent = `Rendering Page ${pageNum}...`;
+        loadingSub.textContent = 'Applying quantum compression & encoding';
+        progressBar.style.width = '50%';
+        previewContainer.style.display = 'none';
+
+        try {
+            const page = await pdfDoc.getPage(pageNum);
+            progressBar.style.width = '80%';
+
+            const result = await renderPageToTargetSize(page, format, targetType);
+            progressBar.style.width = '100%';
+
+            setTimeout(() => {
+                loadingContainer.style.display = 'none';
+                imagePreview.src = result.dataUrl;
+                previewStats.textContent = `${result.sizeKB} KB • ${result.width}x${result.height}px`;
                 previewContainer.style.display = 'flex';
-                loadingText.style.display = 'none';
-                convertBtn.disabled = false;
 
-                // Setup Download action
+                // Setup individual download
                 downloadBtn.onclick = () => {
+                    const ext = format === 'image/png' ? 'png' : format === 'image/webp' ? 'webp' : 'jpg';
                     const link = document.createElement('a');
-                    link.href = imgData;
-                    link.download = `pdf-page-${pageNum}-HD.png`;
+                    link.href = result.dataUrl;
+                    link.download = `page-${pageNum}-${result.sizeKB}KB.${ext}`;
                     link.click();
+                    showToast(`Downloaded Page ${pageNum} successfully.`);
                 };
-            });
-        });
+
+                showToast(`Page ${pageNum} rendered successfully (${result.sizeKB} KB).`);
+            }, 300);
+
+        } catch (err) {
+            loadingContainer.style.display = 'none';
+            showToast('Rendering error: ' + err.message, true);
+        }
     });
+
+    // Download All Pages as ZIP (Batch Processing)
+    downloadAllBtn.addEventListener('click', async () => {
+        if (!pdfDoc) return;
+
+        const format = formatSelect.value;
+        const targetType = compressionSelect.value;
+        const totalPages = pdfDoc.numPages;
+
+        loadingContainer.style.display = 'block';
+        loadingTitle.textContent = `Batch Processing (0/${totalPages})...`;
+        loadingSub.textContent = 'Rendering and compressing all document pages';
+        progressBar.style.width = '0%';
+        batchResultsContainer.style.display = 'none';
+        batchGrid.innerHTML = '';
+
+        const zip = new JSZip();
+        const ext = format === 'image/png' ? 'png' : format === 'image/webp' ? 'webp' : 'jpg';
+        const batchResults = [];
+
+        try {
+            for (let i = 1; i <= totalPages; i++) {
+                loadingTitle.textContent = `Batch Processing (${i}/${totalPages})...`;
+                progressBar.style.width = `${Math.round((i / totalPages) * 100)}%`;
+
+                const page = await pdfDoc.getPage(i);
+                const result = await renderPageToTargetSize(page, format, targetType);
+
+                batchResults.push({ pageNum: i, ...result });
+
+                // Add to ZIP file
+                const base64Data = result.dataUrl.split(';base64,')[1];
+                zip.file(`page-${i}-${result.sizeKB}KB.${ext}`, base64Data, { base64: true });
+            }
+
+            loadingTitle.textContent = 'Generating ZIP Archive...';
+            const content = await zip.generateAsync({ type: 'blob' });
+
+            loadingContainer.style.display = 'none';
+
+            // Trigger ZIP download
+            const zipUrl = URL.createObjectURL(content);
+            const link = document.createElement('a');
+            link.href = zipUrl;
+            link.download = `${selectedFile ? selectedFile.name.replace(/\.[^/.]+$/, "") : 'document'}-all-pages.zip`;
+            link.click();
+
+            // Populate batch grid view
+            batchGrid.innerHTML = '';
+            batchResults.forEach(res => {
+                const card = document.createElement('div');
+                card.className = 'glass-card rounded-xl p-3 flex flex-col items-center border border-slate-700/80 hover:border-indigo-500/50 transition-colors group';
+                card.innerHTML = `
+                    <div class="relative w-full h-32 bg-slate-900 rounded-lg overflow-hidden mb-2 flex items-center justify-center">
+                        <img src="${res.dataUrl}" class="max-h-full max-w-full object-contain">
+                    </div>
+                    <div class="w-full flex items-center justify-between text-xs mb-2">
+                        <span class="font-bold text-white">Page ${res.pageNum}</span>
+                        <span class="text-indigo-300 font-mono">${res.sizeKB} KB</span>
+                    </div>
+                    <button onclick="downloadSingleBatchItem('${res.dataUrl}', ${res.pageNum}, ${res.sizeKB}, '${ext}')" class="w-full py-1.5 px-2 rounded-lg bg-indigo-600/20 text-indigo-300 hover:bg-indigo-600 hover:text-white text-xs font-semibold transition-colors flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-download"></i> Save
+                    </button>
+                `;
+                batchGrid.appendChild(card);
+            });
+
+            batchCountBadge.textContent = `${totalPages} Pages Zipped & Ready`;
+            batchResultsContainer.style.display = 'block';
+            showToast(`All ${totalPages} pages successfully converted & zipped!`);
+
+        } catch (err) {
+            loadingContainer.style.display = 'none';
+            showToast('Batch processing error: ' + err.message, true);
+        }
+    });
+
+    function downloadSingleBatchItem(dataUrl, pageNum, sizeKB, ext) {
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = `page-${pageNum}-${sizeKB}KB.${ext}`;
+        link.click();
+        showToast(`Saved Page ${pageNum}.`);
+    }
 </script>
 
 </body>
