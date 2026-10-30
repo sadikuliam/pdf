@@ -1,1780 +1,291 @@
 <!DOCTYPE html>
-<html lang="bn" class="dark">
+<html lang="bn">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Indian Stock Market Watchlist & Positional Swing Analyst (4-10 Months) | NSE/BSE</title>
-  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: { 50: '#0f172a', 500: '#38bdf8', 600: '#0284c7' },
-            gain: '#10b981',
-            loss: '#ef4444',
-          },
-          fontFamily: {
-            sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
-          }
-        }
-      }
-    }
-  </script>
-  <style>
-    @keyframes pulseGain {
-      0%, 100% { background-color: transparent; color: inherit; }
-      50% { background-color: rgba(16, 185, 129, 0.3); color: #34d399; }
-    }
-    @keyframes pulseLoss {
-      0%, 100% { background-color: transparent; color: inherit; }
-      50% { background-color: rgba(239, 68, 68, 0.3); color: #f87171; }
-    }
-    .flash-gain { animation: pulseGain 1.2s ease-in-out; border-radius: 4px; padding: 0 4px; }
-    .flash-loss { animation: pulseLoss 1.2s ease-in-out; border-radius: 4px; padding: 0 4px; }
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #090d16; }
-    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #334155; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NSE/BSE ওয়াচলিস্ট — ৪-১০ মাস পজিশনাল ট্র্যাকার</title>
+<style>
+:root{--bg:#0b1220;--card:#111a2e;--line:#1f2b45;--tx:#e6ecf8;--mut:#8a98b5;--up:#34d399;--dn:#f87171;--ac:#38bdf8;--am:#fbbf24}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.5 system-ui,-apple-system,"Segoe UI","Noto Sans Bengali",sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:16px}
+h1{font-size:18px;margin:0 0 2px}
+.mut{color:var(--mut);font-size:12px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:12px 0}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--mut);margin-right:6px}
+.dot.on{background:var(--up);box-shadow:0 0 0 0 rgba(52,211,153,.6);animation:p 1.6s infinite}
+@keyframes p{70%{box-shadow:0 0 0 7px rgba(52,211,153,0)}100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}}
+button{font:inherit;cursor:pointer;border:1px solid var(--line);background:#16223c;color:var(--tx);border-radius:8px;padding:6px 12px}
+button:hover{background:#1c2b4d}
+button.pri{background:#0284c7;border-color:#0284c7;font-weight:600}
+button.pri:hover{background:#0ea5e9}
+button:focus-visible,input:focus-visible{outline:2px solid var(--ac);outline-offset:1px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:12px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.stat b{display:block;font-size:19px;margin-top:2px;font-variant-numeric:tabular-nums}
+form{display:flex;flex-wrap:wrap;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px}
+input{background:#0b1220;border:1px solid var(--line);color:var(--tx);border-radius:8px;padding:8px 10px;font:inherit;min-width:0}
+#sym{flex:2 1 220px;text-transform:uppercase}
+#buy{flex:1 1 150px}
+.tw{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:10px}
+table{width:100%;border-collapse:collapse;min-width:820px}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--mut);font-weight:500;font-size:12px}
+td.r,th.r{text-align:right}
+.n{font-variant-numeric:tabular-nums;font-family:ui-monospace,Consolas,monospace}
+.sym{font-weight:700}
+.up{color:var(--up)}.dn{color:var(--dn)}
+.lv{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px;font-size:11px}
+.lv div{background:#0b1220;border:1px solid var(--line);border-radius:6px;padding:4px 6px}
+.lv span{display:block;color:var(--mut);font-size:10px}
+.tag{display:inline-block;padding:1px 9px;border-radius:99px;font-size:11px;font-weight:600;border:1px solid}
+.t-buy{color:var(--up);border-color:#14715a;background:#0f2b25}
+.t-hold{color:var(--ac);border-color:#17607f;background:#0e2536}
+.t-sell{color:var(--am);border-color:#7a5b10;background:#2b2410}
+.t-exit{color:var(--dn);border-color:#7f2b2b;background:#2c1517}
+.flash{animation:f 1s}
+@keyframes f{50%{background:rgba(56,189,248,.25)}}
+.stale{color:var(--am);font-size:10px}
+.empty{padding:28px;text-align:center;color:var(--mut)}
+#toast{position:fixed;right:14px;bottom:14px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 14px;display:none;max-width:320px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased text-sm">
+<body>
+<div class="wrap">
+  <h1>NSE / BSE স্টক ওয়াচলিস্ট <span class="mut">· ৪–১০ মাস পজিশনাল</span></h1>
+  <div class="mut">ফ্রি ডেটা (Yahoo Finance) — কয়েক সেকেন্ড থেকে কয়েক মিনিট দেরি হতে পারে। এটি বিনিয়োগ পরামর্শ নয়।</div>
 
-  <!-- Toast Notification Container -->
-  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
-
-  <!-- Header -->
-  <header class="border-b border-slate-800 bg-slate-900/90 sticky top-0 z-30 shadow-md backdrop-blur-md">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-blue-600 flex items-center justify-center font-bold text-white shadow-lg">
-          📈
-        </div>
-        <div>
-          <h1 class="text-base font-bold text-white flex items-center gap-2">
-            NSE / BSE স্টক ওয়াচলিস্ট ও শর্ট-টার্ম ইনভেস্টমেন্ট ট্র্যাকার
-            <span class="text-[10px] px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/40 font-semibold tracking-wide">৪-১০ মাস পজিশনাল গেইন</span>
-          </h1>
-          <p class="text-[11px] text-slate-400">শর্ট-টার্ম ক্যাপিটাল গেইন (STCG): প্রাতিষ্ঠানিক রিয়েল-টাইম লাইভ ফিড, ডিপে বাই, স্টপলস ও মুনাফা তোলার গাইডলাইন</p>
-        </div>
-      </div>
-
-      <!-- Controls -->
-      <div class="flex items-center gap-2 flex-wrap">
-        <!-- Live API Config Button -->
-        <button id="openApiModalBtn" type="button" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition shadow-sm">
-          <span id="apiIndicatorDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span id="apiStatusBtnText">🟢 লাইভ এক্সচেঞ্জ ফিড সক্রিয়</span>
-        </button>
-
-        <!-- Force Refresh from API Button -->
-        <button id="forceRefreshApiBtn" type="button" class="p-2 rounded-lg text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 transition shadow-sm" title="এখনই লাইভ দর রিফ্রেশ করুন">
-          <svg id="refreshSpinner" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-        </button>
-
-        <!-- Live Ticks Toggle -->
-        <button id="toggleLiveBtn" type="button" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition shadow-sm">
-          <span id="liveStatusDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span id="liveStatusText">লাইভ ফিড: চালু</span>
-        </button>
-
-        <!-- Sync / Share Link Button -->
-        <button id="syncLinkBtn" type="button" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 transition shadow-sm" title="অন্য ব্রাউজারে খোলার জন্য লিঙ্ক কপি করুন">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
-          🔗 অন্য ব্রাউজারে সিঙ্ক লিঙ্ক
-        </button>
-
-        <!-- Backup & Restore Modal Button -->
-        <button id="openBackupModalBtn" type="button" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition shadow-sm">
-          💾 ব্যাকআপ / রিস্টোর
-        </button>
-
-        <!-- Embed Code Button -->
-        <button id="openEmbedModalBtn" type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-sky-600 hover:bg-sky-500 text-white shadow-sm transition">
-          ওয়েবসাইট কোড
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-5 space-y-4">
-
-    <!-- Auto-Sync Status Bar -->
-    <section class="bg-slate-900 border border-slate-800 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 text-xs shadow-sm">
-      <div class="flex items-center gap-3 flex-wrap">
-        <div class="flex items-center gap-2">
-          <span id="marketStatusDot" class="relative flex h-2.5 w-2.5">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-          </span>
-          <div class="flex items-center gap-1.5 flex-wrap">
-            <span class="font-bold text-slate-100 text-xs">🇮🇳 প্রাতিষ্ঠানিক লাইভ ডেটা ফিড (NSE / BSE Direct)</span>
-            <span id="marketStatusBadge" class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 text-[10px] border border-emerald-500/30 font-mono font-semibold">
-              🟢 লাইভ মার্কেট সেশন
-            </span>
-          </div>
-        </div>
-
-        <!-- 15-Second Real-Time Auto-Sync Progress -->
-        <div class="flex items-center gap-2 bg-slate-950 px-3 py-1 rounded-lg border border-slate-800 text-[11px]">
-          <span class="text-slate-400">🔄 ১৫ সে. রিয়েল-টাইম সিঙ্ক:</span>
-          <div class="flex items-center gap-2 font-mono font-bold text-sky-400">
-            <span id="syncCountdown">15</span><span>সে.</span>
-            <div class="w-16 bg-slate-800 h-1.5 rounded-full overflow-hidden">
-              <div id="syncProgressBar" class="bg-sky-400 h-full rounded-full transition-all duration-1000" style="width: 100%;"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Action & Timestamp Controls -->
-      <div class="flex items-center gap-2.5 text-[11px] flex-wrap">
-        <span class="text-slate-400">লাস্ট আপডেট: <strong id="lastSyncTime" class="text-slate-200 font-mono">এখনই</strong></span>
-        <button type="button" id="forceSyncRealPricesBtn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-semibold shadow-sm transition transform active:scale-95 text-xs cursor-pointer">
-          <svg id="syncIconSpin" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-          <span>⚡ লাইভ বাজার দরে সিঙ্ক করুন</span>
-        </button>
-        <button type="button" id="viewFeedStatusBtn" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-[11px] transition flex items-center gap-1 cursor-pointer">
-          <span>🛡️ ফিড তথ্য</span>
-        </button>
-      </div>
-    </section>
-
-    <!-- Top Compact Summary Row -->
-    <section class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 shadow-sm">
-        <div class="text-[11px] font-medium text-slate-400">মোট ট্র্যাক করা স্টক</div>
-        <div id="statTotalCount" class="text-xl font-bold text-white mt-0.5">0</div>
-        <div class="text-[10px] text-slate-500">শর্ট-টার্ম তালিকায় সংরক্ষিত</div>
-      </div>
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 shadow-sm">
-        <div class="text-[11px] font-medium text-slate-400">মোট কেনা মূল্য (Invested)</div>
-        <div id="statTotalInvested" class="text-xl font-bold text-white mt-0.5">₹0.00</div>
-        <div class="text-[10px] text-slate-500">ক্রয়কৃত শেয়ারের মোট মূলধন</div>
-      </div>
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 shadow-sm">
-        <div class="text-[11px] font-medium text-slate-400">বর্তমান লাইভ মূল্য (Current)</div>
-        <div id="statCurrentVal" class="text-xl font-bold text-white mt-0.5">₹0.00</div>
-        <div class="text-[10px] text-slate-500">বর্তমান পোর্টফোলিও ভ্যালু</div>
-      </div>
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 shadow-sm">
-        <div class="text-[11px] font-medium text-slate-400">মোট লাভ / ক্ষতি (P&L)</div>
-        <div id="statTotalPL" class="text-xl font-bold text-slate-300 mt-0.5">₹0.00 (0.00%)</div>
-        <div id="statWatchingCount" class="text-[10px] text-slate-500">০ টি শুধু পর্যবেক্ষণে (Watching)</div>
-      </div>
-    </section>
-
-    <!-- Guidance Banner (4-10 Month Outlook) -->
-    <section class="bg-gradient-to-r from-slate-900 to-slate-900/90 border border-slate-800 rounded-xl p-3 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs shadow-sm">
-      <div class="flex items-start gap-2.5">
-        <span class="text-xl">🎯</span>
-        <div>
-          <span class="font-bold text-white text-xs">শর্ট-টার্ম ক্যাপিটাল গেইন স্ট্র্যাটেজি (৪ থেকে ১০ মাসের দিগন্ত):</span>
-          <p class="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
-            কোনো ইন্ট্রাডে নয়। ৪–১০ মাসের ব্যবধানে <strong>১৫% থেকে ৩৫% ক্যাপিটাল গেইন</strong> অর্জনের লক্ষ্যে সাপোর্ট জোনে সঞ্চয় (Accumulate on Dips), সেফ স্টপলস ও টার্গেটে প্রফিট তোলার টেকনিক্যাল বিশ্লেষণ।
-          </p>
-        </div>
-      </div>
-      <div class="flex items-center gap-2 flex-shrink-0 text-[11px]">
-        <span class="px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-semibold">🟢 ডিপে কিনুন (Buy/Dip)</span>
-        <span class="px-2.5 py-1 rounded-md bg-amber-500/10 text-amber-300 border border-amber-500/30 font-semibold">🟡 ৪-১০ মাস হোল্ড</span>
-        <span class="px-2.5 py-1 rounded-md bg-rose-500/10 text-rose-400 border border-rose-500/30 font-semibold">🔴 প্রফিট তুলুন (Target Book)</span>
-      </div>
-    </section>
-
-    <!-- Add Stock Form (With 100+ Stocks & Auto Live Price) -->
-    <section class="bg-slate-900 border border-slate-800 rounded-xl p-3.5 shadow-sm">
-      <div class="text-xs font-bold text-slate-200 mb-2 flex items-center justify-between">
-        <span class="flex items-center gap-1.5">➕ নতুন স্টক যোগ করুন (১০০+ এনএসই স্টক বা নিজস্ব সিম্বল)</span>
-        <span class="text-[11px] font-normal text-slate-400">💡 কেনা দাম ঐচ্ছিক — ফাঁকা রাখলে শুধু Watching লিস্টে থাকবে</span>
-      </div>
-
-      <form id="addStockForm" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2.5 items-end">
-        <!-- Stock Search with Autocomplete Dropdown -->
-        <div class="lg:col-span-5 relative">
-          <label for="stockSearchInput" class="block text-[11px] font-medium text-slate-400 mb-1">
-            স্টক খুঁজুন বা লিখুন (Symbol / Name) *
-          </label>
-          <div class="relative">
-            <input 
-              type="text" 
-              id="stockSearchInput" 
-              placeholder="যেমন: SSWL, TITAGARH, SUZLON, SWIGGY, RELIANCE..." 
-              autocomplete="off"
-              class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500 focus:border-sky-500 transition"
-            >
-            <div id="clearSearchBtn" class="hidden absolute right-2.5 top-2 cursor-pointer text-slate-500 hover:text-white">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </div>
-          </div>
-
-          <!-- Dynamic Autocomplete Dropdown -->
-          <div id="stockDropdown" class="hidden absolute left-0 right-0 top-full mt-1 max-h-60 overflow-y-auto bg-slate-900 border border-slate-700 rounded-lg shadow-2xl z-40 divide-y divide-slate-800">
-            <!-- Populated by JS -->
-          </div>
-        </div>
-
-        <!-- Live Market Price Input (Auto-Fetched & Readonly) -->
-        <div class="lg:col-span-3">
-          <label for="addCurrentPriceInput" class="block text-[11px] font-medium text-slate-400 mb-1 flex items-center justify-between">
-            <span>লাইভ বাজার দর / Live LTP</span>
-            <span class="text-[10px] text-emerald-400 font-semibold bg-emerald-500/10 px-1 rounded border border-emerald-500/20">স্বয়ংক্রিয় (Auto)</span>
-          </label>
-          <div class="relative">
-            <span class="absolute left-2.5 top-2 text-emerald-400 font-bold text-xs">₹</span>
-            <input 
-              type="number" 
-              step="0.05" 
-              id="addCurrentPriceInput" 
-              readonly
-              placeholder="অটো লোড হবে" 
-              class="w-full bg-slate-950/70 border border-slate-700 rounded-lg pl-6 pr-2.5 py-2 text-xs text-emerald-400 font-mono font-bold cursor-not-allowed select-none focus:outline-none"
-              title="এই রেটটি লাইভ মার্কেট থেকে স্বয়ংক্রিয়ভাবে আসে, পরিবর্তনযোগ্য নয়"
-            >
-          </div>
-        </div>
-
-        <!-- Purchase Price Input -->
-        <div class="lg:col-span-2">
-          <label for="purchasePriceInput" class="block text-[11px] font-medium text-slate-400 mb-1">
-            আমার কেনা দর / Buy (₹) <span class="text-slate-500">(ঐচ্ছিক)</span>
-          </label>
-          <div class="relative">
-            <span class="absolute left-2.5 top-2 text-slate-400 font-bold text-xs">₹</span>
-            <input 
-              type="number" 
-              step="0.05" 
-              id="purchasePriceInput" 
-              placeholder="কেনা দাম লিখুন" 
-              class="w-full bg-slate-950 border border-slate-700 rounded-lg pl-6 pr-2.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500 font-mono font-medium transition"
-            >
-          </div>
-        </div>
-
-        <!-- Submit Button -->
-        <div class="lg:col-span-2">
-          <button 
-            type="submit" 
-            id="addStockBtn"
-            class="w-full bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-white font-semibold py-2 px-3 rounded-lg text-xs flex items-center justify-center gap-1 transition shadow-sm"
-          >
-            <span>+ ওয়াচলিস্টে যোগ</span>
-          </button>
-        </div>
-      </form>
-    </section>
-
-    <!-- Row-Wise Watchlist Table Section -->
-    <section class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
-      <div class="p-3 border-b border-slate-800 bg-slate-950/50 flex items-center justify-between gap-2 flex-wrap">
-        <h2 class="text-xs font-bold text-white flex items-center gap-1.5">
-          <span>📋 স্টক তালিকা ও শর্ট-টার্ম ইনভেস্টমেন্ট বিশ্লেষণ (৪-১০ মাস দিগন্ত)</span>
-          <span id="watchlistCountBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-sky-400 font-semibold border border-slate-700">0 টি</span>
-        </h2>
-        <div class="flex items-center gap-2">
-          <button id="loadSampleBtn" type="button" class="text-[11px] text-sky-400 hover:text-sky-300 underline font-semibold">
-            + ডেমো স্টক লোড
-          </button>
-          <span class="text-slate-700">|</span>
-          <button id="clearAllBtn" type="button" class="text-[11px] text-rose-400 hover:text-rose-300 font-medium transition">
-            সব মুছুন
-          </button>
-        </div>
-      </div>
-
-      <!-- Empty State -->
-      <div id="emptyState" class="hidden p-10 text-center text-xs text-slate-500 space-y-2">
-        <div class="text-2xl">📁</div>
-        <p class="font-medium text-slate-400">আপনার শর্ট-টার্ম ওয়াচলিস্টে এখনও কোনো স্টক যোগ করা হয়নি।</p>
-        <p class="text-[11px] text-slate-500">ওপরের বক্সে ক্লিক করে ১০০+ শীর্ষ এনএসই স্টক থেকে নির্বাচন করুন বা নিজস্ব স্টক কোড লিখে যুক্ত করুন।</p>
-      </div>
-
-      <!-- Clean Scannable Row-Wise Table -->
-      <div id="tableWrapper" class="overflow-x-auto">
-        <table class="w-full text-left border-collapse text-xs">
-          <thead>
-            <tr class="bg-slate-950/80 border-b border-slate-800 text-[11px] text-slate-400 uppercase tracking-wider">
-              <th class="py-3 px-3.5 font-semibold">স্টক ও সেক্টর</th>
-              <th class="py-3 px-3.5 font-semibold text-right">বর্তমান লাইভ দর ও গ্রাফ (LTP)</th>
-              <th class="py-3 px-3.5 font-semibold text-right">কেনা দাম (Purchase)</th>
-              <th class="py-3 px-3.5 font-semibold text-right">লাভ / ক্ষতি (+ - P&L)</th>
-              <th class="py-3 px-3.5 font-semibold text-center min-w-[300px]">
-                <div>শর্ট-টার্ম গেইন গাইড (৪–১০ মাস সুইং প্লেবুক)</div>
-                <span class="inline-block text-[9px] text-sky-400 font-medium tracking-normal mt-0.5">⚡ স্থির দামের গাইডলাইন: কিনবেন • ৪-১০ মাস হোল্ড • বিক্রি করবেন</span>
-              </th>
-              <th class="py-3 px-3.5 font-semibold text-center w-24">অ্যাকশন</th>
-            </tr>
-          </thead>
-          <tbody id="stockTableBody" class="divide-y divide-slate-800 font-normal">
-            <!-- Populated via Javascript -->
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- Live Feed Info Modal -->
-  <div id="apiModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <div class="flex items-center gap-2">
-          <span class="text-xl">🛰️</span>
-          <div>
-            <h3 class="text-sm font-bold text-white">প্রাতিষ্ঠানিক লাইভ ডেটা ফিড স্ট্যাটাস</h3>
-            <p class="text-[10px] text-emerald-400 font-mono font-semibold">100% বিল্ট-ইন • কোনো কনফিগারেশন লাগবে না</p>
-          </div>
-        </div>
-        <button id="closeApiModalBtn" type="button" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-        </button>
-      </div>
-
-      <div class="space-y-3 text-xs text-slate-300">
-        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-          <div class="flex items-center justify-between">
-            <span class="text-slate-400">ডেটা ফিড উৎস:</span>
-            <span class="text-emerald-400 font-bold font-mono">NSE &amp; BSE Direct Live Feed</span>
-          </div>
-          <div class="flex items-center justify-between">
-            <span class="text-slate-400">অটো-সিঙ্ক ফ্রিকোয়েন্সি:</span>
-            <span class="text-white font-bold font-mono">প্রতি ১৫ সেকেন্ড (রিয়েল-টাইম)</span>
-          </div>
-          <div class="flex items-center justify-between">
-            <span class="text-slate-400">ইনভেস্টমেন্ট টাইমফ্রেম:</span>
-            <span class="text-sky-400 font-bold">শর্ট-টার্ম ক্যাপিটাল গেইন (৪–১০ মাস)</span>
-          </div>
-        </div>
-        <p class="text-[11px] text-slate-400 leading-relaxed">
-          💡 আপনাকে কোনো ম্যানুয়াল দাম আপডেট করতে হবে না। সিস্টেমটি প্রতি ১ মিনিট অন্তর সরাসরি এক্সচেঞ্জ থেকে আসল লাইভ বাজার দর (LTP) রিফ্রেশ করে। আপনার কেনা দাম অনুযায়ী স্থির টার্গেট ও স্টপলস স্বয়ংক্রিয়ভাবে হিসাব হয়।
-        </p>
-      </div>
-
-      <div class="pt-2 flex justify-end border-t border-slate-800">
-        <button type="button" id="closeApiModalFooterBtn" class="px-4 py-2 text-xs bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-lg shadow-sm transition">
-          ঠিক আছে (Got It)
-        </button>
-      </div>
+  <div class="bar">
+    <div><span class="dot" id="dot"></span><b id="mkt">মার্কেট স্ট্যাটাস</b>
+      <span class="mut"> · পরবর্তী সিঙ্ক <b id="cd" class="n">15</b> সে. · শেষ সিঙ্ক <b id="last" class="n">—</b></span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button id="syncBtn" class="pri">⚡ এখনই সিঙ্ক</button>
+      <button id="pauseBtn">⏸ অটো-সিঙ্ক চালু</button>
+      <button id="expBtn">💾 ব্যাকআপ</button>
+      <button id="impBtn">📥 রিস্টোর</button>
     </div>
   </div>
 
-  <!-- Professional Positional Analysis Modal -->
-  <div id="analysisModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full p-5 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
-      
-      <!-- Modal Header With Visible Close (X) Button -->
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <div class="flex items-center gap-2.5">
-          <span class="text-2xl">📊</span>
-          <div>
-            <h3 class="text-sm font-bold text-white flex items-center gap-2">
-              <span>শর্ট-টার্ম সুইং অ্যানালিসিস (৪–১০ মাস)</span>
-              <span id="analysisSymbol" class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 font-mono text-xs font-bold border border-sky-500/30"></span>
-            </h3>
-            <p id="analysisName" class="text-xs text-slate-400 mt-0.5 font-medium"></p>
-          </div>
-        </div>
-        <button id="closeAnalysisModalBtn" type="button" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 flex items-center justify-center border border-slate-700 transition" title="বন্ধ করুন (Close)">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
-        </button>
-      </div>
-
-      <!-- Verdict Banner -->
-      <div id="analysisVerdictBanner" class="p-3.5 rounded-xl border flex items-center justify-between">
-        <!-- populated dynamically -->
-      </div>
-
-      <!-- Key Positional Metric Cards -->
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
-        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
-          <span class="text-[10px] font-medium text-slate-400 block">শক্তিশালী সাপোর্ট জোন (S1)</span>
-          <span id="analysisSupport" class="text-sm font-bold text-emerald-400 mt-0.5 block font-mono">₹0.00</span>
-          <span class="text-[9px] text-slate-500">ডিপে সঞ্চয়ের আদর্শ লেভেল</span>
-        </div>
-        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
-          <span class="text-[10px] font-medium text-slate-400 block">৪-১০ মাসের টার্গেট (R1)</span>
-          <span id="analysisResistance" class="text-sm font-bold text-sky-400 mt-0.5 block font-mono">₹0.00</span>
-          <span class="text-[9px] text-slate-500">+১৫% থেকে +২৫% মুনাফা লক্ষ্য</span>
-        </div>
-        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 col-span-2 sm:col-span-1">
-          <span class="text-[10px] font-medium text-slate-400 block">সাপ্তাহিক মোমেন্টাম (RSI)</span>
-          <span id="analysisRSI" class="text-sm font-bold text-white mt-0.5 block font-mono">55.0</span>
-          <span id="analysisRSIStatus" class="text-[9px] text-slate-400 font-medium">হেলদি পজিশনাল ট্রেন্ড</span>
-        </div>
-      </div>
-
-      <!-- Comprehensive Buy / Hold / Sell Strategy Guidelines (4-10 Months) -->
-      <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-3">
-        <div class="text-xs font-bold text-white flex items-center justify-between border-b border-slate-800 pb-2">
-          <span class="flex items-center gap-1.5">🎯 ৪-১০ মাসের স্ট্র্যাটেজি গাইডলাইন (Buy • Hold • Profit Book)</span>
-          <span class="text-[10px] text-sky-400 font-semibold bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20">স্থির দামের গাইডলাইন</span>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
-          <!-- Card 1: Buy Rule -->
-          <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 space-y-1">
-            <span class="font-bold text-emerald-400 flex items-center gap-1">🟢 কখন ও কত দামে কিনবেন? (Dip Accumulation)</span>
-            <div class="text-xs font-mono font-bold text-white">আদর্শ কেনার স্তর: <span id="modalBuyPrice" class="text-emerald-400 font-bold">₹0.00</span></div>
-            <p class="text-[10px] text-slate-400 leading-normal">শেয়ারটিতে ৪-১০ মাসের জন্য নতুন এন্ট্রি বা গড় (Average) করার জন্য সাপোর্টের কাছের এই দরটি সবচেয়ে নিরাপদ ও ঝুঁকিমুক্ত।</p>
-          </div>
-
-          <!-- Card 2: Hold Rule -->
-          <div class="p-3 rounded-xl bg-sky-500/10 border border-sky-500/20 space-y-1">
-            <span class="font-bold text-sky-300 flex items-center gap-1">🟡 কতদিন ও কীভাবে হোল্ড করবেন?</span>
-            <div class="text-xs font-mono font-bold text-white">হোল্ডিং সুরক্ষা সীমা: <span id="modalHoldLevel" class="text-sky-400 font-bold">&gt; ₹0.00</span></div>
-            <p class="text-[10px] text-slate-400 leading-normal">দৈনিক ছোটখাটো ওঠানামায় ভয় পাবেন না। দর স্টপলসের ওপরে থাকা পর্যন্ত পুরো ৪ থেকে ১০ মাস ধৈর্য ধরে বসে থাকুন।</p>
-          </div>
-
-          <!-- Card 3: Sell Target Rule -->
-          <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 space-y-1">
-            <span class="font-bold text-amber-300 flex items-center gap-1">💰 কখন মুনাফা (Profit) বুক করবেন?</span>
-            <div class="text-xs font-mono font-bold text-white">মুনাফার লক্ষ্য (Target): <span id="modalSellTarget" class="text-amber-400 font-bold">₹0.00</span></div>
-            <p class="text-[10px] text-slate-400 leading-normal">৪–১০ মাসের মধ্যে এই টার্গেটে পৌঁছালে লোভ না করে আপনার শর্ট-টার্ম ক্যাপিটাল গেইন প্রফিট বুক করে ক্যাশ তুলে নিন।</p>
-          </div>
-
-          <!-- Card 4: Stop Loss Rule -->
-          <div class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 space-y-1">
-            <span class="font-bold text-rose-400 flex items-center gap-1">🛑 মূলধন রক্ষার কড়া স্টপলস</span>
-            <div class="text-xs font-mono font-bold text-white">কড়া স্টপলস (SL): <span id="modalStopLoss" class="text-rose-400 font-bold">&lt; ₹0.00</span></div>
-            <p class="text-[10px] text-slate-400 leading-normal">মার্কেট বা কোম্পানির মৌলিক দুর্বলতায় দাম এর নিচে নেমে গেলে দীর্ঘ সময় আটকে না থেকে লস স্বীকার করে বের হয়ে যান।</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- 4-10 Month Success Probability Meter -->
-      <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2">
-        <div class="flex items-center justify-between text-xs">
-          <span class="text-slate-300 font-bold">৪-১০ মাসে টার্গেট ছোঁয়ার সম্ভাবনা (Target Hit Probability):</span>
-          <span id="analysisProbPercent" class="font-bold text-sky-400">72%</span>
-        </div>
-        <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
-          <div id="analysisProbBar" class="h-full bg-gradient-to-r from-sky-500 to-emerald-400 rounded-full transition-all duration-500" style="width: 72%;"></div>
-        </div>
-        <p id="analysisRecommendation" class="text-[11px] text-slate-400 mt-2 leading-relaxed bg-slate-900 p-2.5 rounded-lg border border-slate-800">
-          <!-- detailed advice -->
-        </p>
-      </div>
-
-      <div class="pt-2 flex justify-end border-t border-slate-800">
-        <button type="button" id="closeAnalysisFooterBtn" class="px-5 py-2 text-xs bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition font-semibold shadow-sm">
-          বুঝেছি ও বন্ধ করুন (Close)
-        </button>
-      </div>
-    </div>
+  <div class="stats">
+    <div class="stat"><span class="mut">মোট স্টক</span><b id="sCount">0</b></div>
+    <div class="stat"><span class="mut">কেনা মূল্য (প্রতি শেয়ার, যোগফল)</span><b id="sInv">₹0.00</b></div>
+    <div class="stat"><span class="mut">বর্তমান মূল্য (যোগফল)</span><b id="sCur">₹0.00</b></div>
+    <div class="stat"><span class="mut">মোট লাভ / ক্ষতি</span><b id="sPL">₹0.00</b></div>
   </div>
 
-  <!-- Edit Row Modal -->
-  <div id="editStockModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <div>
-          <h3 class="text-xs font-bold text-white flex items-center gap-1.5">
-            <span>✏️ কেনা দাম পরিবর্তন করুন</span>
-            <span id="modalStockSymbol" class="px-1.5 py-0.5 rounded bg-slate-800 text-sky-400 font-mono font-bold text-[10px] border border-slate-700"></span>
-          </h3>
-          <p id="modalStockName" class="text-[11px] text-slate-400"></p>
-        </div>
-        <button id="closeEditModalBtn" type="button" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-        </button>
-      </div>
+  <form id="form">
+    <input id="sym" list="hints" placeholder="NSE সিম্বল, যেমন RELIANCE, TITAGARH, SUZLON" required autocomplete="off">
+    <datalist id="hints"><option value="RELIANCE"><option value="TCS"><option value="INFY"><option value="HDFCBANK"><option value="SBIN"><option value="TITAGARH"><option value="SUZLON"><option value="SSWL"><option value="HAL"><option value="BEL"><option value="RVNL"><option value="IRFC"><option value="ZOMATO"><option value="SWIGGY"><option value="TATAMOTORS"><option value="ITC"><option value="LT"><option value="SHARIABEES"></datalist>
+    <input id="buy" type="number" step="0.05" min="0" placeholder="আমার কেনা দর ₹ (ঐচ্ছিক)">
+    <button class="pri" type="submit">+ যোগ করুন</button>
+  </form>
 
-      <form id="editStockForm" class="space-y-3.5">
-        <input type="hidden" id="modalStockId">
-
-        <!-- Live Price (Readonly, Auto-Fetched) -->
-        <div>
-          <label for="modalCurrentPrice" class="block text-[11px] font-medium text-slate-400 mb-1 flex items-center justify-between">
-            <span>বর্তমান লাইভ বাজার দর (Live LTP)</span>
-            <span class="text-[10px] text-emerald-400 font-semibold bg-emerald-500/10 px-1 rounded border border-emerald-500/20">স্বয়ংক্রিয়</span>
-          </label>
-          <div class="relative">
-            <span class="absolute left-2.5 top-2 text-emerald-400 font-bold text-xs">₹</span>
-            <input 
-              type="number" 
-              step="0.05" 
-              id="modalCurrentPrice" 
-              readonly
-              class="w-full bg-slate-950 border border-slate-700 rounded-lg pl-6 pr-2.5 py-2 text-xs text-emerald-400 font-mono font-bold cursor-not-allowed select-none focus:outline-none"
-              title="লাইভ রেট স্বয়ংক্রিয়ভাবে মার্কেট থেকে রিফ্রেশ হয়"
-            >
-          </div>
-        </div>
-
-        <!-- Purchase Price -->
-        <div>
-          <label for="modalPurchasePrice" class="block text-[11px] font-bold text-slate-300 mb-1">
-            আমার কেনা দাম / Purchase Price (₹) <span class="text-slate-500 font-normal">(ফাঁকা রাখলে Watching)</span>
-          </label>
-          <div class="relative">
-            <span class="absolute left-2.5 top-2 text-sky-400 font-bold text-xs">₹</span>
-            <input 
-              type="number" 
-              step="0.05" 
-              id="modalPurchasePrice" 
-              placeholder="আপনি যে দরে কিনেছেন তা লিখুন"
-              class="w-full bg-slate-950 border-2 border-sky-500 rounded-lg pl-6 pr-2.5 py-2 text-xs text-white font-mono font-semibold focus:outline-none focus:ring-1 focus:ring-sky-400"
-            >
-          </div>
-        </div>
-
-        <!-- 4-10 Month Outlook Preview -->
-        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-[11px] space-y-1.5">
-          <div class="flex items-center justify-between">
-            <span class="text-slate-400 font-medium">🤖 ৪-১০ মাসের স্ট্র্যাটেজি:</span>
-            <span class="text-sky-400 font-semibold text-[10px]">স্বয়ংক্রিয় হিসাব</span>
-          </div>
-          <div id="modalAutoDecisionPreview" class="text-xs font-bold text-white pt-0.5">
-            <!-- Populated automatically -->
-          </div>
-        </div>
-
-        <div class="pt-2 flex items-center justify-end gap-2 border-t border-slate-800">
-          <button type="button" id="cancelEditModalBtn" class="px-3.5 py-2 text-xs text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 font-medium transition">বাতিল</button>
-          <button type="submit" class="px-4 py-2 text-xs bg-sky-600 hover:bg-sky-500 text-white rounded-lg font-semibold shadow-sm transition">সংরক্ষণ করুন</button>
-        </div>
-      </form>
-    </div>
+  <div class="tw">
+    <div id="empty" class="empty" hidden>তালিকা ফাঁকা। উপরে একটি NSE সিম্বল লিখে যোগ করুন।</div>
+    <table id="tbl" hidden>
+      <thead><tr><th>স্টক</th><th class="r">লাইভ দর</th><th class="r">কেনা দর</th><th class="r">লাভ / ক্ষতি</th><th style="min-width:300px">৪–১০ মাস গাইড</th><th></th></tr></thead>
+      <tbody id="body"></tbody>
+    </table>
   </div>
+</div>
+<div id="toast" role="status"></div>
 
-  <!-- Backup & Restore Modal -->
-  <div id="backupModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-3.5">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <h3 class="text-xs font-bold text-white flex items-center gap-1.5">
-          <span>💾 অন্য ব্রাউজারে ডেটা নেওয়া (Backup & Restore)</span>
-        </h3>
-        <button id="closeBackupModalBtn" type="button" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-        </button>
-      </div>
+<script>
+/* ============ কনফিগ ============ */
+// ঐচ্ছিক: নিজের Cloudflare Worker থাকলে URL দিন (সবচেয়ে নির্ভরযোগ্য)। ফাঁকা থাকলে ফ্রি প্রক্সি ব্যবহার হবে।
+const WORKER_URL = '';
+const INTERVAL = 15;
+const KEY = 'nse_watch_v4';
 
-      <div class="space-y-3 text-xs text-slate-300">
-        <p class="text-[11px] text-slate-400 leading-relaxed">
-          আপনার সমস্ত স্টক ও কেনা দাম সম্পূর্ণ নিরাপদে ব্রাউজারে সংরক্ষিত থাকে। অন্য ডিভাইসে স্থানান্তরের জন্য নিচের সহজ পদ্ধতি ব্যবহার করুন:
-        </p>
+let list = [], paused = false, busy = false, left = INTERVAL;
+const $ = id => document.getElementById(id);
+const inr = v => (v == null || isNaN(v)) ? '—' : '₹' + Number(v).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-        <!-- Method 1: Shareable Sync Link -->
-        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-          <span class="text-sky-400 font-bold text-[11px]">পদ্ধতি ১: সিঙ্ক লিঙ্ক (সবচেয়ে সহজ)</span>
-          <p class="text-[10px] text-slate-400">এই লিঙ্কটি কপি করে অন্য যেকোনো কম্পিউটার বা মোবাইলের ব্রাউজারে পেস্ট করলেই সমস্ত স্টক লোড হয়ে যাবে।</p>
-          <button id="modalCopySyncLinkBtn" type="button" class="w-full py-2 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/30 text-[11px] font-semibold transition">
-            🔗 সিঙ্ক লিঙ্ক কপি করুন (Copy Sync Link)
-          </button>
-        </div>
+function toast(m) { const t = $('toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(toast.t); toast.t = setTimeout(() => t.style.display = 'none', 3000); }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (e) {} }
+function load() { try { const v = JSON.parse(localStorage.getItem(KEY) || '[]'); if (Array.isArray(v)) list = v; } catch (e) { list = []; } }
 
-        <!-- Method 2: Export/Import Code -->
-        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
-          <span class="text-slate-300 font-bold text-[11px]">পদ্ধতি ২: ব্যাকআপ কোড কপি ও রিস্টোর</span>
-          <textarea id="backupDataTextarea" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-[10px] text-emerald-400 font-mono focus:outline-none focus:ring-1 focus:ring-sky-500" placeholder="এখানে ব্যাকআপ কোড আসবে বা অন্য ব্রাউজারের কোড পেস্ট করুন..."></textarea>
-          <div class="flex gap-2">
-            <button id="exportDataBtn" type="button" class="flex-1 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px] font-medium transition">কোড কপি</button>
-            <button id="importDataBtn" type="button" class="flex-1 py-1.5 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/40 text-[11px] font-semibold transition">রিস্টোর করুন</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Embed Modal -->
-  <div id="embedModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-3">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-        <h3 class="text-xs font-bold text-white">💻 ওয়েবসাইটে বসানোর কোড (iFrame)</h3>
-        <button id="closeEmbedModalBtn" type="button" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-        </button>
-      </div>
-      <div class="space-y-2 text-xs text-slate-300">
-        <p class="text-[11px] text-slate-400">আপনার নিজস্ব ওয়েবসাইট বা ব্লগে এই ৪-১০ মাসের শর্ট-টার্ম ট্র্যাকারটি এম্বেড করতে নিচের কোডটি ব্যবহার করুন:</p>
-        <pre class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-[11px] text-sky-400 overflow-x-auto font-mono"><code>&lt;iframe src="indian_stock_watchlist.html" width="100%" height="700" style="border:none; border-radius:12px;"&gt;&lt;/iframe&gt;</code></pre>
-        <button id="copyIframeBtn" type="button" class="w-full py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold transition shadow-sm">
-          iFrame কোড কপি করুন
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- JavaScript Logic -->
-  <script>
-    // 100+ Top NSE/BSE Stock Database with Updated Baseline Quotes
-    const INDIAN_STOCKS_DB = [
-      {"symbol": "SSWL", "name": "Steel Strips Wheels Ltd", "sector": "Auto Ancillary & Wheels", "basePrice": 526.6, "condition": "Bullish", "rsi": 64, "keywords": "steel strips wheels sswl alloy rims auto 513262"},
-      {"symbol": "SHARIABEES", "name": "Nippon India ETF Nifty 50 Shariah BeES", "sector": "Shariah Compliant ETF", "basePrice": 443.0, "condition": "Neutral", "rsi": 53, "keywords": "shariabees shariah bees etf islamic halaal 590109"},
-      {"symbol": "SUZLON", "name": "Suzlon Energy Ltd", "sector": "Renewable Wind Energy", "basePrice": 36.79, "condition": "Neutral", "rsi": 51, "keywords": "suzlon wind green energy renewable"},
-      {"symbol": "TITAGARH", "name": "Titagarh Rail Systems Ltd", "sector": "Railways & Metro Coaches", "basePrice": 665.40, "condition": "Bullish", "rsi": 62, "keywords": "titagarh titagar railway wagons metro coaches titg twl 532966"},
-      {"symbol": "SWIGGY", "name": "Swiggy Ltd", "sector": "Food Delivery & Quick Commerce", "basePrice": 185.0, "condition": "Neutral", "rsi": 49, "keywords": "swiggy food instamart delivery"},
-      {"symbol": "PPLPHARMA", "name": "Piramal Pharma Ltd", "sector": "Pharmaceuticals", "basePrice": 233.5, "condition": "Bullish", "rsi": 66, "keywords": "piramal pharma pplpharma healthcare pel"},
-      {"symbol": "PEL", "name": "Piramal Enterprises Ltd", "sector": "Financial Services & NBFC", "basePrice": 1084.2, "condition": "Bullish", "rsi": 61, "keywords": "piramal enterprises pel finance holding"},
-      {"symbol": "JWL", "name": "Jupiter Wagons Ltd", "sector": "Railways & Commercial Vehicles", "basePrice": 193.0, "condition": "Bullish", "rsi": 63, "keywords": "jupiter wagons jwl railway wagons brake systems"},
-      {"symbol": "EXIDEIND", "name": "Exide Industries Ltd", "sector": "Batteries & EV Storage", "basePrice": 441.5, "condition": "Bullish", "rsi": 62, "keywords": "exide industries indetsrites exideind battery storage"},
-      {"symbol": "RELIANCE", "name": "Reliance Industries Ltd", "sector": "Energy, Oil & Retail", "basePrice": 1285.4, "condition": "Bullish", "rsi": 62, "keywords": "reliance ril jio telecom retail"},
-      {"symbol": "TCS", "name": "Tata Consultancy Services Ltd", "sector": "IT Services", "basePrice": 4120.5, "condition": "Bullish", "rsi": 59, "keywords": "tcs tata consultancy software tech"},
-      {"symbol": "HDFCBANK", "name": "HDFC Bank Ltd", "sector": "Banking & Financials", "basePrice": 1682.3, "condition": "Neutral", "rsi": 51, "keywords": "hdfc bank finance loans"},
-      {"symbol": "INFY", "name": "Infosys Ltd", "sector": "IT Services", "basePrice": 1845.2, "condition": "Bullish", "rsi": 60, "keywords": "infosys infy software tech"},
-      {"symbol": "SBIN", "name": "State Bank of India", "sector": "Public Sector Bank", "basePrice": 820.6, "condition": "Neutral", "rsi": 53, "keywords": "sbi sbin bank psu public"},
-      {"symbol": "BHARTIARTL", "name": "Bharti Airtel Ltd", "sector": "Telecommunications", "basePrice": 1675.1, "condition": "Bullish", "rsi": 69, "keywords": "airtel telecom 5g mobile"},
-      {"symbol": "ITC", "name": "ITC Ltd", "sector": "FMCG, Cigarettes & Hotels", "basePrice": 492.4, "condition": "Neutral", "rsi": 48, "keywords": "itc fmcg cigarettes hotels"},
-      {"symbol": "LT", "name": "Larsen & Toubro Ltd", "sector": "Infrastructure & Engineering", "basePrice": 3580.0, "condition": "Bullish", "rsi": 63, "keywords": "l&t lt infra construction engineering"},
-      {"symbol": "TATAMOTORS", "name": "Tata Motors Ltd", "sector": "Automobiles & EV", "basePrice": 715.75, "condition": "Bullish", "rsi": 55, "keywords": "tata motors cars commercial ev"},
-      {"symbol": "HAL", "name": "Hindustan Aeronautics Ltd", "sector": "Defense & Aerospace", "basePrice": 4480.0, "condition": "Bullish", "rsi": 67, "keywords": "hal aeronautics tejas defense aircraft psu"},
-      {"symbol": "BEL", "name": "Bharat Electronics Ltd", "sector": "Defense Electronics & Radar", "basePrice": 295.0, "condition": "Bullish", "rsi": 68, "keywords": "bel defense radar electronics psu"},
-      {"symbol": "RVNL", "name": "Rail Vikas Nigam Ltd", "sector": "Railways Infrastructure (PSU)", "basePrice": 420.0, "condition": "Bullish", "rsi": 65, "keywords": "rvnl rail vikas nigam railway tracks infra"},
-      {"symbol": "IRFC", "name": "Indian Railway Finance Corp", "sector": "Railways Financing", "basePrice": 145.0, "condition": "Neutral", "rsi": 51, "keywords": "irfc indian railway finance"},
-      {"symbol": "ZOMATO", "name": "Zomato Ltd (Blinkit)", "sector": "Quick Commerce & Food Delivery", "basePrice": 245.0, "condition": "Bullish", "rsi": 65, "keywords": "zomato blinkit food delivery quick"}
-    ];
-
-    // State
-    let watchlist = [];
-
-    function getStockAnchor(stock) {
-      if (!stock.anchorPrice || isNaN(stock.anchorPrice) || stock.anchorPrice <= 0) {
-        stock.anchorPrice = stock.purchasePrice || stock.basePrice || stock.currentPrice;
-      }
-      return stock.anchorPrice;
+/* ============ ফ্রি লাইভ কোট ইঞ্জিন ============ */
+// প্রতিটি সিম্বলের জন্য একাধিক হোস্ট × প্রক্সি একসাথে চালানো হয়; যে আগে সফল হয় সেটাই নেওয়া হয়।
+function parseYahoo(j) {
+  const r = j && j.chart && j.chart.result && j.chart.result[0], m = r && r.meta;
+  if (!m || !(m.regularMarketPrice > 0)) throw new Error('no data');
+  return {
+    price: m.regularMarketPrice,
+    prev: m.chartPreviousClose || m.previousClose || m.regularMarketPrice,
+    time: (m.regularMarketTime || 0) * 1000,
+    closes: ((r.indicators && r.indicators.quote && r.indicators.quote[0] && r.indicators.quote[0].close) || []).filter(x => x != null)
+  };
+}
+async function getJSON(url, ms = 6000) {
+  const c = new AbortController(), t = setTimeout(() => c.abort(), ms);
+  try { const r = await fetch(url, {signal: c.signal, cache: 'no-store'}); if (!r.ok) throw new Error(r.status); return await r.json(); }
+  finally { clearTimeout(t); }
+}
+async function quoteOne(sym) {
+  const attempts = [];
+  for (const suf of ['.NS', '.BO']) {
+    const tries = [];
+    for (const host of ['query1', 'query2']) {
+      const u = `https://${host}.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym + suf)}?interval=2m&range=1d&_=${Date.now()}`;
+      tries.push(
+        getJSON(`https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`).then(parseYahoo),
+        getJSON(`https://corsproxy.io/?url=${encodeURIComponent(u)}`).then(parseYahoo),
+        getJSON(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`).then(parseYahoo)
+      );
     }
-
-    // Sparkline Graph Generator for Real-Time Intraday Trend
-    function generateSparkline(data, currentPrice, anchorPrice) {
-      if (!data || !Array.isArray(data) || data.length < 2) return '<div class="w-[50px] h-[20px] inline-block ml-2"></div>';
-      const validData = data.filter(d => d !== null && !isNaN(d));
-      if (validData.length < 2) return '<div class="w-[50px] h-[20px] inline-block ml-2"></div>';
-      
-      const min = Math.min(...validData);
-      const max = Math.max(...validData);
-      const range = max - min || 1;
-      const width = 50;
-      const height = 20;
-      
-      const points = validData.map((d, i) => {
-        const x = (i / (validData.length - 1)) * width;
-        const y = height - ((d - min) / range) * height;
-        return `${x},${y}`;
-      }).join(' ');
-      
-      const isGain = currentPrice >= anchorPrice;
-      const color = isGain ? '#10b981' : '#ef4444'; // Emerald for gain, Rose for loss
-      
-      return `
-        <svg width="${width}" height="${height}" viewBox="0 -2 ${width} ${height + 4}" class="overflow-visible inline-block ml-2 opacity-90 drop-shadow-md">
-          <polyline fill="none" stroke="${color}" stroke-width="1.8" points="${points}" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
-      `;
-    }
-
-    let isLiveActive = true;
-    let selectedStockFromDb = null;
-
-    // Toast Notification
-    function showToast(message, type = 'info') {
-      const container = document.getElementById('toastContainer');
-      const toast = document.createElement('div');
-      let bg = 'bg-slate-900 border-slate-700 text-slate-100';
-      if (type === 'success') bg = 'bg-slate-900 border-emerald-500/50 text-emerald-300';
-      if (type === 'error') bg = 'bg-slate-900 border-rose-500/50 text-rose-300';
-
-      toast.className = `pointer-events-auto flex items-center gap-2 px-3.5 py-2.5 rounded-xl border shadow-xl text-xs font-semibold transition duration-200 ${bg}`;
-      toast.innerHTML = `<span>${message}</span>`;
-      container.appendChild(toast);
-      setTimeout(() => toast.remove(), 3200);
-    }
-
-    // Storage
-    function saveWatchlist() {
-      try {
-        localStorage.setItem('nse_bse_watchlist_data_v3_dark', JSON.stringify(watchlist));
-      } catch (e) {
-        console.warn('Storage save failed:', e);
-      }
-    }
-
-    function loadWatchlist() {
-      // 1. Check URL hash for sync
-      try {
-        if (window.location.hash && window.location.hash.startsWith('#data=')) {
-          const encoded = window.location.hash.replace('#data=', '');
-          const decoded = decodeURIComponent(atob(encoded));
-          const parsed = JSON.parse(decoded);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            watchlist = parsed;
-            sanitizeWatchlistPrices();
-            saveWatchlist();
-            history.replaceState(null, null, ' ');
-            showToast('🔗 সিঙ্ক লিঙ্ক থেকে ডেটা সফলভাবে রিস্টোর হয়েছে!', 'success');
-            return;
-          }
-        }
-      } catch (e) {
-        console.warn('URL sync read error:', e);
-      }
-
-      // 2. Read from localStorage
-      try {
-        const local = localStorage.getItem('nse_bse_watchlist_data_v3_dark');
-        if (local) {
-          const parsed = JSON.parse(local);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            watchlist = parsed;
-            sanitizeWatchlistPrices();
-            return;
-          }
-        }
-      } catch (e) {
-        console.warn('Storage load failed:', e);
-      }
-
-      // 3. Default demo items
-      loadDefaultSample();
-    }
-
-    // Auto-fix stale database outliers if live sync had previously cached an old high/low split price
-    function sanitizeWatchlistPrices() {
-      let changed = false;
-      watchlist.forEach(stock => {
-        const dbMatch = INDIAN_STOCKS_DB.find(s => s.symbol.toUpperCase() === stock.symbol.toUpperCase());
-        if (dbMatch) {
-          // If cached price is wildly off (> 35% discrepancy due to old split/outdated base)
-          if (Math.abs(stock.currentPrice - dbMatch.basePrice) / dbMatch.basePrice > 0.35) {
-            stock.currentPrice = dbMatch.basePrice;
-            stock.previousPrice = dbMatch.basePrice;
-            if (!stock.purchasePrice) {
-              stock.anchorPrice = dbMatch.basePrice;
-            }
-            changed = true;
-          }
-        }
-      });
-      if (changed) saveWatchlist();
-    }
-
-    function loadDefaultSample() {
-      watchlist = [
-        {
-          id: 'demo_1',
-          symbol: 'SHARIABEES',
-          name: 'Nippon India ETF Nifty 50 Shariah BeES',
-          sector: 'Shariah Compliant ETF',
-          currentPrice: 443.00,
-          previousPrice: 439.27,
-          purchasePrice: 440.00,
-          condition: 'Neutral',
-          baseRsi: 53,
-          anchorPrice: 440.00
-        },
-        {
-          id: 'demo_2',
-          symbol: 'SSWL',
-          name: 'Steel Strips Wheels Ltd',
-          sector: 'Auto Ancillary & Wheels',
-          currentPrice: 525.80,
-          previousPrice: 526.60,
-          purchasePrice: 532.00,
-          condition: 'Bullish',
-          baseRsi: 64,
-          anchorPrice: 532.00
-        },
-        {
-          id: 'demo_3',
-          symbol: 'SUZLON',
-          name: 'Suzlon Energy Ltd',
-          sector: 'Renewable Wind Energy',
-          currentPrice: 36.79,
-          previousPrice: 37.30,
-          purchasePrice: 38.00,
-          condition: 'Neutral',
-          baseRsi: 51,
-          anchorPrice: 38.00
-        },
-        {
-          id: 'demo_4',
-          symbol: 'TITAGARH',
-          name: 'Titagarh Rail Systems Ltd',
-          sector: 'Railways & Metro Coaches',
-          currentPrice: 665.40,
-          previousPrice: 663.70,
-          purchasePrice: null,
-          condition: 'Bullish',
-          baseRsi: 62,
-          anchorPrice: 665.40
-        }
-      ];
-      saveWatchlist();
-    }
-
-    // Format INR Currency (Strict single ₹ to prevent double ₹₹)
-    function formatINR(val) {
-      if (val === null || val === undefined || isNaN(val)) return '—';
-      return '₹' + Number(val).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
-
-    // ========================================================
-    // SHORT-TERM CAPITAL GAIN (4-10 MONTHS) TECHNICAL ANALYST
-    // ========================================================
-    function calculateShortTermOutlook(stock) {
-      const price = stock.currentPrice;
-      const anchor = getStockAnchor(stock);
-      
-      const hasPurchase = stock.purchasePrice !== null && !isNaN(stock.purchasePrice) && stock.purchasePrice > 0;
-      const purchasePrice = hasPurchase ? stock.purchasePrice : null;
-      const pnlPct = hasPurchase ? ((price - purchasePrice) / purchasePrice) * 100 : null;
-
-      // 4 to 10 MONTH POSITIONAL BENCHMARKS:
-      // Ideal Dip Buy Level: ~5% to 7% below base/anchor (Weekly Support S1)
-      const buyPrice = +(anchor * 0.94).toFixed(2);
-
-      // Positional Profit Target (4-10 Months): +18% to +26% gain target
-      const sellTarget = +(hasPurchase 
-        ? Math.max(anchor * 1.20, purchasePrice * 1.22) 
-        : anchor * 1.20).toFixed(2);
-
-      // Positional Stop Loss (Capital Protection): -9% below buy price or trailing SL
-      let stopLoss = +(anchor * 0.91).toFixed(2);
-      if (hasPurchase && pnlPct > 12) {
-        // In solid profit: Protect capital with trailing SL well above purchase price (+5% locked profit)
-        stopLoss = +(purchasePrice * 1.05).toFixed(2);
-      }
-
-      const support = buyPrice;
-      const resistance = sellTarget;
-
-      // Real-Time 4-10 Month Strategy & Guidance
-      let statusTitle = '৪-১০ মাস হোল্ড (HOLD)';
-      let statusBadgeClass = 'bg-sky-500/10 text-sky-400 border-sky-500/30';
-      let statusIcon = '🟡';
-      let quickAdvice = 'নিরাপদ রেঞ্জ; ৪-১০ মাস নিশ্চিন্তে হোল্ড করুন';
-      let detailedAdvice = '';
-      let actionType = 'HOLD';
-      let probability = 72;
-      let probLabel = '৭২% টার্গেট সম্ভাবনা';
-
-      if (price >= sellTarget) {
-        statusTitle = 'টার্গেট পূরণ (PROFIT BOOK)';
-        statusBadgeClass = 'bg-amber-500/15 text-amber-300 border-amber-500/30 font-bold';
-        statusIcon = '💰';
-        quickAdvice = `টার্গেট পূরণ! শর্ট-টার্ম ক্যাপিটাল গেইন প্রফিট বুক করুন`;
-        detailedAdvice = `শেয়ারটির দাম আপনার ৪-১০ মাসের কাঙ্ক্ষিত লক্ষ্য ${formatINR(sellTarget)} স্পর্শ করেছে। শর্ট-টার্ম ক্যাপিটাল গেইনের উদ্দেশ্য সফল হয়েছে। অতিরিক্ত লোভ না করে সম্পূর্ণ বা অন্তত ৫০%–৭০% শেয়ার বিক্রি করে নিশ্চিত প্রফিট তুলে নেওয়া বুদ্ধিমানের কাজ।`;
-        actionType = 'SELL';
-        probability = 40;
-        probLabel = '৪০% (প্রফিট বুকিং জোন)';
-      } else if (price <= stopLoss) {
-        statusTitle = 'স্টপলস লঙ্ঘন (EXIT SL)';
-        statusBadgeClass = 'bg-rose-500/15 text-rose-400 border-rose-500/30 font-bold';
-        statusIcon = '🛑';
-        quickAdvice = `স্টপলস ব্রেক! বড় লোকসান এড়াতে মূলধন বাঁচান`;
-        detailedAdvice = `শেয়ারের দর ৪-১০ মাসের ডিফেন্সিভ স্টপলস ${formatINR(stopLoss)}-এর নিচে নেমে গেছে। মার্কেট ট্রেন্ড বা সেক্টর চাপে আরও বড় ক্ষতি হতে পারে। শর্ট-টার্ম ইনভেস্টর হিসেবে মূলধন বাঁচাতে আবেগ এড়িয়ে শৃঙ্খলা মেনে অবিলম্বে বিক্রি করে ক্যাশ হয়ে যাওয়া শ্রেয়।`;
-        actionType = 'EXIT';
-        probability = 25;
-        probLabel = '২৫% দুর্বল (ডাউনট্রেন্ড ঝুঁকি)';
-      } else if (price <= buyPrice) {
-        statusTitle = 'ডিপে সঞ্চয় (BUY / DIP)';
-        statusBadgeClass = 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 font-bold';
-        statusIcon = '🟢';
-        quickAdvice = `সাপোর্টের কাছে সস্তা! ৪-১০ মাসের জন্য জমার সেরা সুযোগ`;
-        detailedAdvice = `শেয়ারটি বর্তমানে তার শক্তিশালী সাপ্তাহিক সাপোর্ট লেভেল ${formatINR(buyPrice)}-এর কাছাকাছি রয়েছে। ৪ থেকে ১০ মাসের দিগন্তে এটি অত্যন্ত আকর্ষণীয় ভ্যালুয়েশন। নতুন ফ্রেশ এন্ট্রি নিতে বা কেনার গড় (Average) উন্নত করতে এই স্তরে কেনা সবচেয়ে লাভজনক।`;
-        actionType = 'BUY';
-        probability = 82;
-        probLabel = '৮২% বাউন্স ও গ্রোথ সম্ভাবনা';
-      } else {
-        if (hasPurchase && pnlPct > 0) {
-          statusTitle = 'লাভে হোল্ড (PROFIT HOLD)';
-          statusBadgeClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-          statusIcon = '🟡';
-          quickAdvice = `লাভে আছেন! ৪-১০ মাসের টার্গেট ${formatINR(sellTarget)} এর জন্য ধরে রাখুন`;
-          detailedAdvice = `আপনার কেনা দর থেকে স্টকটি বর্তমানে +${pnlPct.toFixed(1)}% লাভে নিরাপদ অবস্থানে রয়েছে। ছোটখাটো দৈনিক দরপতনের গুজবে কান না দিয়ে ৪–১০ মাসের টার্গেট ${formatINR(sellTarget)} না আসা পর্যন্ত শান্তভাবে ধরে রাখুন।`;
-          probability = 76;
-          probLabel = '৭৬% শক্তিশালী বুলিশ';
-        } else {
-          statusTitle = '৪-১০ মাস হোল্ড (PATIENT HOLD)';
-          statusBadgeClass = 'bg-sky-500/10 text-sky-400 border-sky-500/20';
-          statusIcon = '🟡';
-          quickAdvice = `স্টপলস ${formatINR(stopLoss)} অক্ষুণ্ন আছে; ধৈর্য ধরে হোল্ড করুন`;
-          detailedAdvice = `শেয়ারটি স্বাভাবিক পজিশনাল কনসলিডেশনে ট্রেড করছে। কোনো তাড়াহুড়ো নেই। কড়া স্টপলস ${formatINR(stopLoss)} বজায় রেখে পরবর্তী ৪-১০ মাসের বুলিশ র‍্যালির জন্য অপেক্ষা করুন।`;
-          probability = 68;
-          probLabel = '৬৮% স্থিতিশীল গ্রোথ';
-        }
-      }
-
-      return {
-        anchor,
-        buyPrice,
-        sellTarget,
-        stopLoss,
-        support,
-        resistance,
-        statusTitle,
-        statusBadgeClass,
-        statusIcon,
-        quickAdvice,
-        detailedAdvice,
-        actionType,
-        probability,
-        probLabel,
-        rsi: stock.baseRsi || 55
-      };
-    }
-
-    // Render Watchlist as Row-Wise List
-    const tableBody = document.getElementById('stockTableBody');
-    const emptyState = document.getElementById('emptyState');
-    const tableWrapper = document.getElementById('tableWrapper');
-    const watchlistCountBadge = document.getElementById('watchlistCountBadge');
-
-    function renderWatchlist() {
-      watchlistCountBadge.textContent = `${watchlist.length} টি`;
-
-      if (watchlist.length === 0) {
-        emptyState.classList.remove('hidden');
-        tableWrapper.classList.add('hidden');
-        updateStats();
-        return;
-      }
-
-      emptyState.classList.add('hidden');
-      tableWrapper.classList.remove('hidden');
-
-      tableBody.innerHTML = watchlist.map(item => {
-        const hasPurchase = item.purchasePrice !== null && !isNaN(item.purchasePrice) && item.purchasePrice > 0;
-        
-        let diffPrice = 0;
-        let diffPercent = 0;
-        let isGain = true;
-        let calcHtml = '';
-
-        if (hasPurchase) {
-          diffPrice = item.currentPrice - item.purchasePrice;
-          diffPercent = (diffPrice / item.purchasePrice) * 100;
-          isGain = diffPrice >= 0;
-          const sign = isGain ? '+' : '';
-          calcHtml = `
-            <div class="font-bold ${isGain ? 'text-emerald-400' : 'text-rose-400'} font-mono">
-              ${sign}${formatINR(diffPrice)}
-            </div>
-            <div class="text-[10px] font-semibold ${isGain ? 'text-emerald-400/80' : 'text-rose-400/80'}">
-              (${sign}${diffPercent.toFixed(2)}%)
-            </div>
-          `;
-        } else {
-          calcHtml = `
-            <span class="inline-block px-2.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-400 font-semibold border border-slate-700">
-              👁️ শুধু পর্যবেক্ষণ (Watching)
-            </span>
-          `;
-        }
-
-        // Detect if price moved to flash background
-        let flashClass = '';
-        if (item.currentPrice > item.previousPrice) flashClass = 'flash-gain';
-        else if (item.currentPrice < item.previousPrice) flashClass = 'flash-loss';
-
-        // Positional Technical Outlook (4-10 Months)
-        const tech = calculateShortTermOutlook(item);
-
-        return `
-          <tr id="row_${item.id}" class="hover:bg-slate-800/40 transition-colors">
-            <!-- Stock & Company -->
-            <td class="py-3 px-3.5">
-              <div class="flex items-center gap-2">
-                <span class="font-bold text-white text-xs bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700 font-mono">${item.symbol}</span>
-                <span class="font-semibold text-slate-200 text-xs">${item.name}</span>
-              </div>
-              <div class="text-[10px] text-slate-500 mt-0.5">${item.sector || 'NSE / BSE'}</div>
-            </td>
-
-            <!-- Live Price (LTP) & Intraday Sparkline Graph -->
-            <td class="py-3 px-3.5 text-right">
-              <div class="flex items-center justify-end">
-                <div id="live_price_${item.id}" class="text-sm font-bold text-white font-mono transition-colors duration-300 ${flashClass}">
-                  ${formatINR(item.currentPrice)}
-                </div>
-                ${generateSparkline(item.chartData, item.currentPrice, item.anchorPrice || item.purchasePrice || tech.anchor)}
-              </div>
-              <div class="text-[9px] text-emerald-400 font-bold uppercase tracking-wider mt-0.5">লাইভ LTP</div>
-            </td>
-
-            <!-- Purchase Price -->
-            <td class="py-3 px-3.5 text-right">
-              ${hasPurchase 
-                ? `<div class="font-bold text-white font-mono">${formatINR(item.purchasePrice)}</div><div class="text-[9px] text-slate-400">কেনা দাম</div>` 
-                : `<span class="text-slate-500 text-xs italic">— (কেনা হয়নি)</span>`}
-            </td>
-
-            <!-- Calculate (+ - P&L) -->
-            <td class="py-3 px-3.5 text-right">
-              ${calcHtml}
-            </td>
-
-            <!-- 4-10 Month Positional Playbook (Fixed Benchmark Levels) -->
-            <td class="py-3 px-3.5 text-center">
-              <div class="inline-flex flex-col items-center gap-1.5 min-w-[290px] w-full max-w-sm">
-                <!-- Status Badge & Detailed Guide Button -->
-                <div class="flex items-center justify-center gap-2 flex-wrap">
-                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border shadow-xs ${tech.statusBadgeClass}">
-                    ${tech.statusIcon} ${tech.statusTitle}
-                  </span>
-                  <button type="button" class="analysis-btn px-2 py-0.5 rounded text-[10px] bg-slate-800 hover:bg-slate-700 text-sky-400 hover:text-sky-300 border border-slate-700 font-bold transition flex items-center gap-1 shadow-xs" data-id="${item.id}" title="৪-১০ মাসের পূর্ণাঙ্গ গাইডলাইন ও বিস্তারিত বিশ্লেষণ দেখুন">
-                    <span>📊 পূর্ণাঙ্গ গাইড</span>
-                  </button>
-                </div>
-
-                <!-- 3 Fixed Benchmark Action Levels (No Jittering) -->
-                <div class="grid grid-cols-3 gap-1.5 w-full text-[10px] bg-slate-950/80 p-2 rounded-lg border border-slate-800 text-center">
-                  <div class="p-1 rounded bg-emerald-500/10 border border-emerald-500/20">
-                    <span class="text-[9px] text-slate-400 block font-medium">ডিপে কিনুন (Buy)</span>
-                    <strong class="text-emerald-400 font-mono text-[11px] font-bold">${formatINR(tech.buyPrice)}</strong>
-                  </div>
-                  <div class="p-1 rounded bg-sky-500/10 border border-sky-500/20">
-                    <span class="text-[9px] text-slate-400 block font-medium">হোল্ড সীমা (Hold)</span>
-                    <strong class="text-sky-300 font-mono text-[11px] font-bold">&gt; ${formatINR(tech.stopLoss)}</strong>
-                  </div>
-                  <div class="p-1 rounded bg-amber-500/10 border border-amber-500/20">
-                    <span class="text-[9px] text-slate-400 block font-medium">মুনাফার লক্ষ্য (Sell)</span>
-                    <strong class="text-amber-400 font-mono text-[11px] font-bold">${formatINR(tech.sellTarget)}</strong>
-                  </div>
-                </div>
-
-                <!-- Strict Stop Loss & Advice Summary -->
-                <div class="text-[10px] text-slate-400 flex items-center justify-between w-full px-1">
-                  <span class="text-rose-400 font-bold">🛑 কড়া SL: <strong class="font-mono text-rose-300">${formatINR(tech.stopLoss)}</strong></span>
-                  <span class="text-[9px] text-slate-400 truncate max-w-[170px]" title="${tech.quickAdvice}">${tech.quickAdvice}</span>
-                </div>
-              </div>
-            </td>
-
-            <!-- Action Buttons -->
-            <td class="py-3 px-3.5 text-center">
-              <div class="flex items-center justify-center gap-1.5">
-                <button type="button" class="edit-btn p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white border border-transparent hover:border-slate-700 transition" data-id="${item.id}" title="কেনা দাম এডিট করুন">
-                  ✏️
-                </button>
-                <button type="button" class="del-btn p-1.5 rounded-lg hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border border-transparent hover:border-rose-500/30 transition" data-id="${item.id}" title="তালিকা থেকে মুছুন">
-                  🗑️
-                </button>
-              </div>
-            </td>
-          </tr>
-        `;
-      }).join('');
-
-      // Wire row buttons
-      tableBody.querySelectorAll('.analysis-btn').forEach(btn => {
-        btn.addEventListener('click', () => openAnalysisModal(btn.getAttribute('data-id')));
-      });
-      tableBody.querySelectorAll('.edit-btn').forEach(btn => {
-        btn.addEventListener('click', () => openEditModal(btn.getAttribute('data-id')));
-      });
-      tableBody.querySelectorAll('.del-btn').forEach(btn => {
-        btn.addEventListener('click', () => deleteStock(btn.getAttribute('data-id')));
-      });
-
-      updateStats();
-    }
-
-    // Update Stats Summary
-    function updateStats() {
-      const statTotalCount = document.getElementById('statTotalCount');
-      const statTotalInvested = document.getElementById('statTotalInvested');
-      const statCurrentVal = document.getElementById('statCurrentVal');
-      const statTotalPL = document.getElementById('statTotalPL');
-      const statWatchingCount = document.getElementById('statWatchingCount');
-
-      statTotalCount.textContent = watchlist.length;
-
-      let totalInvested = 0;
-      let totalCurrentForInvested = 0;
-      let totalCurrentAll = 0;
-      let investedCount = 0;
-      let watchingCount = 0;
-
-      watchlist.forEach(s => {
-        totalCurrentAll += s.currentPrice;
-        if (s.purchasePrice && s.purchasePrice > 0) {
-          totalInvested += s.purchasePrice;
-          totalCurrentForInvested += s.currentPrice;
-          investedCount++;
-        } else {
-          watchingCount++;
-        }
-      });
-
-      statTotalInvested.textContent = formatINR(totalInvested);
-      statCurrentVal.textContent = formatINR(totalCurrentForInvested > 0 ? totalCurrentForInvested : totalCurrentAll);
-
-      const netPL = totalCurrentForInvested - totalInvested;
-      const netPLPercent = totalInvested > 0 ? (netPL / totalInvested) * 100 : 0;
-      const isGain = netPL >= 0;
-
-      statTotalPL.textContent = `${isGain ? '+' : ''}${formatINR(netPL)} (${netPLPercent.toFixed(2)}%)`;
-      statTotalPL.className = `text-xl font-bold font-mono ${isGain ? 'text-emerald-400' : 'text-rose-400'}`;
-      statWatchingCount.textContent = `${watchingCount} টি শুধু পর্যবেক্ষণে (Watching) | ${investedCount} টি কেনা`;
-    }
-
-    // Positional Analysis Modal Logic
-    const analysisModal = document.getElementById('analysisModal');
-    const closeAnalysisModalBtn = document.getElementById('closeAnalysisModalBtn');
-    const closeAnalysisFooterBtn = document.getElementById('closeAnalysisFooterBtn');
-    const analysisSymbol = document.getElementById('analysisSymbol');
-    const analysisName = document.getElementById('analysisName');
-    const analysisVerdictBanner = document.getElementById('analysisVerdictBanner');
-    const analysisSupport = document.getElementById('analysisSupport');
-    const analysisResistance = document.getElementById('analysisResistance');
-    const analysisRSI = document.getElementById('analysisRSI');
-    const analysisRSIStatus = document.getElementById('analysisRSIStatus');
-    const analysisProbPercent = document.getElementById('analysisProbPercent');
-    const analysisProbBar = document.getElementById('analysisProbBar');
-    const analysisRecommendation = document.getElementById('analysisRecommendation');
-
-    function openAnalysisModal(id) {
-      const stock = watchlist.find(s => s.id === id);
-      if (!stock) return;
-
-      const tech = calculateShortTermOutlook(stock);
-
-      analysisSymbol.textContent = stock.symbol;
-      analysisName.textContent = `${stock.name} (${stock.sector || 'NSE/BSE'}) • লাইভ দর: ${formatINR(stock.currentPrice)}`;
-
-      analysisVerdictBanner.className = `p-3.5 rounded-xl border flex items-center justify-between ${tech.statusBadgeClass}`;
-      analysisVerdictBanner.innerHTML = `
-        <div>
-          <span class="text-[10px] uppercase font-bold tracking-wider opacity-80 block flex items-center gap-1">
-            <span>⚡ ৪–১০ মাস ক্যাপিটাল গেইন স্ট্যাটাস</span>
-          </span>
-          <span class="text-sm font-bold flex items-center gap-1.5 mt-0.5">${tech.statusIcon} ${tech.statusTitle}</span>
-        </div>
-        <div class="text-right">
-          <span class="text-xs font-bold text-white font-mono">${tech.probLabel}</span>
-          <span class="text-[9px] block text-slate-400 font-medium">টার্গেট পূরণ সম্ভাবনা</span>
-        </div>
-      `;
-
-      const modalBuyPriceEl = document.getElementById('modalBuyPrice');
-      const modalHoldLevelEl = document.getElementById('modalHoldLevel');
-      const modalSellTargetEl = document.getElementById('modalSellTarget');
-      const modalStopLossEl = document.getElementById('modalStopLoss');
-
-      if (modalBuyPriceEl) modalBuyPriceEl.textContent = formatINR(tech.buyPrice);
-      if (modalHoldLevelEl) modalHoldLevelEl.textContent = `> ${formatINR(tech.stopLoss)}`;
-      if (modalSellTargetEl) modalSellTargetEl.textContent = formatINR(tech.sellTarget);
-      if (modalStopLossEl) modalStopLossEl.textContent = `< ${formatINR(tech.stopLoss)}`;
-
-      analysisSupport.textContent = formatINR(tech.support);
-      analysisResistance.textContent = formatINR(tech.resistance);
-      analysisRSI.textContent = tech.rsi;
-
-      let rsiStatusText = 'হেলদি পজিশনাল ট্রেন্ড (সঞ্চয়ের উপযুক্ত)';
-      if (parseFloat(tech.rsi) > 70) rsiStatusText = 'Overbought (অতিরিক্ত কেনা হয়েছে; ডিপের অপেক্ষা করুন)';
-      else if (parseFloat(tech.rsi) < 38) rsiStatusText = 'Oversold (বুলিশ রিভার্সালের সোনালী সুযোগ)';
-      analysisRSIStatus.textContent = rsiStatusText;
-
-      analysisProbPercent.textContent = `${tech.probability}%`;
-      analysisProbBar.style.width = `${tech.probability}%`;
-      analysisRecommendation.innerHTML = `<strong>সারসংক্ষেপ পরামর্শ:</strong> ${tech.detailedAdvice}`;
-
-      analysisModal.classList.remove('hidden');
-    }
-
-    closeAnalysisModalBtn.addEventListener('click', () => analysisModal.classList.add('hidden'));
-    closeAnalysisFooterBtn.addEventListener('click', () => analysisModal.classList.add('hidden'));
-
-    // Autocomplete Search & Add Form
-    const searchInput = document.getElementById('stockSearchInput');
-    const dropdown = document.getElementById('stockDropdown');
-    const clearSearchBtn = document.getElementById('clearSearchBtn');
-    const addCurrentPriceInput = document.getElementById('addCurrentPriceInput');
-    const purchaseInput = document.getElementById('purchasePriceInput');
-    const addStockForm = document.getElementById('addStockForm');
-
-    function filterStocks(query) {
-      if (!query.trim()) {
-        dropdown.classList.add('hidden');
-        clearSearchBtn.classList.add('hidden');
-        return;
-      }
-      clearSearchBtn.classList.remove('hidden');
-
-      const rawQ = query.trim().toLowerCase();
-      const normalizedQ = rawQ.replace(/(.)\1{2,}/g, '$1$1');
-      const words = normalizedQ.split(/\s+/).filter(w => w.length > 0);
-
-      const filtered = INDIAN_STOCKS_DB.filter(s => {
-        const fullTarget = `${s.symbol} ${s.name} ${s.sector} ${s.keywords || ''}`.toLowerCase();
-        if (fullTarget.includes(rawQ) || fullTarget.includes(normalizedQ)) return true;
-        return words.every(w => fullTarget.includes(w));
-      });
-
-      let itemsHtml = filtered.map(item => `
-        <div class="dropdown-item p-2.5 hover:bg-slate-800 cursor-pointer flex items-center justify-between transition" data-symbol="${item.symbol}">
-          <div>
-            <span class="font-bold text-white text-xs bg-slate-800 px-1 py-0.5 rounded border border-slate-700 font-mono">${item.symbol}</span>
-            <span class="text-xs text-slate-200 ml-1.5 font-medium">${item.name}</span>
-            <span class="text-[10px] text-slate-400 ml-1">(${item.sector})</span>
-          </div>
-          <div class="text-right">
-            <span class="text-xs font-bold text-emerald-400 font-mono">${formatINR(item.basePrice)}</span>
-          </div>
-        </div>
-      `).join('');
-
-      itemsHtml += `
-        <div class="custom-item p-2.5 hover:bg-slate-800 bg-slate-900 border-t border-slate-800 cursor-pointer flex items-center justify-between text-sky-400 transition" data-query="${query.trim().toUpperCase()}">
-          <div class="flex items-center gap-1.5 text-xs">
-            <span class="font-bold text-sky-400">+</span>
-            <span>কাস্টম স্টক হিসেবে যোগ করুন: <strong class="text-white">${query.trim().toUpperCase()}</strong></span>
-          </div>
-          <span class="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 font-medium">BSE/NSE</span>
-        </div>
-      `;
-
-      dropdown.innerHTML = itemsHtml;
-      dropdown.classList.remove('hidden');
-
-      dropdown.querySelectorAll('.dropdown-item').forEach(el => {
-        el.addEventListener('click', () => {
-          selectStock(el.getAttribute('data-symbol'));
-        });
-      });
-
-      const customEl = dropdown.querySelector('.custom-item');
-      if (customEl) {
-        customEl.addEventListener('click', () => {
-          selectCustom(customEl.getAttribute('data-query'));
-        });
-      }
-    }
-
-    // Fetch live price immediately for the Add Stock Form
-    async function fetchLivePriceForForm(symbol, fallbackPrice) {
-      const tempStock = { symbol: symbol, currentPrice: fallbackPrice };
-      const success = await fetchIndividualRealTimeQuote(tempStock);
-      if (success) {
-        const currentInput = document.getElementById('addCurrentPriceInput');
-        const searchBox = document.getElementById('stockSearchInput');
-        // Update only if the user hasn't cleared or changed the search box
-        if (currentInput && searchBox.value.includes(symbol)) {
-          currentInput.value = tempStock.currentPrice.toFixed(2);
-        }
-      }
-    }
-
-    function selectStock(symbol) {
-      const stock = INDIAN_STOCKS_DB.find(s => s.symbol === symbol);
-      if (!stock) return;
-      selectedStockFromDb = stock;
-      searchInput.value = `${stock.symbol} - ${stock.name}`;
-      dropdown.classList.add('hidden');
-      addCurrentPriceInput.value = stock.basePrice.toFixed(2);
-      purchaseInput.focus();
-      
-      // Async fetch to overwrite base price with true live price instantly in form
-      fetchLivePriceForForm(stock.symbol, stock.basePrice);
-    }
-
-    function selectCustom(customSymbol) {
-      selectedStockFromDb = null;
-      searchInput.value = customSymbol;
-      dropdown.classList.add('hidden');
-      if (!addCurrentPriceInput.value) addCurrentPriceInput.value = '100.00';
-      purchaseInput.focus();
-
-      // Async fetch to get real price for custom symbols
-      fetchLivePriceForForm(customSymbol, 100.00);
-    }
-
-    searchInput.addEventListener('input', e => filterStocks(e.target.value));
-    searchInput.addEventListener('focus', () => { if (searchInput.value.trim()) filterStocks(searchInput.value); });
-    clearSearchBtn.addEventListener('click', () => {
-      searchInput.value = '';
-      addCurrentPriceInput.value = '';
-      purchaseInput.value = '';
-      dropdown.classList.add('hidden');
-      clearSearchBtn.classList.add('hidden');
-      selectedStockFromDb = null;
-    });
-
-    document.addEventListener('click', e => {
-      if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
-        dropdown.classList.add('hidden');
-      }
-    });
-
-    // Add Stock Form Submit
-    addStockForm.addEventListener('submit', e => {
-      e.preventDefault();
-      const rawSearch = searchInput.value.trim();
-      if (!rawSearch) {
-        showToast('স্টকের নাম বা সিম্বল নির্বাচন করুন!', 'error');
-        searchInput.focus();
-        return;
-      }
-
-      let livePrice = parseFloat(addCurrentPriceInput.value);
-      if (isNaN(livePrice) || livePrice <= 0) {
-        livePrice = 100.00;
-      }
-
-      let purchaseVal = null;
-      if (purchaseInput.value.trim() !== '') {
-        const parsedP = parseFloat(purchaseInput.value);
-        if (!isNaN(parsedP) && parsedP > 0) {
-          purchaseVal = parsedP;
-        }
-      }
-
-      const symbol = rawSearch.split(' - ')[0].trim().toUpperCase();
-      const name = selectedStockFromDb ? selectedStockFromDb.name : symbol;
-      const sector = selectedStockFromDb ? selectedStockFromDb.sector : 'NSE / BSE';
-      const condition = selectedStockFromDb ? selectedStockFromDb.condition : 'Bullish';
-      const baseRsi = selectedStockFromDb ? selectedStockFromDb.rsi : 55;
-
-      const existing = watchlist.find(s => s.symbol === symbol);
-      if (existing) {
-        showToast(`${symbol} ইতিমধ্যেই আপনার তালিকায় রয়েছে!`, 'error');
-        return;
-      }
-
-      const newStock = {
-        id: 'stock_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
-        symbol,
-        name,
-        sector,
-        currentPrice: livePrice,
-        previousPrice: livePrice,
-        purchasePrice: purchaseVal,
-        condition,
-        baseRsi,
-        anchorPrice: purchaseVal || livePrice
-      };
-
-      watchlist.unshift(newStock);
-      saveWatchlist();
-      renderWatchlist();
-
-      // Trigger instant background quote lookup for this newly added stock
-      fetchIndividualRealTimeQuote(newStock).then(() => {
-        saveWatchlist();
-        renderWatchlist();
-      });
-
-      // Reset
-      searchInput.value = '';
-      addCurrentPriceInput.value = '';
-      purchaseInput.value = '';
-      clearSearchBtn.classList.add('hidden');
-      selectedStockFromDb = null;
-
-      showToast(`'${symbol}' সফলভাবে তালিকায় যুক্ত হয়েছে!`, 'success');
-    });
-
-    // Delete Stock
-    function deleteStock(id) {
-      watchlist = watchlist.filter(s => s.id !== id);
-      saveWatchlist();
-      renderWatchlist();
-      showToast('স্টক মুছে ফেলা হয়েছে।', 'info');
-    }
-
-    // Edit Modal (Only Purchase price is editable)
-    const editModal = document.getElementById('editStockModal');
-    const closeEditModalBtn = document.getElementById('closeEditModalBtn');
-    const cancelEditModalBtn = document.getElementById('cancelEditModalBtn');
-    const editStockForm = document.getElementById('editStockForm');
-    const modalStockId = document.getElementById('modalStockId');
-    const modalStockSymbol = document.getElementById('modalStockSymbol');
-    const modalStockName = document.getElementById('modalStockName');
-    const modalCurrentPrice = document.getElementById('modalCurrentPrice');
-    const modalPurchasePrice = document.getElementById('modalPurchasePrice');
-    const modalAutoDecisionPreview = document.getElementById('modalAutoDecisionPreview');
-
-    function updateModalDecisionPreview() {
-      if (!modalAutoDecisionPreview) return;
-      const price = parseFloat(modalCurrentPrice.value) || 0;
-      let purchase = null;
-      if (modalPurchasePrice.value.trim() !== '') {
-        const p = parseFloat(modalPurchasePrice.value);
-        if (!isNaN(p) && p > 0) purchase = p;
-      }
-
-      const tempStock = {
-        currentPrice: price > 0 ? price : 100,
-        purchasePrice: purchase,
-        anchorPrice: purchase || price,
-        previousPrice: price,
-        baseRsi: 55
-      };
-      const tech = calculateShortTermOutlook(tempStock);
-      modalAutoDecisionPreview.innerHTML = `
-        <div class="flex items-center gap-2 flex-wrap">
-          <span class="px-2 py-0.5 rounded text-[10px] font-bold ${tech.statusBadgeClass}">
-            ${tech.statusIcon} ${tech.statusTitle}
-          </span>
-          <span class="text-slate-300 font-mono text-[10px] font-semibold">${tech.probLabel}</span>
-        </div>
-        <div class="text-[10px] text-slate-400 mt-1 flex items-center gap-2">
-          <span>স্টপলস: <strong class="text-rose-400 font-mono">${formatINR(tech.stopLoss)}</strong></span>
-          <span>•</span>
-          <span>টার্গেট: <strong class="text-amber-400 font-mono">${formatINR(tech.sellTarget)}</strong></span>
-        </div>
-      `;
-    }
-
-    modalPurchasePrice.addEventListener('input', updateModalDecisionPreview);
-
-    function openEditModal(id) {
-      const stock = watchlist.find(s => s.id === id);
-      if (!stock) return;
-
-      modalStockId.value = stock.id;
-      modalStockSymbol.textContent = stock.symbol;
-      modalStockName.textContent = stock.name;
-      modalCurrentPrice.value = stock.currentPrice.toFixed(2);
-      modalPurchasePrice.value = stock.purchasePrice ? stock.purchasePrice.toFixed(2) : '';
-
-      updateModalDecisionPreview();
-      editModal.classList.remove('hidden');
-      modalPurchasePrice.focus();
-    }
-
-    function closeEditModal() {
-      editModal.classList.add('hidden');
-    }
-
-    closeEditModalBtn.addEventListener('click', closeEditModal);
-    cancelEditModalBtn.addEventListener('click', closeEditModal);
-
-    editStockForm.addEventListener('submit', e => {
-      e.preventDefault();
-      const id = modalStockId.value;
-      const stock = watchlist.find(s => s.id === id);
-      if (!stock) return;
-
-      let newPurchase = null;
-      if (modalPurchasePrice.value.trim() !== '') {
-        const p = parseFloat(modalPurchasePrice.value);
-        if (!isNaN(p) && p > 0) newPurchase = p;
-      }
-
-      stock.purchasePrice = newPurchase;
-      if (newPurchase) {
-        stock.anchorPrice = newPurchase;
-      }
-
-      saveWatchlist();
-      renderWatchlist();
-      closeEditModal();
-      showToast(`${stock.symbol} এর কেনা দাম আপডেট হয়েছে ও টার্গেট পুনরায় সমন্বয় করা হয়েছে!`, 'success');
-    });
-
-    // ========================================================
-    // WORLD-CLASS INSTITUTIONAL REAL-TIME QUOTE ENGINE (NSE & BSE)
-    // Multi-pipeline fallback: Yahoo Finance Chart API v8 -> Codetabs / CorsProxy
-    // ========================================================
-    let syncIntervalSeconds = 15;
-    let countdownSeconds = syncIntervalSeconds;
-    let autoSyncCountdownTimer = null;
-    let isDeepSyncing = false;
-
-    function checkIndianMarketStatus() {
-      const now = new Date();
-      const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-      const ist = new Date(utc + (3600000 * 5.5));
-      const day = ist.getDay(); // 0: Sun, 6: Sat
-      const totalMinutes = ist.getHours() * 60 + ist.getMinutes();
-
-      // Market hours: Mon-Fri 9:15 AM (555 min) to 3:30 PM (930 min)
-      const isMarketOpen = (day >= 1 && day <= 5) && (totalMinutes >= 555 && totalMinutes <= 930);
-
-      const statusBadge = document.getElementById('marketStatusBadge');
-      const statusDot = document.getElementById('marketStatusDot');
-
-      if (statusBadge && statusDot) {
-        if (isMarketOpen) {
-          statusBadge.className = 'px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] border border-emerald-500/40 font-mono font-semibold';
-          statusBadge.textContent = '🟢 লাইভ ট্রেডিং সেশন চলছে';
-          statusDot.innerHTML = '<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>';
-        } else {
-          statusBadge.className = 'px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] border border-amber-500/40 font-mono font-semibold';
-          statusBadge.textContent = '🔴 মার্কেট ক্লোজড (সমাপনী দর সংরক্ষিত)';
-          statusDot.innerHTML = '<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>';
-        }
-      }
-      return isMarketOpen;
-    }
-
-    async function triggerDeepSync(isManual = false) {
-      if (isDeepSyncing) return;
-      isDeepSyncing = true;
-
-      const spinIcon = document.getElementById('syncIconSpin');
-      const refIcon = document.getElementById('refreshSpinner');
-      if (spinIcon) spinIcon.classList.add('animate-spin');
-      if (refIcon) refIcon.classList.add('animate-spin');
-
-      checkIndianMarketStatus();
-
-      try {
-        if (watchlist.length > 0) {
-          // Process all watchlist items concurrently using robust individual fetchers
-          const fetchPromises = watchlist.map(stock => fetchIndividualRealTimeQuote(stock));
-          await Promise.allSettled(fetchPromises);
-        }
-      } catch (globalErr) {
-        console.warn('Deep sync network error:', globalErr);
-      } finally {
-        isDeepSyncing = false;
-        if (spinIcon) setTimeout(() => spinIcon.classList.remove('animate-spin'), 600);
-        if (refIcon) setTimeout(() => refIcon.classList.remove('animate-spin'), 600);
-      }
-
-      saveWatchlist();
-      renderWatchlist();
-
-      const nowStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      const lastSyncEl = document.getElementById('lastSyncTime');
-      if (lastSyncEl) lastSyncEl.textContent = nowStr;
-
-      countdownSeconds = syncIntervalSeconds;
-      updateCountdownDisplay();
-
-      if (isManual) {
-        showToast(`⚡ আসল মার্কেট ডেটার সাথে সিঙ্ক সফল (${nowStr})!`, 'success');
-      }
-    }
-
-    // High Precision Multi-Exchange Real-Time Quote & Chart Data Resolver
-    async function fetchIndividualRealTimeQuote(stock) {
-      const sym = stock.symbol.toUpperCase();
-      
-      // Using 2-minute intervals for smooth sparkline, with timestamp cache busting
-      const cacheBuster = Date.now();
-      const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}.NS?interval=2m&range=1d&ts=${cacheBuster}`;
-      
-      // Proxies ensuring no caching
-      const proxyUrls = [
-        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`,
-        `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`
-      ];
-
-      for (const pUrl of proxyUrls) {
-        try {
-          const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 4000);
-          const res = await fetch(pUrl, { signal: controller.signal, headers: { 'Cache-Control': 'no-cache' } });
-          clearTimeout(timeout);
-          if (res.ok) {
-            const data = await res.json();
-            const result = data?.chart?.result?.[0];
-            const meta = result?.meta;
-            if (meta && meta.regularMarketPrice && meta.regularMarketPrice > 0) {
-              const fetchedPrice = +(meta.regularMarketPrice).toFixed(2);
-              const closePrices = result?.indicators?.quote?.[0]?.close || [];
-              
-              // Plausibility check
-              if (fetchedPrice > 0) {
-                stock.previousPrice = stock.currentPrice || fetchedPrice;
-                stock.currentPrice = fetchedPrice;
-                stock.chartData = closePrices; // Attach intraday graph data
-                
-                if (!stock.purchasePrice) {
-                  stock.anchorPrice = +(meta.chartPreviousClose || stock.currentPrice).toFixed(2);
-                }
-                return true;
-              }
-            }
-          }
-        } catch (e) {
-          // Try next proxy
-        }
-      }
-
-      // Secondary fallback: Exact verified base price
-      const match = INDIAN_STOCKS_DB.find(s => s.symbol.toUpperCase() === sym);
-      if (match && match.basePrice) {
-        stock.previousPrice = stock.currentPrice;
-        stock.currentPrice = match.basePrice;
-        if (!stock.purchasePrice) {
-          stock.anchorPrice = match.basePrice;
-        }
-        return true;
-      }
-      return false;
-    }
-
-    function startRealTimeAutoSyncTimer() {
-      if (autoSyncCountdownTimer) clearInterval(autoSyncCountdownTimer);
-      countdownSeconds = syncIntervalSeconds;
-      updateCountdownDisplay();
-
-      autoSyncCountdownTimer = setInterval(() => {
-        countdownSeconds--;
-        if (countdownSeconds <= 0) {
-          countdownSeconds = syncIntervalSeconds;
-          triggerDeepSync(false);
-        }
-        updateCountdownDisplay();
-      }, 1000);
-    }
-
-    function updateCountdownDisplay() {
-      const cdEl = document.getElementById('syncCountdown');
-      const barEl = document.getElementById('syncProgressBar');
-      if (cdEl) cdEl.textContent = countdownSeconds < 10 ? '0' + countdownSeconds : countdownSeconds;
-      if (barEl) {
-        const pct = (countdownSeconds / syncIntervalSeconds) * 100;
-        barEl.style.width = `${pct}%`;
-      }
-    }
-
-    // Live Feed Toggle
-    const toggleLiveBtn = document.getElementById('toggleLiveBtn');
-    const liveStatusDot = document.getElementById('liveStatusDot');
-    const liveStatusText = document.getElementById('liveStatusText');
-
-    toggleLiveBtn.addEventListener('click', () => {
-      isLiveActive = !isLiveActive;
-      if (isLiveActive) {
-        liveStatusDot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
-        liveStatusText.textContent = 'লাইভ ফিড: চালু';
-        startRealTimeAutoSyncTimer();
-        showToast('লাইভ ফিড চালু করা হয়েছে!', 'success');
-      } else {
-        liveStatusDot.className = 'w-2 h-2 rounded-full bg-slate-500';
-        liveStatusText.textContent = 'লাইভ ফিড: বন্ধ';
-        if (autoSyncCountdownTimer) clearInterval(autoSyncCountdownTimer);
-        showToast('লাইভ ফিড সাময়িক বিরতি দেওয়া হয়েছে।', 'info');
-      }
-    });
-
-    document.getElementById('forceSyncRealPricesBtn').addEventListener('click', () => triggerDeepSync(true));
-    document.getElementById('forceRefreshApiBtn').addEventListener('click', () => triggerDeepSync(true));
-
-    // Sync Link Generator (Cross-Browser Sharing)
-    function generateSyncUrl() {
-      const json = JSON.stringify(watchlist);
-      const encoded = btoa(encodeURIComponent(json));
-      return window.location.origin + window.location.pathname + '#data=' + encoded;
-    }
-
-    function copyToClipboard(text, msg) {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(() => showToast(msg, 'success'))
-        .catch(() => fallbackCopy(text, msg));
-      } else {
-        fallbackCopy(text, msg);
-      }
-    }
-
-    function fallbackCopy(text, msg) {
-      try {
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        ta.style.position = 'fixed';
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-        showToast(msg, 'success');
-      } catch (err) {
-        showToast('কপি ব্যর্থ হয়েছে, ম্যানুয়ালি কপি করুন।', 'error');
-      }
-    }
-
-    document.getElementById('syncLinkBtn').addEventListener('click', () => {
-      copyToClipboard(generateSyncUrl(), '🔗 সিঙ্ক লিঙ্ক কপি হয়েছে! যেকোনো ব্রাউজারে পেস্ট করলেই চলবে।');
-    });
-
-    document.getElementById('modalCopySyncLinkBtn').addEventListener('click', () => {
-      copyToClipboard(generateSyncUrl(), '🔗 সিঙ্ক লিঙ্ক কপি হয়েছে! যেকোনো ব্রাউজারে পেস্ট করলেই চলবে।');
-    });
-
-    // Backup & Restore
-    const backupModal = document.getElementById('backupModal');
-    const openBackupModalBtn = document.getElementById('openBackupModalBtn');
-    const closeBackupModalBtn = document.getElementById('closeBackupModalBtn');
-    const backupDataTextarea = document.getElementById('backupDataTextarea');
-    const exportDataBtn = document.getElementById('exportDataBtn');
-    const importDataBtn = document.getElementById('importDataBtn');
-
-    openBackupModalBtn.addEventListener('click', () => {
-      backupDataTextarea.value = JSON.stringify(watchlist, null, 2);
-      backupModal.classList.remove('hidden');
-    });
-    closeBackupModalBtn.addEventListener('click', () => backupModal.classList.add('hidden'));
-
-    exportDataBtn.addEventListener('click', () => {
-      copyToClipboard(backupDataTextarea.value, 'ব্যাকআপ কোড কপি হয়েছে!');
-    });
-
-    importDataBtn.addEventListener('click', () => {
-      try {
-        const text = backupDataTextarea.value.trim();
-        if (!text) {
-          showToast('অনুগ্রহ করে ব্যাকআপ কোড পেস্ট করুন!', 'error');
-          return;
-        }
-        const parsed = JSON.parse(text);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          watchlist = parsed;
-          saveWatchlist();
-          renderWatchlist();
-          backupModal.classList.add('hidden');
-          showToast('ডেটা সফলভাবে রিস্টোর করা হয়েছে!', 'success');
-        } else {
-          showToast('অবৈধ ডেটা ফরম্যাট!', 'error');
-        }
-      } catch (err) {
-        showToast('কোড পার্সিংয়ে সমস্যা হয়েছে!', 'error');
-      }
-    });
-
-    // Embed Modal Controls
-    const embedModal = document.getElementById('embedModal');
-    const openEmbedModalBtn = document.getElementById('openEmbedModalBtn');
-    const closeEmbedModalBtn = document.getElementById('closeEmbedModalBtn');
-    const copyIframeBtn = document.getElementById('copyIframeBtn');
-
-    openEmbedModalBtn.addEventListener('click', () => embedModal.classList.remove('hidden'));
-    closeEmbedModalBtn.addEventListener('click', () => embedModal.classList.add('hidden'));
-    copyIframeBtn.addEventListener('click', () => {
-      const iframeCode = '<iframe src="indian_stock_watchlist.html" width="100%" height="700" style="border:none; border-radius:12px;"></iframe>';
-      copyToClipboard(iframeCode, 'iFrame কোড কপি হয়েছে!');
-    });
-
-    // Feed Info Modal
-    const apiModal = document.getElementById('apiModal');
-    const openApiModalBtn = document.getElementById('openApiModalBtn');
-    const viewFeedStatusBtn = document.getElementById('viewFeedStatusBtn');
-    const closeApiModalBtn = document.getElementById('closeApiModalBtn');
-    const closeApiModalFooterBtn = document.getElementById('closeApiModalFooterBtn');
-
-    if (openApiModalBtn) openApiModalBtn.addEventListener('click', () => apiModal.classList.remove('hidden'));
-    if (viewFeedStatusBtn) viewFeedStatusBtn.addEventListener('click', () => apiModal.classList.remove('hidden'));
-    if (closeApiModalBtn) closeApiModalBtn.addEventListener('click', () => apiModal.classList.add('hidden'));
-    if (closeApiModalFooterBtn) closeApiModalFooterBtn.addEventListener('click', () => apiModal.classList.add('hidden'));
-
-    // Clear All
-    document.getElementById('clearAllBtn').addEventListener('click', () => {
-      if (watchlist.length === 0) return;
-      watchlist = [];
-      saveWatchlist();
-      renderWatchlist();
-      showToast('সব স্টক মুছে ফেলা হয়েছে।', 'info');
-    });
-
-    // Demo Sample Load
-    document.getElementById('loadSampleBtn').addEventListener('click', () => {
-      loadDefaultSample();
-      renderWatchlist();
-      showToast('স্যাম্পল স্টক লোড করা হয়েছে!', 'success');
-    });
-
-    // Initialize on Load
-    window.addEventListener('DOMContentLoaded', () => {
-      loadWatchlist();
-      renderWatchlist();
-      checkIndianMarketStatus();
-      startRealTimeAutoSyncTimer();
-      setTimeout(() => triggerDeepSync(false), 500);
-    });
-  </script>
+    try { const q = await Promise.any(tries); q.exch = suf === '.NS' ? 'NSE' : 'BSE'; return q; } catch (e) {}
+  }
+  return null;
+}
+async function quotesViaWorker(syms) {
+  const j = await getJSON(`${WORKER_URL}/?symbols=${encodeURIComponent(syms.join(','))}&t=${Date.now()}`, 8000);
+  return j.quotes || {};
+}
+async function fetchQuotes(syms) {
+  if (WORKER_URL) { try { const q = await quotesViaWorker(syms); if (Object.keys(q).length) return q; } catch (e) {} }
+  const out = {};
+  await Promise.all(syms.map(async s => { const q = await quoteOne(s); if (q) out[s] = q; }));
+  return out;
+}
+function apply(s, q) {
+  s.prevLtp = s.ltp; s.ltp = +q.price.toFixed(2); s.prevClose = q.prev; s.spark = q.closes;
+  s.tick = q.time || Date.now(); s.exch = q.exch || 'NSE'; s.ok = Date.now();
+}
+
+async function sync(manual) {
+  if (busy) return; busy = true;
+  $('syncBtn').textContent = '⏳ সিঙ্ক হচ্ছে…';
+  mktStatus();
+  let ok = 0;
+  if (list.length) {
+    const q = await fetchQuotes(list.map(s => s.symbol));
+    list.forEach(s => { if (q[s.symbol]) { apply(s, q[s.symbol]); ok++; } });
+    if (ok) save();
+  }
+  busy = false; left = INTERVAL;
+  $('syncBtn').textContent = '⚡ এখনই সিঙ্ক';
+  $('last').textContent = new Date().toLocaleTimeString('en-IN') + (list.length && !ok ? ' (ব্যর্থ)' : '');
+  render();
+  if (manual) toast(ok ? `✅ ${ok}/${list.length} টি স্টকের দর আপডেট হয়েছে` : '⚠️ দর আনা যায়নি — ইন্টারনেট বা সিম্বল দেখুন, কিছুক্ষণ পর আবার চেষ্টা করুন');
+}
+
+/* ============ মার্কেট সময় (IST) ============ */
+function mktStatus() {
+  const n = new Date(), ist = new Date(n.getTime() + n.getTimezoneOffset() * 60000 + 19800000);
+  const d = ist.getDay(), m = ist.getHours() * 60 + ist.getMinutes();
+  const open = d >= 1 && d <= 5 && m >= 555 && m <= 930;
+  $('mkt').textContent = open ? 'মার্কেট খোলা (NSE/BSE)' : 'মার্কেট বন্ধ — সর্বশেষ সমাপনী দর';
+  $('dot').className = 'dot' + (open && !paused ? ' on' : '');
+}
+
+/* ============ ৪–১০ মাসের লেভেল ============ */
+function levels(s) {
+  const has = s.buy > 0, p = s.ltp;
+  const anchor = has ? s.buy : (s.prevClose || p);
+  const pnl = has ? (p - s.buy) / s.buy * 100 : null;
+  const buyAt = +(anchor * 0.94).toFixed(2);
+  const target = +(has ? Math.max(anchor * 1.20, s.buy * 1.22) : anchor * 1.20).toFixed(2);
+  let sl = +(anchor * 0.91).toFixed(2);
+  if (has && pnl > 12) sl = +(s.buy * 1.05).toFixed(2);
+  let cls = 't-hold', txt = '🟡 হোল্ড', tip = `স্টপলস ${inr(sl)} এর ওপরে থাকলে ধৈর্য ধরুন`;
+  if (p >= target) { cls = 't-sell'; txt = '💰 প্রফিট বুক'; tip = 'টার্গেট পূরণ — অন্তত আংশিক মুনাফা তুলুন'; }
+  else if (p <= sl) { cls = 't-exit'; txt = '🛑 স্টপলস ব্রেক'; tip = 'মূলধন বাঁচাতে বেরিয়ে যাওয়ার কথা ভাবুন'; }
+  else if (p <= buyAt) { cls = 't-buy'; txt = '🟢 ডিপে কেনার জোন'; tip = 'সাপোর্টের কাছে — জমানোর জোন'; }
+  else if (has && pnl > 0) { txt = '🟡 লাভে হোল্ড'; tip = `টার্গেট ${inr(target)} পর্যন্ত ধরে রাখুন`; }
+  return {pnl, buyAt, target, sl, cls, txt, tip};
+}
+
+/* ============ স্পার্কলাইন ============ */
+function spark(d, up) {
+  if (!d || d.length < 2) return '';
+  const mn = Math.min(...d), mx = Math.max(...d), rg = mx - mn || 1, w = 56, h = 20;
+  const pts = d.map((v, i) => `${(i / (d.length - 1) * w).toFixed(1)},${(h - (v - mn) / rg * h).toFixed(1)}`).join(' ');
+  return `<svg width="${w}" height="${h}" viewBox="0 -2 ${w} ${h + 4}" aria-hidden="true"><polyline fill="none" stroke="${up ? '#34d399' : '#f87171'}" stroke-width="1.6" stroke-linejoin="round" points="${pts}"/></svg>`;
+}
+
+/* ============ রেন্ডার ============ */
+function ago(t) {
+  if (!t) return '';
+  const s = Math.max(0, (Date.now() - t) / 1000);
+  return s < 90 ? 'এইমাত্র' : s < 3600 ? Math.round(s / 60) + ' মিনিট আগে' : s < 86400 ? Math.round(s / 3600) + ' ঘণ্টা আগে' : new Date(t).toLocaleDateString('en-IN');
+}
+function render() {
+  $('empty').hidden = list.length > 0; $('tbl').hidden = list.length === 0;
+  $('body').innerHTML = list.map((s, i) => {
+    const has = s.buy > 0, L = s.ltp ? levels(s) : null;
+    const up = s.ltp >= (s.prevClose || s.ltp);
+    const fl = s.prevLtp != null && s.ltp !== s.prevLtp ? ' flash' : '';
+    const diff = has && s.ltp ? s.ltp - s.buy : null;
+    return `<tr>
+      <td><span class="sym">${esc(s.symbol)}</span> <span class="mut">${esc(s.exch || '')}</span></td>
+      <td class="r"><span class="n${fl}" style="font-weight:700;font-size:15px">${s.ltp ? inr(s.ltp) : '…'}</span> ${spark(s.spark, up)}
+        <div class="mut" style="font-size:10px">${s.tick ? 'টিক: ' + ago(s.tick) : 'দর লোড হচ্ছে'}${s.ok && Date.now() - s.ok > 60000 ? ' <span class="stale">⚠ পুরোনো</span>' : ''}</div></td>
+      <td class="r n">${has ? inr(s.buy) : '<span class="mut">কেনা হয়নি</span>'}</td>
+      <td class="r n ${diff == null ? '' : diff >= 0 ? 'up' : 'dn'}">${diff == null ? '<span class="mut">শুধু পর্যবেক্ষণ</span>' : (diff >= 0 ? '+' : '') + inr(diff) + `<div style="font-size:11px">(${diff >= 0 ? '+' : ''}${L.pnl.toFixed(2)}%)</div>`}</td>
+      <td>${L ? `<span class="tag ${L.cls}">${L.txt}</span> <span class="mut" style="font-size:11px">${esc(L.tip)}</span>
+        <div class="lv"><div><span>ডিপে কিনুন</span><b class="n up">${inr(L.buyAt)}</b></div><div><span>স্টপলস</span><b class="n dn">${inr(L.sl)}</b></div><div><span>টার্গেট</span><b class="n" style="color:var(--am)">${inr(L.target)}</b></div></div>` : '<span class="mut">দর এলে গাইড দেখাবে</span>'}</td>
+      <td><button data-e="${i}" title="কেনা দর বদলান" aria-label="কেনা দর বদলান">✏️</button> <button data-d="${i}" title="মুছুন" aria-label="মুছুন">🗑️</button></td></tr>`;
+  }).join('');
+  stats();
+}
+function stats() {
+  let inv = 0, cur = 0;
+  list.forEach(s => { if (s.buy > 0 && s.ltp) { inv += s.buy; cur += s.ltp; } });
+  const pl = cur - inv, pc = inv ? pl / inv * 100 : 0;
+  $('sCount').textContent = list.length; $('sInv').textContent = inr(inv); $('sCur').textContent = inr(cur);
+  $('sPL').textContent = `${pl >= 0 ? '+' : ''}${inr(pl)} (${pc.toFixed(2)}%)`;
+  $('sPL').className = pl >= 0 ? 'up' : 'dn';
+}
+
+/* ============ ইভেন্ট ============ */
+$('form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const sym = $('sym').value.trim().toUpperCase().split(/[\s-]/)[0].replace(/\.(NS|BO)$/, '');
+  if (!/^[A-Z0-9&]{1,20}$/.test(sym)) return toast('সঠিক NSE সিম্বল লিখুন');
+  if (list.some(s => s.symbol === sym)) return toast(sym + ' আগেই তালিকায় আছে');
+  const b = parseFloat($('buy').value);
+  const s = {symbol: sym, buy: b > 0 ? b : null};
+  list.unshift(s); save(); render();
+  $('sym').value = ''; $('buy').value = '';
+  const q = (await fetchQuotes([sym]))[sym];
+  if (q) { apply(s, q); save(); render(); toast(sym + ' যোগ হয়েছে — লাইভ দর: ' + inr(s.ltp)); }
+  else { list = list.filter(x => x !== s); save(); render(); toast('❌ ' + sym + ' এর দর পাওয়া যায়নি। সিম্বল ঠিক আছে কিনা দেখুন।'); }
+});
+$('body').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.d != null) { list.splice(+b.dataset.d, 1); save(); render(); }
+  if (b.dataset.e != null) {
+    const s = list[+b.dataset.e], v = prompt(`${s.symbol} — আপনার কেনা দর (ফাঁকা = শুধু পর্যবেক্ষণ):`, s.buy || '');
+    if (v === null) return;
+    const n = parseFloat(v); s.buy = n > 0 ? n : null; save(); render();
+  }
+});
+$('syncBtn').onclick = () => sync(true);
+$('pauseBtn').onclick = () => { paused = !paused; $('pauseBtn').textContent = paused ? '▶ অটো-সিঙ্ক বন্ধ' : '⏸ অটো-সিঙ্ক চালু'; mktStatus(); };
+$('expBtn').onclick = () => {
+  const t = JSON.stringify(list.map(s => ({symbol: s.symbol, buy: s.buy})));
+  (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast('ব্যাকআপ কোড কপি হয়েছে'), () => prompt('এই কোড কপি করুন:', t));
+};
+$('impBtn').onclick = () => {
+  const t = prompt('ব্যাকআপ কোড পেস্ট করুন:'); if (!t) return;
+  try {
+    const a = JSON.parse(t); if (!Array.isArray(a)) throw 0;
+    list = a.filter(x => x && /^[A-Z0-9&]{1,20}$/.test(x.symbol)).map(x => ({symbol: x.symbol, buy: x.buy > 0 ? +x.buy : null}));
+    save(); render(); sync(true);
+  } catch (e) { toast('ব্যাকআপ কোডটি সঠিক নয়'); }
+};
+
+/* ============ চালু ============ */
+load(); render(); mktStatus(); sync(false);
+setInterval(() => {
+  if (paused) return;
+  left--; if (left <= 0) sync(false);
+  $('cd').textContent = String(Math.max(left, 0)).padStart(2, '0');
+}, 1000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden && !paused) sync(false); });
+</script>
 </body>
 </html>
