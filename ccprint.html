@@ -6,7 +6,7 @@
 
     <title>SHM Pro Photo Print Maker | Dashboard Layout</title>
 
-    <meta name="description" content="SHM Pro Photo Print Maker — Passport, Stamp, Job Form and ID Card photos তৈরি করুন।">
+    <meta name="description" content="SHM Pro Photo Print Maker — Passport, Stamp, Job Form and ID Card photos তৈরি করুন। A4 পেজের সর্বোচ্চ ব্যবহার সহ।">
     <meta name="robots" content="index, follow">
 
     <!-- FONTS & ICONS -->
@@ -50,6 +50,30 @@
             display: flex;
             height: 100vh;
             overflow: hidden;
+        }
+
+        /* IN-PAGE TOAST NOTIFICATION */
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ef4444;
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            animation: fadeInToast 0.3s ease;
+        }
+        @keyframes fadeInToast {
+            from { opacity: 0; transform: translate(-50%, -10px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
         }
 
         /* ----- DASHBOARD LAYOUT ----- */
@@ -97,9 +121,38 @@
             gap: 15px;
         }
 
-        /* Scrollbar for Sidebar */
         .sidebar-content::-webkit-scrollbar { width: 6px; }
         .sidebar-content::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+
+        .cutting-info-box {
+            background: rgba(59, 130, 246, 0.12);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.8rem;
+            color: #93c5fd;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            line-height: 1.4;
+        }
+        .cutting-info-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            color: #60a5fa;
+            font-size: 0.85rem;
+        }
+        .cutting-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+            font-size: 0.76rem;
+            color: #cbd5e1;
+            margin-top: 2px;
+        }
+        .cutting-info-grid span { background: rgba(15, 23, 42, 0.5); padding: 3px 6px; border-radius: 4px; }
 
         .person-card {
             background: var(--sidebar-card);
@@ -127,7 +180,6 @@
             font-weight: 700;
         }
 
-        /* Inputs in Sidebar */
         select, input.text-input {
             width: 100%;
             background: #0f172a;
@@ -253,25 +305,34 @@
             overflow: hidden;
         }
 
-        /* Top Header in Main Area */
         .top-header {
-            height: 70px;
+            min-height: 70px;
             background: var(--header-bg);
             border-bottom: 1px solid #e2e8f0;
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
             justify-content: space-between;
-            padding: 0 30px;
+            padding: 12px 30px;
+            gap: 15px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.02);
             z-index: 5;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
         }
 
         .paper-select-wrapper {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
             font-weight: 600;
             color: #334155;
+            font-size: 0.88rem;
         }
         
         .paper-select-wrapper select {
@@ -279,9 +340,10 @@
             color: #0f172a;
             border: 1px solid #cbd5e1;
             width: auto;
-            min-width: 180px;
-            padding: 10px 15px;
-            font-size: 0.95rem;
+            min-width: 150px;
+            padding: 8px 12px;
+            font-size: 0.88rem;
+            border-radius: 6px;
         }
 
         .more-tools-btn {
@@ -290,13 +352,14 @@
             text-decoration: none;
             font-weight: 600;
             font-size: 0.9rem;
-            padding: 10px 20px;
+            padding: 9px 18px;
             border-radius: 8px;
             display: flex;
             align-items: center;
             gap: 8px;
             transition: 0.2s;
             box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+            white-space: nowrap;
         }
         .more-tools-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4); }
 
@@ -304,7 +367,7 @@
         .workspace {
             flex: 1;
             overflow-y: auto;
-            padding: 40px;
+            padding: 35px 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -337,16 +400,16 @@
 
         /* Action Buttons Below Preview */
         .actions-bar {
-            margin-top: 30px;
+            margin-top: 25px;
             display: flex;
             gap: 20px;
             width: 100%;
             justify-content: center;
-            margin-bottom: 40px;
+            margin-bottom: 35px;
         }
 
         .action-btn {
-            padding: 14px 28px;
+            padding: 13px 28px;
             border-radius: 10px;
             font-size: 1.05rem;
             font-weight: 600;
@@ -403,7 +466,8 @@
         @media (max-width: 992px) {
             .app-container { flex-direction: column; }
             .sidebar { width: 100%; height: auto; max-height: 50vh; border-right: none; border-bottom: 1px solid var(--border-dark); }
-            .top-header { flex-direction: column; height: auto; padding: 15px; gap: 15px; }
+            .top-header { flex-direction: column; height: auto; padding: 15px; gap: 15px; align-items: stretch; }
+            .header-controls { flex-direction: column; align-items: stretch; }
             .workspace { padding: 20px; }
             .footer { flex-direction: column; gap: 10px; text-align: center; }
         }
@@ -411,15 +475,35 @@
 </head>
 
 <body>
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="toast-notification">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span id="toast-msg"></span>
+    </div>
+
     <div class="app-container">
         
-        <!-- LEFT SIDEBAR (Inputs & Controls) -->
+        <!-- LEFT SIDEBAR -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <i class="fa-solid fa-users-viewfinder"></i>
                 SHM Pro Print
             </div>
             <div class="sidebar-content">
+                <div class="cutting-info-box">
+                    <div class="cutting-info-header">
+                        <i class="fa-solid fa-layer-group"></i>
+                        <span>A4 পেজের ক্যাপাসিটি অপ্টিমাইজড:</span>
+                    </div>
+                    <div class="cutting-info-grid">
+                        <span>💳 ID Card: <strong>৫ লাইন</strong></span>
+                        <span>📄 Job Form: <strong>৭ লাইন</strong></span>
+                        <span>🛂 Passport: <strong>৬ লাইন</strong></span>
+                        <span>🏷️ Stamp: <strong>১১ লাইন</strong></span>
+                        <span>👥 Joint: <strong>৭ লাইন</strong></span>
+                        <span>✂️ কাটিং গাইড সহ</span>
+                    </div>
+                </div>
                 <div id="persons-container"></div>
                 <button class="add-person-btn" onclick="addPersonRow()">
                     <i class="fa-solid fa-user-plus"></i> Add New Person
@@ -427,19 +511,43 @@
             </div>
         </aside>
 
-        <!-- RIGHT MAIN AREA (Preview & Actions) -->
+        <!-- RIGHT MAIN AREA -->
         <main class="main-area">
             
             <!-- Top Header -->
             <header class="top-header">
-                <div class="paper-select-wrapper">
-                    <i class="fa-regular fa-file-lines" style="color:var(--primary); font-size: 1.2rem;"></i>
-                    Select Paper:
-                    <select id="paper-size" onchange="drawLayout()">
-                        <option value="A4">A4 Sheet (Standard)</option>
-                        <option value="Letter">US Letter</option>
-                        <option value="4x6">4x6 Inch Photo Paper</option>
-                    </select>
+                <div class="header-controls">
+                    <div class="paper-select-wrapper">
+                        <i class="fa-regular fa-file-lines" style="color:var(--primary); font-size: 1.1rem;"></i>
+                        Paper:
+                        <select id="paper-size" onchange="drawLayout()">
+                            <option value="A4" selected>A4 Sheet (Standard)</option>
+                            <option value="Letter">US Letter</option>
+                            <option value="4x6">4x6 Inch Photo Paper</option>
+                        </select>
+                    </div>
+
+                    <div class="paper-select-wrapper">
+                        <i class="fa-solid fa-arrows-split-up-and-left" style="color:var(--primary); font-size: 1.1rem;"></i>
+                        Page Fit:
+                        <select id="cut-gap" onchange="drawLayout()" title="পেজের লাইন সংখ্যা ও ফাঁকা স্থান">
+                            <option value="auto" selected>Max Lines (ID 5 / Pass 6 / Job 7 / Stamp 11)</option>
+                            <option value="4.5">Standard (4.5 mm)</option>
+                            <option value="6.0">Wide Space (6.0 mm)</option>
+                            <option value="3.0">Compact (3.0 mm)</option>
+                        </select>
+                    </div>
+
+                    <div class="paper-select-wrapper">
+                        <i class="fa-solid fa-scissors" style="color:var(--primary); font-size: 1.1rem;"></i>
+                        Cut Line:
+                        <select id="cut-guide" onchange="drawLayout()" title="কাটার গাইড দাগ">
+                            <option value="dashed" selected>Dashed Line ✂️</option>
+                            <option value="crop">Corner Ticks ⸤⸣</option>
+                            <option value="solid">Light Solid</option>
+                            <option value="none">None</option>
+                        </select>
+                    </div>
                 </div>
                 
                 <a href="https://pdf.shmwb.in/ps.html" target="_blank" class="more-tools-btn">
@@ -447,15 +555,13 @@
                 </a>
             </header>
 
-            <!-- Workspace containing Preview & Action Buttons -->
+            <!-- Workspace -->
             <div class="workspace">
                 <div class="workspace-inner">
-                    <!-- A4 Canvas Preview -->
                     <div class="paper-preview-wrapper" id="preview-wrapper">
                         <canvas id="main-canvas"></canvas>
                     </div>
 
-                    <!-- Direct Print and Download buttons BELOW the preview -->
                     <div class="actions-bar">
                         <button class="action-btn btn-pdf" onclick="downloadPDF()">
                             <i class="fa-solid fa-file-pdf"></i> Download PDF
@@ -490,7 +596,7 @@
                 <span><i class="fa-solid fa-crop" style="color:var(--primary);"></i> Adjust & Crop Photo</span>
             </div>
             <div class="crop-container">
-                <img id="image-to-crop" src="">
+                <img id="image-to-crop" src="" alt="Crop image">
             </div>
             <div style="display:flex; justify-content:flex-end; gap:10px;">
                 <button class="upload-btn" style="background:#475569; border:none;" onclick="closeCropModal()">Cancel</button>
@@ -504,6 +610,8 @@
         const canvas = document.getElementById('main-canvas');
         const ctx = canvas.getContext('2d');
         const paperSelect = document.getElementById('paper-size');
+        const cutGapSelect = document.getElementById('cut-gap');
+        const cutGuideSelect = document.getElementById('cut-guide');
         const previewWrapper = document.getElementById('preview-wrapper');
 
         let persons = [];
@@ -527,12 +635,32 @@
             'id_card_in': { w: 86, h: 54 } 
         };
 
+        // Specific line metrics per photo type on A4 to guarantee exact target lines
+        const a4MaxLineSpecs = {
+            'id_card_in':   { targetRows: 5,  topMarginMm: 3.5, gapYMm: 5.00, gapXMm: 4.5, targetCols: 1 },
+            'job_form':     { targetRows: 7,  topMarginMm: 2.0, gapYMm: 2.17, gapXMm: 2.6, targetCols: 6 },
+            'passport_in':  { targetRows: 6,  topMarginMm: 3.5, gapYMm: 4.00, gapXMm: 4.5, targetCols: 5 },
+            'stamp_in':     { targetRows: 11, topMarginMm: 2.2, gapYMm: 1.76, gapXMm: 4.5, targetCols: 8 },
+            'joint_in':     { targetRows: 7,  topMarginMm: 2.0, gapYMm: 1.47, gapXMm: 3.5, targetCols: 4 }
+        };
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-msg');
+            if (!toast || !toastMsg) return;
+            toastMsg.innerText = message;
+            toast.style.display = 'flex';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3500);
+        }
+
         addPersonRow();
         setCanvasSize();
 
         function addPersonRow() {
             if (persons.length >= 15) {
-                alert("Maximum 15 persons allowed at once.");
+                showToast("Maximum 15 persons allowed at once.");
                 return;
             }
             persons.push({
@@ -540,7 +668,7 @@
                 qty: 1, 
                 name: '',
                 date: '',
-                border: 0, // BY DEFAULT NO BORDER (0)
+                border: 0,
                 img1: new Image(),
                 loaded1: false,
                 img2: new Image(),
@@ -566,7 +694,7 @@
         function updatePersonQty(index, change) {
             let current = parseInt(persons[index].qty);
             let newVal = current + change;
-            if (newVal >= 1) { 
+            if (newVal >= 1 && newVal <= 150) { 
                 persons[index].qty = newVal;
                 renderRows();
                 drawLayout();
@@ -663,11 +791,11 @@
 
                 const sizeOptions = `
                     <select onchange="changePersonSize(${index}, this.value)">
-                        <option value="job_form" ${p.size === 'job_form' ? 'selected' : ''}>Job Form (Name+Date)</option>
-                        <option value="passport_in" ${p.size === 'passport_in' ? 'selected' : ''}>Passport (3.5x4.5 cm)</option>
-                        <option value="stamp_in" ${p.size === 'stamp_in' ? 'selected' : ''}>Stamp (2x2.5 cm)</option>
-                        <option value="joint_in" ${p.size === 'joint_in' ? 'selected' : ''}>Joint Photo (4.8x4.0 cm)</option>
-                        <option value="id_card_in" ${p.size === 'id_card_in' ? 'selected' : ''}>ID Card PVC (8.6x5.4 cm)</option>
+                        <option value="job_form" ${p.size === 'job_form' ? 'selected' : ''}>Job Form (7 Lines A4 - 3.2x4.0 cm)</option>
+                        <option value="passport_in" ${p.size === 'passport_in' ? 'selected' : ''}>Passport (6 Lines A4 - 3.5x4.5 cm)</option>
+                        <option value="stamp_in" ${p.size === 'stamp_in' ? 'selected' : ''}>Stamp (11 Lines A4 - 2.0x2.5 cm)</option>
+                        <option value="joint_in" ${p.size === 'joint_in' ? 'selected' : ''}>Joint Photo (7 Lines A4 - 4.8x4.0 cm)</option>
+                        <option value="id_card_in" ${p.size === 'id_card_in' ? 'selected' : ''}>ID Card PVC (5 Lines A4 - 8.6x5.4 cm)</option>
                     </select>
                 `;
 
@@ -692,7 +820,7 @@
                             </label>
                             ${cropBtn2}
                         </div>
-                        <a href="pvcsize.html" target="_blank" class="upload-btn" style="background-color: #8b5cf6; border-color:#8b5cf6; text-decoration: none;">
+                        <a href="https://pdf.shmwb.in/pvcsize.html" target="_blank" class="upload-btn" style="background-color: #8b5cf6; border-color:#8b5cf6; text-decoration: none;">
                             <i class="fa-solid fa-wand-magic-sparkles"></i> আয়ুষ্মান কার্ড পিভিসি সাইজ কনভার্টার
                         </a>
                     `;
@@ -729,7 +857,7 @@
                 const qtyControl = `
                     <div class="qty-control" style="flex:1; justify-content: space-between;">
                         <button class="qty-btn" onclick="updatePersonQty(${index}, -1)">-</button>
-                        <input type="number" min="1" class="qty-input" value="${p.qty}" onchange="manualQtyUpdate(${index}, this.value)">
+                        <input type="number" min="1" max="150" class="qty-input" value="${p.qty}" onchange="manualQtyUpdate(${index}, this.value)">
                         <button class="qty-btn" onclick="updatePersonQty(${index}, 1)">+</button>
                     </div>
                 `;
@@ -765,16 +893,25 @@
         function drawLayout() {
             setCanvasSize();
 
-            const minMargin = 3 * MM_TO_PX; 
-            const gapX = 15; 
-            const idInnerGap = 120; 
+            const paperKey = paperSelect.value;
+            const paper = paperDimensions[paperKey];
+            const isA4 = (paperKey === 'A4');
 
-            let currentY = minMargin;
+            const gapSetting = cutGapSelect ? cutGapSelect.value : 'auto';
+            const guideType = cutGuideSelect ? cutGuideSelect.value : 'dashed';
+
+            let currentY = null;
             let rowHeight = 0;
             let lastSize = null;
             let currentX = 0;
             let currentGridStartX = 0;
-            let currentCol = 0; 
+            let currentCol = 0;
+
+            let fitCount = 0;
+            let gapX = 0;
+            let gapY = 0;
+
+            const placedPhotos = [];
 
             persons.forEach(p => {
                 if (!p.loaded1 && p.size !== 'id_card_in') return;
@@ -783,30 +920,68 @@
                 const dim = photoDimensions[p.size];
                 const pW = dim.w * MM_TO_PX;
                 const pH = dim.h * MM_TO_PX;
-                const borderVal = parseInt(p.border); 
+                const borderVal = parseInt(p.border);
+
                 const isId = (p.size === 'id_card_in');
+                const idInnerGap = isId ? (10 * MM_TO_PX) : 0;
                 const unitW = isId ? (pW * 2 + idInnerGap) : pW;
-                const gapY = isId ? 60 : 12;
 
-                let fitCount = Math.floor((canvas.width - (2 * minMargin) + gapX) / (unitW + gapX));
-                if (p.size === 'job_form') fitCount = 6; 
-                if (isId) fitCount = Math.max(1, fitCount); 
+                let thisTopMargin = 4 * MM_TO_PX;
+                let thisGapY = 4 * MM_TO_PX;
+                let thisGapX = 4 * MM_TO_PX;
+                let thisFitCount = 1;
 
-                const gridW = fitCount * unitW + (fitCount - 1) * gapX;
-                const gridStartX = Math.max(minMargin, (canvas.width - gridW) / 2);
+                if (isA4 && a4MaxLineSpecs[p.size]) {
+                    const spec = a4MaxLineSpecs[p.size];
+                    thisFitCount = spec.targetCols;
+                    
+                    if (gapSetting === 'auto') {
+                        // Max Lines Mode (5 Line ID / 6 Line Passport / 7 Line Job Form / 11 Line Stamp / 7 Line Joint)
+                        thisTopMargin = spec.topMarginMm * MM_TO_PX;
+                        thisGapY = spec.gapYMm * MM_TO_PX;
+                        thisGapX = spec.gapXMm * MM_TO_PX;
+                    } else {
+                        // Manual Cut Gap Mode
+                        const customMm = parseFloat(gapSetting);
+                        thisGapX = customMm * MM_TO_PX;
+                        thisGapY = customMm * MM_TO_PX;
+                        thisTopMargin = Math.max(3, customMm * 0.8) * MM_TO_PX;
+                    }
+                } else {
+                    // Other papers (Letter / 4x6)
+                    const baseMm = (gapSetting === 'auto') ? 4.5 : parseFloat(gapSetting);
+                    thisGapX = baseMm * MM_TO_PX;
+                    thisGapY = isId ? Math.max(baseMm * MM_TO_PX, 6 * MM_TO_PX) : (baseMm * MM_TO_PX);
+                    thisTopMargin = 5 * MM_TO_PX;
+
+                    let availW = paper.w - (10 * MM_TO_PX);
+                    thisFitCount = Math.floor((availW + thisGapX) / (unitW + thisGapX));
+                    if (thisFitCount < 1) thisFitCount = 1;
+                }
+
+                // Calculate symmetrical grid start X (centered horizontally)
+                let gridW = thisFitCount * unitW + (thisFitCount - 1) * thisGapX;
+                let thisGridStartX = Math.max(2 * MM_TO_PX, (paper.w - gridW) / 2);
 
                 for (let i = 0; i < p.qty; i++) {
                     if (lastSize !== null && lastSize !== p.size) {
-                        currentX = gridStartX;
-                        currentY += rowHeight + gapY;
+                        currentX = thisGridStartX;
+                        currentY += rowHeight + thisGapY;
                         rowHeight = pH;
-                        currentGridStartX = gridStartX;
-                        currentCol = 0; 
+                        currentGridStartX = thisGridStartX;
+                        currentCol = 0;
+                        fitCount = thisFitCount;
+                        gapX = thisGapX;
+                        gapY = thisGapY;
                     } else if (lastSize === null) {
-                        currentX = gridStartX;
+                        currentY = thisTopMargin;
+                        currentX = thisGridStartX;
                         rowHeight = pH;
-                        currentGridStartX = gridStartX;
-                        currentCol = 0; 
+                        currentGridStartX = thisGridStartX;
+                        currentCol = 0;
+                        fitCount = thisFitCount;
+                        gapX = thisGapX;
+                        gapY = thisGapY;
                     }
 
                     if (currentCol >= fitCount) {
@@ -815,57 +990,201 @@
                         currentCol = 0;
                     }
 
-                    if (currentY + pH > canvas.height - 5) return; 
+                    // Strict check against canvas height (zero truncation, full line capacity)
+                    if (currentY + pH > canvas.height + 1) {
+                        break;
+                    }
 
                     if (isId) {
                         if (p.loaded1) {
                             ctx.drawImage(p.img1, currentX, currentY, pW, pH);
-                            if (borderVal > 0) { ctx.strokeStyle = "#000000"; ctx.lineWidth = borderVal; ctx.strokeRect(currentX, currentY, pW, pH); }
+                            if (borderVal > 0) {
+                                ctx.strokeStyle = "#000000";
+                                ctx.lineWidth = borderVal;
+                                ctx.strokeRect(currentX, currentY, pW, pH);
+                            }
                         }
                         if (p.loaded2) {
-                            ctx.drawImage(p.img2, currentX + pW + idInnerGap, currentY, pW, pH);
-                            if (borderVal > 0) { ctx.strokeStyle = "#000000"; ctx.lineWidth = borderVal; ctx.strokeRect(currentX + pW + idInnerGap, currentY, pW, pH); }
+                            const backX = currentX + pW + idInnerGap;
+                            ctx.drawImage(p.img2, backX, currentY, pW, pH);
+                            if (borderVal > 0) {
+                                ctx.strokeStyle = "#000000";
+                                ctx.lineWidth = borderVal;
+                                ctx.strokeRect(backX, currentY, pW, pH);
+                            }
                         }
                     } else {
                         if (p.loaded1) {
                             ctx.drawImage(p.img1, currentX, currentY, pW, pH);
-                            if (borderVal > 0) { ctx.strokeStyle = "#000000"; ctx.lineWidth = borderVal; ctx.strokeRect(currentX, currentY, pW, pH); }
                             
                             if (dim.hasDetails && (p.name || p.date)) {
-                                const barHeight = Math.min(45, pH * 0.25);
+                                const barHeight = Math.min(48, pH * 0.25);
                                 const barY = currentY + pH - barHeight;
                                 
-                                ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
+                                ctx.fillStyle = "rgba(255, 255, 255, 0.96)";
                                 ctx.fillRect(currentX, barY, pW, barHeight);
                                 
-                                ctx.beginPath(); ctx.moveTo(currentX, barY); ctx.lineTo(currentX + pW, barY);
-                                ctx.strokeStyle = "#000000"; ctx.lineWidth = 1; ctx.stroke();
+                                ctx.beginPath();
+                                ctx.moveTo(currentX, barY);
+                                ctx.lineTo(currentX + pW, barY);
+                                ctx.strokeStyle = "#000000";
+                                ctx.lineWidth = 1;
+                                ctx.stroke();
 
-                                ctx.textAlign = "center"; ctx.fillStyle = "#000000";
+                                ctx.textAlign = "center";
+                                ctx.fillStyle = "#000000";
                                 
                                 if (p.name && !p.date) {
                                     ctx.font = "bold 24px Arial";
-                                    ctx.fillText(p.name.toUpperCase(), currentX + (pW / 2), barY + (barHeight/1.5));
+                                    ctx.fillText(p.name.toUpperCase(), currentX + (pW / 2), barY + (barHeight / 1.5));
                                 } else if (!p.name && p.date) {
                                     ctx.font = "bold 20px Arial";
-                                    ctx.fillText(p.date, currentX + (pW / 2), barY + (barHeight/1.5));
+                                    ctx.fillText(p.date, currentX + (pW / 2), barY + (barHeight / 1.5));
                                 } else {
                                     ctx.font = "bold 22px Arial";
-                                    ctx.fillText(p.name.toUpperCase(), currentX + (pW / 2), barY + (barHeight/2) + 2);
+                                    ctx.fillText(p.name.toUpperCase(), currentX + (pW / 2), barY + (barHeight / 2) + 2);
                                     ctx.font = "bold 18px Arial";
                                     ctx.fillText(p.date, currentX + (pW / 2), barY + barHeight - 4);
                                 }
                             }
+
+                            if (borderVal > 0) {
+                                ctx.strokeStyle = "#000000";
+                                ctx.lineWidth = borderVal;
+                                ctx.strokeRect(currentX, currentY, pW, pH);
+                            }
                         }
                     }
-                    currentX += unitW + gapX; currentCol++; rowHeight = pH; lastSize = p.size;
+
+                    placedPhotos.push({
+                        x: currentX,
+                        y: currentY,
+                        w: pW,
+                        h: pH,
+                        unitW: unitW,
+                        isId: isId,
+                        loaded1: p.loaded1,
+                        loaded2: p.loaded2,
+                        idInnerGap: idInnerGap,
+                        gapX: gapX,
+                        gapY: gapY,
+                        col: currentCol
+                    });
+
+                    currentX += unitW + gapX;
+                    currentCol++;
+                    rowHeight = pH;
+                    lastSize = p.size;
                 }
             });
+
+            drawCutGuides(placedPhotos, guideType);
+        }
+
+        function drawCutGuides(placedPhotos, guideType) {
+            if (!guideType || guideType === 'none' || placedPhotos.length === 0) return;
+
+            ctx.save();
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 1.2;
+
+            if (guideType === 'dashed') {
+                ctx.setLineDash([8, 8]);
+            } else if (guideType === 'solid') {
+                ctx.setLineDash([]);
+            }
+
+            if (guideType === 'crop') {
+                const tick = 18;
+                ctx.setLineDash([]);
+                placedPhotos.forEach(p => {
+                    drawBoxCorners(p.x, p.y, p.w, p.h, tick);
+                    if (p.isId && p.loaded2) {
+                        const bX = p.x + p.w + p.idInnerGap;
+                        drawBoxCorners(bX, p.y, p.w, p.h, tick);
+                    }
+                });
+                ctx.restore();
+                return;
+            }
+
+            const rows = [];
+            placedPhotos.forEach(p => {
+                let row = rows.find(r => Math.abs(r.y - p.y) < 3);
+                if (!row) {
+                    row = { y: p.y, h: p.h, gapY: p.gapY, photos: [] };
+                    rows.push(row);
+                }
+                row.photos.push(p);
+            });
+
+            // 1. Vertical cutting guides between photo columns
+            rows.forEach(row => {
+                row.photos.sort((a, b) => a.x - b.x);
+                for (let i = 0; i < row.photos.length - 1; i++) {
+                    const curr = row.photos[i];
+                    const next = row.photos[i + 1];
+                    const currRight = curr.isId ? (curr.x + curr.w * 2 + curr.idInnerGap) : (curr.x + curr.w);
+                    const nextLeft = next.x;
+                    const midX = (currRight + nextLeft) / 2;
+
+                    ctx.beginPath();
+                    ctx.moveTo(midX, row.y - (1.5 * MM_TO_PX));
+                    ctx.lineTo(midX, row.y + row.h + (1.5 * MM_TO_PX));
+                    ctx.stroke();
+                }
+
+                row.photos.forEach(p => {
+                    if (p.isId && p.idInnerGap > 0) {
+                        const midX = p.x + p.w + (p.idInnerGap / 2);
+                        ctx.beginPath();
+                        ctx.moveTo(midX, row.y - (1.5 * MM_TO_PX));
+                        ctx.lineTo(midX, row.y + row.h + (1.5 * MM_TO_PX));
+                        ctx.stroke();
+                    }
+                });
+            });
+
+            // 2. Horizontal cutting guides between rows
+            for (let r = 0; r < rows.length - 1; r++) {
+                const currRow = rows[r];
+                const nextRow = rows[r + 1];
+                const currBottom = currRow.y + currRow.h;
+                const nextTop = nextRow.y;
+                const midY = (currBottom + nextTop) / 2;
+
+                const minX = Math.min(currRow.photos[0].x, nextRow.photos[0].x);
+                const maxCurr = currRow.photos[currRow.photos.length - 1];
+                const maxNext = nextRow.photos[nextRow.photos.length - 1];
+                const maxXCurr = maxCurr.isId ? (maxCurr.x + maxCurr.w * 2 + maxCurr.idInnerGap) : (maxCurr.x + maxCurr.w);
+                const maxXNext = maxNext.isId ? (maxNext.x + maxNext.w * 2 + maxNext.idInnerGap) : (maxNext.x + maxNext.w);
+                const maxX = Math.max(maxXCurr, maxXNext);
+
+                ctx.beginPath();
+                ctx.moveTo(minX - (2.5 * MM_TO_PX), midY);
+                ctx.lineTo(maxX + (2.5 * MM_TO_PX), midY);
+                ctx.stroke();
+            }
+
+            ctx.restore();
+        }
+
+        function drawBoxCorners(x, y, w, h, tick) {
+            ctx.beginPath();
+            ctx.moveTo(x - tick, y); ctx.lineTo(x - 3, y);
+            ctx.moveTo(x, y - tick); ctx.lineTo(x, y - 3);
+            ctx.moveTo(x + w + 3, y); ctx.lineTo(x + w + tick, y);
+            ctx.moveTo(x + w, y - tick); ctx.lineTo(x + w, y - 3);
+            ctx.moveTo(x - tick, y + h); ctx.lineTo(x - 3, y + h);
+            ctx.moveTo(x, y + h + 3); ctx.lineTo(x, y + h + tick);
+            ctx.moveTo(x + w + 3, y + h); ctx.lineTo(x + w + tick, y + h);
+            ctx.moveTo(x + w, y + h + 3); ctx.lineTo(x + w, y + h + tick);
+            ctx.stroke();
         }
 
         function downloadPDF() {
             const paperData = paperDimensions[paperSelect.value];
-            const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            const imgData = canvas.toDataURL('image/jpeg', 0.98);
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: paperData.jsPdfFormat });
             pdf.addImage(imgData, 'JPEG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
@@ -874,19 +1193,25 @@
 
         function printPage() {
             const dataUrl = canvas.toDataURL('image/jpeg', 1.0);
+            let pageCss = 'size: A4 portrait;';
+            if (paperSelect.value === 'Letter') pageCss = 'size: letter portrait;';
+            else if (paperSelect.value === '4x6') pageCss = 'size: 4in 6in portrait;';
+
             const printWindow = window.open('', '_blank');
             printWindow.document.write(`
+                <!DOCTYPE html>
                 <html>
                 <head>
                     <title>Print Photo Sheet</title>
                     <style>
-                        @page { size: auto; margin: 0; }
-                        body { margin: 0; display: flex; justify-content: center; background: #fff; }
-                        img { width: 100%; height: auto; display: block; }
+                        @page { ${pageCss} margin: 0; }
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body { margin: 0; display: flex; justify-content: center; align-items: flex-start; background: #fff; }
+                        img { width: 100%; height: auto; max-width: 100%; display: block; }
                     </style>
                 </head>
                 <body>
-                    <img src="${dataUrl}" onload="window.print(); window.close();">
+                    <img src="${dataUrl}" onload="setTimeout(function(){ window.print(); window.close(); }, 250);">
                 </body>
                 </html>
             `);
