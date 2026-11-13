@@ -11,6 +11,9 @@
             darkMode: 'class',
             theme: {
                 extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                    },
                     colors: {
                         brand: {
                             50: '#eff6ff',
@@ -23,6 +26,8 @@
             }
         }
     </script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- jsPDF for PDF generation -->
@@ -36,7 +41,7 @@
     <style>
         body {
             touch-action: manipulation;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
             user-select: none;
             -webkit-user-select: none;
         }
@@ -44,29 +49,57 @@
             position: relative;
             touch-action: none;
             overflow: hidden;
-            background-size: 20px 20px;
-            background-image: radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px);
-        }
-        .light .canvas-area {
-            background-image: radial-gradient(circle, rgba(0,0,0,0.08) 1px, transparent 1px);
+            background-size: 24px 24px;
+            background-image: radial-gradient(circle, rgba(255,255,255,0.07) 1px, transparent 1px);
         }
         .crop-handle {
             position: absolute;
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            background: #3b82f6;
+            background: rgba(37, 99, 235, 0.85);
+            backdrop-filter: blur(4px);
             border: 3px solid #ffffff;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.45);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.6), 0 0 0 2px rgba(59, 130, 246, 0.4);
             transform: translate(-50%, -50%);
             z-index: 40;
-            cursor: pointer;
+            cursor: grab;
             touch-action: none;
-            transition: transform 0.1s ease, background-color 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.12s cubic-bezier(0.2, 0, 0, 1), background-color 0.15s ease;
         }
-        .crop-handle:active {
+        .crop-handle::after {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: #ffffff;
+            border-radius: 50%;
+        }
+        .crop-handle:active, .crop-handle.dragging {
+            cursor: grabbing;
             transform: translate(-50%, -50%) scale(1.25);
-            background: #2563eb;
+            background: #1d4ed8;
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.7), 0 0 0 4px rgba(255, 255, 255, 0.3);
+        }
+        .edge-handle {
+            position: absolute;
+            width: 24px;
+            height: 10px;
+            border-radius: 999px;
+            background: #3b82f6;
+            border: 2px solid #ffffff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            transform: translate(-50%, -50%);
+            z-index: 38;
+            cursor: move;
+            touch-action: none;
+            transition: transform 0.1s ease;
+        }
+        .edge-handle:active {
+            transform: translate(-50%, -50%) scale(1.3);
+            background: #60a5fa;
         }
         .no-scrollbar::-webkit-scrollbar {
             display: none;
@@ -130,6 +163,18 @@
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col transition-colors duration-200">
 
+    <!-- Toast Notification Banner (Replaces native alert) -->
+    <div id="toastBanner" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 hidden items-center space-x-2.5 bg-slate-800/95 backdrop-blur-md border border-slate-700 text-white px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-medium transition-all duration-300">
+        <i id="toastIcon" data-lucide="info" class="w-4 h-4 text-blue-400"></i>
+        <span id="toastMsg">Notification message</span>
+    </div>
+
+    <!-- Processing Overlay -->
+    <div id="processingOverlay" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex-col items-center justify-center">
+        <div class="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mb-3"></div>
+        <p id="processingText" class="text-xs font-semibold text-white tracking-wide">AI Perspective Warping...</p>
+    </div>
+
     <!-- Navigation Bar -->
     <header class="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between sticky top-0 z-40 shadow-md">
         <div class="flex items-center space-x-3">
@@ -138,17 +183,16 @@
             </div>
             <div>
                 <h1 class="text-base font-bold tracking-tight text-white flex items-center space-x-1.5">
-                    <span>SHMsanner</span>
+                    <span>SHMscanner</span>
                     <span class="text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30 font-semibold px-2 py-0.5 rounded-full">Magic AI</span>
                 </h1>
-                <p class="text-[11px] text-slate-400 hidden sm:block">Crystal Clear Scan & Perspective Enhancer</p>
+                <p class="text-[11px] text-slate-400 hidden sm:block">Homography Perspective Engine & Document Enhancer</p>
             </div>
         </div>
 
         <!-- Action Controls & Robust File Inputs -->
         <div class="flex items-center space-x-2">
-            <!-- Off-screen functional input for programmatic trigger -->
-            <input type="file" id="fileInput" accept="image/*,application/pdf" multiple style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">
+            <input type="file" id="fileInput" accept="image/*,application/pdf" multiple class="hidden">
             
             <button id="uploadBtn" type="button" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-2 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition active:scale-95 cursor-pointer">
                 <i data-lucide="upload" class="w-4 h-4 text-blue-400"></i>
@@ -173,7 +217,7 @@
                 <div class="flex items-center space-x-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
                     <button id="btnTabCrop" type="button" class="px-3.5 py-1.5 rounded-lg text-xs font-medium transition flex items-center space-x-1.5 bg-blue-600 text-white">
                         <i data-lucide="crop" class="w-3.5 h-3.5"></i>
-                        <span>Crop & Boundary</span>
+                        <span>Crop & Perspective</span>
                     </button>
                     <button id="btnTabEnhance" type="button" class="px-3.5 py-1.5 rounded-lg text-xs font-medium transition flex items-center space-x-1.5 text-slate-400 hover:text-white">
                         <i data-lucide="wand-2" class="w-3.5 h-3.5"></i>
@@ -182,9 +226,13 @@
                 </div>
 
                 <div class="flex items-center space-x-2">
+                    <button id="undoCropBtn" type="button" class="hidden p-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-amber-400 text-xs flex items-center space-x-1 transition border border-slate-700" title="Revert to uncropped original">
+                        <i data-lucide="undo-2" class="w-4 h-4"></i>
+                        <span class="hidden sm:inline">Re-Crop</span>
+                    </button>
                     <button id="rotateBtn" type="button" class="p-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-300 text-xs flex items-center space-x-1 transition border border-slate-700">
                         <i data-lucide="rotate-cw" class="w-4 h-4"></i>
-                        <span class="hidden sm:inline">Rotate</span>
+                        <span class="hidden sm:inline">Rotate 90°</span>
                     </button>
                 </div>
             </div>
@@ -192,38 +240,63 @@
             <!-- Canvas Container Workspace -->
             <div id="canvasHolder" class="flex-1 canvas-area flex items-center justify-center p-4 relative select-none">
                 
+                <!-- Precision Loupe Magnifier (Appears while dragging corners) -->
+                <div id="loupeContainer" class="hidden absolute top-4 left-4 w-28 h-28 rounded-2xl border-2 border-blue-400 shadow-2xl overflow-hidden z-50 bg-slate-900 pointer-events-none">
+                    <canvas id="loupeCanvas" width="112" height="112" class="w-full h-full"></canvas>
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div class="w-full h-[1px] bg-blue-400/70"></div>
+                    </div>
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div class="h-full w-[1px] bg-blue-400/70"></div>
+                    </div>
+                    <span class="absolute bottom-1 right-1.5 text-[9px] font-bold bg-slate-950/80 text-blue-300 px-1.5 py-0.5 rounded">2.5x ZOOM</span>
+                </div>
+
                 <!-- Initial Empty / Drag & Drop Placeholder -->
                 <div id="emptyState" class="text-center p-8 max-w-md w-full rounded-2xl border-2 border-dashed border-slate-800 bg-slate-900/40 flex flex-col items-center">
                     <div class="p-4 bg-blue-500/10 text-blue-400 rounded-2xl mb-4">
-                        <i data-lucide="file-text" class="w-10 h-10"></i>
+                        <i data-lucide="scan" class="w-10 h-10"></i>
                     </div>
                     <h3 class="text-sm font-semibold text-white mb-1">No Document Loaded</h3>
-                    <p class="text-xs text-slate-400 mb-5 leading-relaxed">Upload clear photos/PDFs, drag & drop files here, or take a snap to edit and enhance.</p>
+                    <p class="text-xs text-slate-400 mb-5 leading-relaxed">Upload tilted photos or PDFs. Our AI Homography engine automatically flattens perspective distortions.</p>
                     
                     <div class="flex flex-col sm:flex-row gap-2.5 w-full mb-4">
-                        <button id="sampleDocBtn" type="button" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center space-x-2 transition shadow-lg shadow-blue-600/20 active:scale-95 cursor-pointer">
+                        <button id="sampleDocBtn" type="button" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center space-x-2 transition shadow-lg shadow-blue-600/20 active:scale-95 cursor-pointer flex-1">
                             <i data-lucide="sparkles" class="w-4 h-4"></i>
-                            <span>Try Demo Doc</span>
+                            <span>Try Tilted Demo Doc</span>
                         </button>
-                        <button id="emptyUploadBtn" type="button" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center space-x-2 border border-slate-700 transition active:scale-95 cursor-pointer">
+                        <button id="emptyUploadBtn" type="button" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center space-x-2 border border-slate-700 transition active:scale-95 cursor-pointer flex-1">
                             <i data-lucide="upload-cloud" class="w-4 h-4 text-blue-400"></i>
                             <span>Browse Files</span>
                         </button>
                     </div>
 
-                    <!-- Direct Native File Fallback Selector -->
                     <div class="w-full pt-3 border-t border-slate-800/80 flex flex-col items-center">
-                        <span class="text-[11px] text-slate-500 mb-1.5">Direct File Selector Fallback:</span>
+                        <span class="text-[11px] text-slate-500 mb-1.5">Direct File Selector:</span>
                         <input type="file" id="fallbackFileInput" accept="image/*,application/pdf" multiple class="block w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-blue-400 hover:file:bg-slate-700 cursor-pointer">
                     </div>
                 </div>
 
                 <!-- Display Canvas -->
-                <canvas id="docCanvas" class="hidden max-w-full max-h-full rounded-lg shadow-2xl object-contain border border-slate-800"></canvas>
+                <canvas id="docCanvas" class="hidden rounded-lg shadow-2xl border border-slate-800"></canvas>
                 
-                <!-- SVG Crop Overlay Dynamic Path -->
+                <!-- SVG Crop Overlay Dynamic Path with Dimmed Backdrop -->
                 <svg id="svgOverlay" class="absolute inset-0 w-full h-full pointer-events-none hidden z-30">
-                    <polygon id="polyCrop" points="" fill="rgba(59, 130, 246, 0.25)" stroke="#3b82f6" stroke-width="2.5" stroke-dasharray="6,6" />
+                    <defs>
+                        <mask id="cropMask">
+                            <rect width="100%" height="100%" fill="white"/>
+                            <polygon id="polyMaskHole" points="" fill="black"/>
+                        </mask>
+                    </defs>
+                    <!-- Dimmed outside region -->
+                    <rect id="dimBackdrop" x="0" y="0" width="0" height="0" fill="rgba(2, 6, 23, 0.65)" mask="url(#cropMask)" />
+                    <!-- Guide grid lines inside document -->
+                    <line id="gridH1" stroke="rgba(255,255,255,0.25)" stroke-width="1" />
+                    <line id="gridH2" stroke="rgba(255,255,255,0.25)" stroke-width="1" />
+                    <line id="gridV1" stroke="rgba(255,255,255,0.25)" stroke-width="1" />
+                    <line id="gridV2" stroke="rgba(255,255,255,0.25)" stroke-width="1" />
+                    <!-- Active Crop Boundary -->
+                    <polygon id="polyCrop" points="" fill="rgba(59, 130, 246, 0.08)" stroke="#3b82f6" stroke-width="2.5" />
                 </svg>
             </div>
 
@@ -232,19 +305,25 @@
                 
                 <!-- Crop Mode Actions -->
                 <div id="cropControls" class="flex flex-col space-y-3">
-                    <div class="flex items-center justify-between">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
                         <span class="text-xs text-slate-400 flex items-center space-x-1.5">
-                            <i data-lucide="info" class="w-3.5 h-3.5 text-blue-400"></i>
-                            <span>Drag the 4 corner handles to isolate document edges.</span>
+                            <i data-lucide="crosshair" class="w-3.5 h-3.5 text-blue-400"></i>
+                            <span>Drag corners or edges to align with paper borders.</span>
                         </span>
-                        <button id="resetCropBtn" type="button" class="p-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 text-xs flex items-center space-x-1 transition border border-slate-700">
-                            <i data-lucide="maximize" class="w-3.5 h-3.5"></i>
-                            <span>Reset Corners</span>
-                        </button>
+                        <div class="flex items-center space-x-2">
+                            <button id="autoDetectBtn" type="button" class="px-2.5 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 rounded-lg text-indigo-300 text-xs font-medium flex items-center space-x-1.5 transition cursor-pointer">
+                                <i data-lucide="scan-search" class="w-3.5 h-3.5"></i>
+                                <span>AI Auto-Detect Edges</span>
+                            </button>
+                            <button id="resetCropBtn" type="button" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 text-xs flex items-center space-x-1 transition border border-slate-700 cursor-pointer">
+                                <i data-lucide="maximize" class="w-3.5 h-3.5"></i>
+                                <span>Full Frame</span>
+                            </button>
+                        </div>
                     </div>
-                    <button id="applyCropBtn" type="button" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center space-x-2 transition shadow-lg shadow-blue-600/20 active:scale-98 cursor-pointer">
-                        <i data-lucide="check" class="w-4 h-4"></i>
-                        <span>Apply Crop & Perspective Correct</span>
+                    <button id="applyCropBtn" type="button" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center space-x-2 transition shadow-lg shadow-blue-600/25 active:scale-98 cursor-pointer">
+                        <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                        <span>Warp Perspective & Apply Crop</span>
                     </button>
                 </div>
 
@@ -258,13 +337,13 @@
                         </button>
                         <button data-filter="crisp_bw" type="button" class="filter-btn bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap flex items-center space-x-1.5 cursor-pointer">
                             <i data-lucide="binary" class="w-3.5 h-3.5 text-blue-400"></i>
-                            <span>B&W Scan</span>
+                            <span>B&W Document</span>
                         </button>
                         <button data-filter="gray" type="button" class="filter-btn bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap cursor-pointer">
                             Grayscale HD
                         </button>
                         <button data-filter="original" type="button" class="filter-btn bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap cursor-pointer">
-                            Original Photo
+                            Original Cropped
                         </button>
                     </div>
 
@@ -286,7 +365,7 @@
                         </div>
                         <div>
                             <div class="flex justify-between text-[11px] text-slate-400 mb-1">
-                                <span>Threshold Clean</span>
+                                <span>Paper Clean</span>
                                 <span id="valThreshold" class="font-mono text-blue-400">45</span>
                             </div>
                             <input type="range" id="sliderThreshold" min="10" max="90" value="45" class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
@@ -294,9 +373,9 @@
                         <div>
                             <div class="flex justify-between text-[11px] text-slate-400 mb-1">
                                 <span>Sharpness</span>
-                                <span id="valSharpness" class="font-mono text-blue-400">40</span>
+                                <span id="valSharpness" class="font-mono text-blue-400">30</span>
                             </div>
-                            <input type="range" id="sliderSharpness" min="0" max="100" value="40" class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                            <input type="range" id="sliderSharpness" min="0" max="100" value="30" class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
                         </div>
                     </div>
                 </div>
@@ -377,49 +456,67 @@
 
     <!-- Core Application Logic -->
     <script>
+        /**
+         * Global Scanner State Management
+         * - originalUploads: Stores untouched full-frame source images so user can re-crop anytime
+         * - workingImages: Stores the currently cropped & rotated image used for filter passes
+         * - pages: Stores the final filtered dataURLs for thumbnails, PDF export, and printing
+         */
         const state = {
+            originalUploads: [],
+            workingImages: [],
             pages: [],
-            rawPages: [],
             activePageIndex: -1,
             rawImage: null,
-            corners: [{x:0.05, y:0.05}, {x:0.95, y:0.05}, {x:0.95, y:0.95}, {x:0.05, y:0.95}],
+            isCropped: false,
+            // Normalized coordinates [Top-Left, Top-Right, Bottom-Right, Bottom-Left]
+            corners: [{x:0.08, y:0.08}, {x:0.92, y:0.08}, {x:0.92, y:0.92}, {x:0.08, y:0.92}],
             activeHandle: -1,
+            activeEdge: -1,
+            dragStartMouse: { x: 0, y: 0 },
+            dragStartCorners: [],
             mode: 'crop',
             filter: 'magic',
             brightness: 10,
             contrast: 35,
             threshold: 45,
-            sharpness: 40
+            sharpness: 30
         };
 
-        // DOM Handles
+        // DOM References
         const fileInput = document.getElementById('fileInput');
         const fallbackFileInput = document.getElementById('fallbackFileInput');
         const uploadBtn = document.getElementById('uploadBtn');
         const emptyUploadBtn = document.getElementById('emptyUploadBtn');
         const emptyState = document.getElementById('emptyState');
         const docCanvas = document.getElementById('docCanvas');
-        const ctx = docCanvas.getContext('2d');
+        const ctx = docCanvas.getContext('2d', { willReadFrequently: true });
         const canvasHolder = document.getElementById('canvasHolder');
         const svgOverlay = document.getElementById('svgOverlay');
         const polyCrop = document.getElementById('polyCrop');
+        const polyMaskHole = document.getElementById('polyMaskHole');
+        const dimBackdrop = document.getElementById('dimBackdrop');
         const controlsPanel = document.getElementById('controlsPanel');
         const modeToolbar = document.getElementById('modeToolbar');
         const cropControls = document.getElementById('cropControls');
         const filterControls = document.getElementById('filterControls');
         const btnTabCrop = document.getElementById('btnTabCrop');
         const btnTabEnhance = document.getElementById('btnTabEnhance');
+        const undoCropBtn = document.getElementById('undoCropBtn');
         const pagesContainer = document.getElementById('pagesContainer');
         const pageCountEl = document.getElementById('pageCount');
         const noPagesText = document.getElementById('noPagesText');
+        const loupeContainer = document.getElementById('loupeContainer');
+        const loupeCanvas = document.getElementById('loupeCanvas');
+        const loupeCtx = loupeCanvas.getContext('2d');
 
-        // Slider Controls
+        // Sliders
         const sliderBrightness = document.getElementById('sliderBrightness');
         const sliderContrast = document.getElementById('sliderContrast');
         const sliderThreshold = document.getElementById('sliderThreshold');
         const sliderSharpness = document.getElementById('sliderSharpness');
 
-        // Camera Controls
+        // Camera Elements
         const cameraBtn = document.getElementById('cameraBtn');
         const cameraModal = document.getElementById('cameraModal');
         const closeCameraBtn = document.getElementById('closeCameraBtn');
@@ -427,15 +524,56 @@
         const shutterBtn = document.getElementById('shutterBtn');
         let mediaStream = null;
 
-        // Initialize Icons
+        // Initialize Lucide Icons
         lucide.createIcons();
 
-        // Canvas Window Auto Resize
-        window.addEventListener('resize', () => {
+        // Custom Toast Helper (Never uses native alert())
+        let toastTimer = null;
+        function showToast(message, type = 'info') {
+            const banner = document.getElementById('toastBanner');
+            const msgEl = document.getElementById('toastMsg');
+            const iconEl = document.getElementById('toastIcon');
+
+            msgEl.textContent = message;
+            if (type === 'success') {
+                iconEl.setAttribute('data-lucide', 'check-circle');
+                iconEl.className = 'w-4 h-4 text-emerald-400';
+            } else if (type === 'error') {
+                iconEl.setAttribute('data-lucide', 'alert-circle');
+                iconEl.className = 'w-4 h-4 text-rose-400';
+            } else {
+                iconEl.setAttribute('data-lucide', 'sparkles');
+                iconEl.className = 'w-4 h-4 text-blue-400';
+            }
+            lucide.createIcons();
+
+            banner.classList.remove('hidden');
+            banner.classList.add('flex');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                banner.classList.add('hidden');
+                banner.classList.remove('flex');
+            }, 3000);
+        }
+
+        function setProcessing(active, label = 'Processing...') {
+            const overlay = document.getElementById('processingOverlay');
+            document.getElementById('processingText').textContent = label;
+            if (active) {
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
+            } else {
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex');
+            }
+        }
+
+        // Responsive Resize Observer for Workspace
+        const resizeObserver = new ResizeObserver(() => {
             if (state.rawImage) renderCanvas();
         });
+        resizeObserver.observe(canvasHolder);
 
-        // Safe Trigger Helper for Mobile Browsers
         function triggerFileInput() {
             if (fileInput) {
                 fileInput.value = '';
@@ -446,23 +584,26 @@
         uploadBtn.addEventListener('click', triggerFileInput);
         emptyUploadBtn.addEventListener('click', triggerFileInput);
 
-        // Unified Handler for both programmatic & fallback file inputs
         async function handleFilesSelected(files) {
             if (!files || files.length === 0) return;
-
-            for (let file of files) {
-                if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
-                    await processPdfFile(file);
-                } else if (file.type.startsWith('image/')) {
-                    await processImageFile(file);
+            setProcessing(true, 'Loading document...');
+            try {
+                for (let file of files) {
+                    if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+                        await processPdfFile(file);
+                    } else if (file.type.startsWith('image/')) {
+                        await processImageFile(file);
+                    }
                 }
+            } finally {
+                setProcessing(false);
             }
         }
 
         fileInput.addEventListener('change', (e) => handleFilesSelected(e.target.files));
         fallbackFileInput.addEventListener('change', (e) => handleFilesSelected(e.target.files));
 
-        // Drag and Drop Handling on Empty State / Canvas Holder
+        // Drag and Drop Handling
         canvasHolder.addEventListener('dragover', (e) => {
             e.preventDefault();
             canvasHolder.classList.add('bg-blue-500/10');
@@ -481,15 +622,18 @@
             }
         });
 
-        // Camera Viewfinder Handlers
+        // Camera Handlers
         cameraBtn.addEventListener('click', async () => {
             try {
-                mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+                mediaStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
+                    audio: false
+                });
                 webcam.srcObject = mediaStream;
                 cameraModal.classList.remove('hidden');
                 cameraModal.classList.add('flex');
             } catch (err) {
-                alert('Unable to access camera. Please check permissions or upload a photo directly.');
+                showToast('Camera unavailable. Please allow camera access or upload an image.', 'error');
             }
         });
 
@@ -513,64 +657,100 @@
             tCtx.drawImage(webcam, 0, 0);
             addPageToDocument(tempCanvas.toDataURL('image/jpeg', 0.95));
             stopCamera();
+            showToast('Photo captured! Adjust corners to crop.', 'success');
         });
 
+        // Generates a realistic tilted document on a dark desk so user can test Perspective Warp immediately
         document.getElementById('sampleDocBtn').addEventListener('click', loadSampleDoc);
 
         function loadSampleDoc() {
             const canvas = document.createElement('canvas');
             canvas.width = 1200;
-            canvas.height = 1600;
+            canvas.height = 1500;
             const c = canvas.getContext('2d');
 
-            // Synthetic document with gradient lighting
-            const grad = c.createLinearGradient(0, 0, 1200, 1600);
-            grad.addColorStop(0, '#f8fafc');
-            grad.addColorStop(0.7, '#cbd5e1');
-            grad.addColorStop(1, '#64748b');
-            c.fillStyle = grad;
-            c.fillRect(0, 0, 1200, 1600);
+            // Dark wooden desk background
+            c.fillStyle = '#1e293b';
+            c.fillRect(0, 0, 1200, 1500);
 
-            // Document Title
-            c.fillStyle = '#0f172a';
-            c.font = 'bold 36px sans-serif';
-            c.fillText('TURBOSCANNER MAGIC DEMO REPORT', 100, 140);
+            // Subtle desk texture lines
+            c.strokeStyle = 'rgba(255,255,255,0.03)';
+            c.lineWidth = 2;
+            for (let i = 0; i < 1500; i += 25) {
+                c.beginPath();
+                c.moveTo(0, i);
+                c.lineTo(1200, i + 40);
+                c.stroke();
+            }
 
-            c.strokeStyle = '#334155';
-            c.lineWidth = 3;
+            // Draw a tilted perspective document polygon
+            // TL: (220, 180), TR: (1020, 260), BR: (960, 1340), BL: (140, 1260)
+            c.save();
             c.beginPath();
-            c.moveTo(100, 170);
-            c.lineTo(1100, 170);
+            c.moveTo(220, 180);
+            c.lineTo(1020, 260);
+            c.lineTo(960, 1340);
+            c.lineTo(140, 1260);
+            c.closePath();
+
+            // Shadow under paper
+            c.shadowColor = 'rgba(0,0,0,0.6)';
+            c.shadowBlur = 35;
+            c.shadowOffsetX = 12;
+            c.shadowOffsetY = 18;
+
+            const grad = c.createLinearGradient(140, 180, 1020, 1340);
+            grad.addColorStop(0, '#f8fafc');
+            grad.addColorStop(0.6, '#e2e8f0');
+            grad.addColorStop(1, '#94a3b8');
+            c.fillStyle = grad;
+            c.fill();
+            c.restore();
+
+            // Draw tilted text inside the paper using canvas transform
+            c.save();
+            c.translate(220, 180);
+            c.rotate(0.09); // Match paper tilt
+
+            c.fillStyle = '#0f172a';
+            c.font = 'bold 34px Inter, sans-serif';
+            c.fillText('SHMSCANNER MAGIC AI', 60, 100);
+
+            c.strokeStyle = '#2563eb';
+            c.lineWidth = 4;
+            c.beginPath();
+            c.moveTo(60, 125);
+            c.lineTo(720, 125);
             c.stroke();
 
-            // Document Content Lines
             c.fillStyle = '#1e293b';
-            c.font = '24px serif';
+            c.font = '22px Inter, sans-serif';
             const lines = [
-                '1. Automatic paper background whitening & shadow removal.',
-                '2. Sharp thresholding ensures high legibility for mobile reading.',
-                '3. High precision touch crop handles for perspective correction.',
-                '4. Direct clean native printing via window.print() integration.',
-                '5. Multi-page document export to PDF, JPG, and PNG formats.',
-                '',
-                'APPROVED & VERIFIED BY TURBOSCANNER AI ENGINE'
+                '• True 8-DOF Projective Homography Matrix.',
+                '• Straightens tilted documents into flat A4 scans.',
+                '• Real-time 2.5x Loupe Magnifier on corner drag.',
+                '• AI Automatic Document Edge Detection.',
+                '• Shadow removal & adaptive contrast enhancement.'
             ];
-            let y = 250;
+            let y = 200;
             lines.forEach(line => {
-                c.fillText(line, 100, y);
-                y += 60;
+                c.fillText(line, 60, y);
+                y += 65;
             });
 
-            // Simulated Watermark / Stamp
-            c.strokeStyle = '#2563eb';
-            c.lineWidth = 5;
-            c.strokeRect(700, y + 40, 320, 130);
-            c.fillStyle = '#2563eb';
-            c.font = 'bold 26px sans-serif';
-            c.fillText('PASSED & CLEANED', 720, y + 95);
-            c.fillText(new Date().toLocaleDateString(), 720, y + 130);
+            c.strokeStyle = '#16a34a';
+            c.lineWidth = 4;
+            c.strokeRect(420, y + 60, 280, 100);
+            c.fillStyle = '#16a34a';
+            c.font = 'bold 24px Inter, sans-serif';
+            c.fillText('VERIFIED SCAN', 455, y + 118);
+            c.restore();
 
             addPageToDocument(canvas.toDataURL('image/jpeg', 0.95));
+            // Auto-run edge detection on the tilted demo doc!
+            setTimeout(() => {
+                autoDetectDocumentEdges(true);
+            }, 150);
         }
 
         async function processPdfFile(file) {
@@ -590,8 +770,10 @@
                     await page.render({ canvasContext: tempCtx, viewport: viewport }).promise;
                     addPageToDocument(tempCanvas.toDataURL('image/jpeg', 0.92));
                 }
+                showToast(`Imported ${pdf.numPages} page(s) from PDF`, 'success');
             } catch (err) {
                 console.error('PDF parsing error:', err);
+                showToast('Failed to read PDF document.', 'error');
             }
         }
 
@@ -607,7 +789,8 @@
         }
 
         function addPageToDocument(dataUrl) {
-            state.rawPages.push(dataUrl);
+            state.originalUploads.push(dataUrl);
+            state.workingImages.push(dataUrl);
             state.pages.push(dataUrl);
             selectPage(state.pages.length - 1);
             updatePagesSidebar();
@@ -619,11 +802,15 @@
             const img = new Image();
             img.onload = () => {
                 state.rawImage = img;
+                // Check if this page was already cropped compared to original upload
+                state.isCropped = (state.workingImages[index] !== state.originalUploads[index]);
+                updateUndoButtonState();
+
                 state.corners = [
-                    { x: 0.04, y: 0.04 },
-                    { x: 0.96, y: 0.04 },
-                    { x: 0.96, y: 0.96 },
-                    { x: 0.04, y: 0.96 }
+                    { x: 0.08, y: 0.08 },
+                    { x: 0.92, y: 0.08 },
+                    { x: 0.92, y: 0.92 },
+                    { x: 0.08, y: 0.92 }
                 ];
                 emptyState.classList.add('hidden');
                 docCanvas.classList.remove('hidden');
@@ -634,8 +821,29 @@
                 switchMode('crop');
                 renderCanvas();
             };
-            img.src = state.rawPages[index];
+            img.src = state.workingImages[index];
         }
+
+        function updateUndoButtonState() {
+            if (state.isCropped) {
+                undoCropBtn.classList.remove('hidden');
+            } else {
+                undoCropBtn.classList.add('hidden');
+            }
+        }
+
+        // Revert to uncropped original image so user can re-adjust crop
+        undoCropBtn.addEventListener('click', () => {
+            if (state.activePageIndex < 0) return;
+            const origUrl = state.originalUploads[state.activePageIndex];
+            state.workingImages[state.activePageIndex] = origUrl;
+            state.pages[state.activePageIndex] = origUrl;
+            state.isCropped = false;
+            updateUndoButtonState();
+            selectPage(state.activePageIndex);
+            updatePagesSidebar();
+            showToast('Reverted to original uncropped image', 'info');
+        });
 
         btnTabCrop.addEventListener('click', () => switchMode('crop'));
         btnTabEnhance.addEventListener('click', () => switchMode('filter'));
@@ -643,7 +851,7 @@
         function switchMode(newMode) {
             state.mode = newMode;
             if (newMode === 'crop') {
-                btnTabCrop.className = "px-3.5 py-1.5 rounded-lg text-xs font-medium transition flex items-center space-x-1.5 bg-blue-600 text-white";
+                btnTabCrop.className = "px-3.5 py-1.5 rounded-lg text-xs font-medium transition flex items-center space-x-1.5 bg-blue-600 text-white shadow";
                 btnTabEnhance.className = "px-3.5 py-1.5 rounded-lg text-xs font-medium transition flex items-center space-x-1.5 text-slate-400 hover:text-white";
                 cropControls.classList.remove('hidden');
                 filterControls.classList.add('hidden');
@@ -651,7 +859,7 @@
                 svgOverlay.classList.remove('hidden');
                 renderCanvas();
             } else {
-                btnTabEnhance.className = "px-3.5 py-1.5 rounded-lg text-xs font-medium transition flex items-center space-x-1.5 bg-blue-600 text-white";
+                btnTabEnhance.className = "px-3.5 py-1.5 rounded-lg text-xs font-medium transition flex items-center space-x-1.5 bg-blue-600 text-white shadow";
                 btnTabCrop.className = "px-3.5 py-1.5 rounded-lg text-xs font-medium transition flex items-center space-x-1.5 text-slate-400 hover:text-white";
                 filterControls.classList.remove('hidden');
                 filterControls.classList.add('flex');
@@ -662,6 +870,7 @@
             }
         }
 
+        // 90-Degree Rotation (Updates both working image and original if uncropped)
         document.getElementById('rotateBtn').addEventListener('click', () => {
             if (!state.rawImage) return;
             const tempCanvas = document.createElement('canvas');
@@ -672,88 +881,424 @@
             tCtx.rotate(90 * Math.PI / 180);
             tCtx.drawImage(state.rawImage, -state.rawImage.width / 2, -state.rawImage.height / 2);
 
+            const rotatedDataUrl = tempCanvas.toDataURL('image/jpeg', 0.95);
             const rotatedImg = new Image();
             rotatedImg.onload = () => {
                 state.rawImage = rotatedImg;
-                state.rawPages[state.activePageIndex] = tempCanvas.toDataURL('image/jpeg', 0.95);
-                renderCanvas();
+                state.workingImages[state.activePageIndex] = rotatedDataUrl;
+                if (!state.isCropped) {
+                    state.originalUploads[state.activePageIndex] = rotatedDataUrl;
+                }
+                if (state.mode === 'filter') {
+                    applyMagicFilter();
+                } else {
+                    renderCanvas();
+                }
+                updatePagesSidebar();
             };
-            rotatedImg.src = tempCanvas.toDataURL('image/jpeg', 0.95);
+            rotatedImg.src = rotatedDataUrl;
         });
 
         document.getElementById('resetCropBtn').addEventListener('click', () => {
             state.corners = [{x:0, y:0}, {x:1, y:0}, {x:1, y:1}, {x:0, y:1}];
             renderCanvas();
+            showToast('Crop expanded to full frame', 'info');
         });
+
+        // =========================================================================
+        // AI AUTOMATIC DOCUMENT EDGE DETECTION (Gradient & Sobel Boundary Analysis)
+        // =========================================================================
+        document.getElementById('autoDetectBtn').addEventListener('click', () => {
+            autoDetectDocumentEdges(false);
+        });
+
+        function autoDetectDocumentEdges(silent = false) {
+            if (!state.rawImage) return;
+
+            // Downsample image to fast processing grid (max 240px)
+            const procW = 240;
+            const scale = procW / state.rawImage.width;
+            const procH = Math.max(60, Math.round(state.rawImage.height * scale));
+
+            const offCanvas = document.createElement('canvas');
+            offCanvas.width = procW;
+            offCanvas.height = procH;
+            const oCtx = offCanvas.getContext('2d');
+            oCtx.drawImage(state.rawImage, 0, 0, procW, procH);
+
+            const imgData = oCtx.getImageData(0, 0, procW, procH).data;
+            const gray = new Float32Array(procW * procH);
+
+            for (let i = 0; i < procW * procH; i++) {
+                const idx = i * 4;
+                gray[i] = 0.299 * imgData[idx] + 0.587 * imgData[idx + 1] + 0.114 * imgData[idx + 2];
+            }
+
+            // Compute Sobel gradient magnitude
+            const grad = new Float32Array(procW * procH);
+            let maxGrad = 0;
+            for (let y = 1; y < procH - 1; y++) {
+                for (let x = 1; x < procW - 1; x++) {
+                    const gx =
+                        -gray[(y - 1) * procW + (x - 1)] + gray[(y - 1) * procW + (x + 1)]
+                        - 2 * gray[y * procW + (x - 1)] + 2 * gray[y * procW + (x + 1)]
+                        - gray[(y + 1) * procW + (x - 1)] + gray[(y + 1) * procW + (x + 1)];
+                    const gy =
+                        -gray[(y - 1) * procW + (x - 1)] - 2 * gray[(y - 1) * procW + x] - gray[(y - 1) * procW + (x + 1)]
+                        + gray[(y + 1) * procW + (x - 1)] + 2 * gray[(y + 1) * procW + x] + gray[(y + 1) * procW + (x + 1)];
+                    const mag = Math.hypot(gx, gy);
+                    grad[y * procW + x] = mag;
+                    if (mag > maxGrad) maxGrad = mag;
+                }
+            }
+
+            const edgeThreshold = maxGrad * 0.22;
+            const marginX = Math.floor(procW * 0.03);
+            const marginY = Math.floor(procH * 0.03);
+
+            // Search from each quadrant corner inward to locate strong document corners
+            function findCornerFrom(startX, startY, dirX, dirY) {
+                let bestX = startX + dirX * Math.floor(procW * 0.08);
+                let bestY = startY + dirY * Math.floor(procH * 0.08);
+                let bestScore = -Infinity;
+
+                const searchW = Math.floor(procW * 0.45);
+                const searchH = Math.floor(procH * 0.45);
+
+                for (let dy = marginY; dy < searchH; dy++) {
+                    for (let dx = marginX; dx < searchW; dx++) {
+                        const x = startX + dirX * dx;
+                        const y = startY + dirY * dy;
+                        if (x <= 1 || x >= procW - 2 || y <= 1 || y >= procH - 2) continue;
+
+                        const gVal = grad[y * procW + x];
+                        if (gVal > edgeThreshold) {
+                            // Prefer strong edges closest to the outer corner
+                            const distPenalty = (dx / procW + dy / procH) * 180;
+                            const score = gVal - distPenalty;
+                            if (score > bestScore) {
+                                bestScore = score;
+                                bestX = x;
+                                bestY = y;
+                            }
+                        }
+                    }
+                }
+                return {
+                    x: Math.max(0.01, Math.min(0.99, bestX / procW)),
+                    y: Math.max(0.01, Math.min(0.99, bestY / procH))
+                };
+            }
+
+            const tl = findCornerFrom(0, 0, 1, 1);
+            const tr = findCornerFrom(procW - 1, 0, -1, 1);
+            const br = findCornerFrom(procW - 1, procH - 1, -1, -1);
+            const bl = findCornerFrom(0, procH - 1, 1, -1);
+
+            // Validate polygon area is reasonable (at least 15% of image)
+            const area = 0.5 * Math.abs(
+                (tl.x * tr.y - tr.x * tl.y) +
+                (tr.x * br.y - br.x * tr.y) +
+                (br.x * bl.y - bl.x * br.y) +
+                (bl.x * tl.y - tl.x * bl.y)
+            );
+
+            if (area > 0.15) {
+                state.corners = [tl, tr, br, bl];
+                renderCanvas();
+                if (!silent) showToast('AI detected document boundaries!', 'success');
+            } else {
+                if (!silent) showToast('Could not isolate distinct edges; adjust corners manually.', 'info');
+            }
+        }
+
+        // =========================================================================
+        // TRUE 8-DOF PROJECTIVE HOMOGRAPHY PERSPECTIVE WARPING ENGINE
+        // =========================================================================
+        function solveLinearSystem8x8(A, B) {
+            const n = 8;
+            const M = A.map((row, i) => [...row, B[i]]);
+
+            for (let i = 0; i < n; i++) {
+                // Partial pivoting
+                let maxRow = i;
+                for (let k = i + 1; k < n; k++) {
+                    if (Math.abs(M[k][i]) > Math.abs(M[maxRow][i])) {
+                        maxRow = k;
+                    }
+                }
+                [M[i], M[maxRow]] = [M[maxRow], M[i]];
+
+                const pivot = M[i][i];
+                if (Math.abs(pivot) < 1e-10) continue;
+
+                for (let j = i; j <= n; j++) {
+                    M[i][j] /= pivot;
+                }
+
+                for (let k = 0; k < n; k++) {
+                    if (k !== i) {
+                        const factor = M[k][i];
+                        for (let j = i; j <= n; j++) {
+                            M[k][j] -= factor * M[i][j];
+                        }
+                    }
+                }
+            }
+            return M.map(row => row[n]);
+        }
+
+        /**
+         * Computes 3x3 Homography Matrix H mapping destination rectangle (u, v)
+         * back to source quadrilateral (x, y) for inverse bilinear sampling.
+         */
+        function computeInverseHomography(srcPts, dstW, dstH) {
+            const dstPts = [
+                { x: 0, y: 0 },
+                { x: dstW, y: 0 },
+                { x: dstW, y: dstH },
+                { x: 0, y: dstH }
+            ];
+
+            const A = [];
+            const B = [];
+
+            for (let i = 0; i < 4; i++) {
+                const u = dstPts[i].x;
+                const v = dstPts[i].y;
+                const x = srcPts[i].x;
+                const y = srcPts[i].y;
+
+                A.push([u, v, 1, 0, 0, 0, -u * x, -v * x]);
+                B.push(x);
+
+                A.push([0, 0, 0, u, v, 1, -u * y, -v * y]);
+                B.push(y);
+            }
+
+            const h = solveLinearSystem8x8(A, B);
+            return [
+                h[0], h[1], h[2],
+                h[3], h[4], h[5],
+                h[6], h[7], 1
+            ];
+        }
+
+        function orderCornersClockwise(pts) {
+            // Find centroid
+            const cx = pts.reduce((s, p) => s + p.x, 0) / 4;
+            const cy = pts.reduce((s, p) => s + p.y, 0) / 4;
+
+            // Sort by angle from centroid
+            const sorted = [...pts].sort((a, b) => Math.atan2(a.y - cy, a.x - cx) - Math.atan2(b.y - cy, b.x - cx));
+
+            // Rotate array so Top-Left (smallest x + y) is first
+            let tlIdx = 0;
+            let minSum = Infinity;
+            sorted.forEach((p, idx) => {
+                if (p.x + p.y < minSum) {
+                    minSum = p.x + p.y;
+                    tlIdx = idx;
+                }
+            });
+
+            return [
+                sorted[tlIdx % 4],
+                sorted[(tlIdx + 1) % 4],
+                sorted[(tlIdx + 2) % 4],
+                sorted[(tlIdx + 3) % 4]
+            ];
+        }
 
         document.getElementById('applyCropBtn').addEventListener('click', () => {
             if (!state.rawImage) return;
 
-            const img = state.rawImage;
-            const w = img.width;
-            const h = img.height;
-            const c = state.corners.map(p => ({ x: p.x * w, y: p.y * h }));
+            setProcessing(true, 'Warping Perspective & Straightening...');
 
-            const widthA = Math.hypot(c[1].x - c[0].x, c[1].y - c[0].y);
-            const widthB = Math.hypot(c[2].x - c[3].x, c[2].y - c[3].y);
-            const targetW = Math.max(widthA, widthB);
+            // Allow UI spinner to render before heavy pixel operation
+            setTimeout(() => {
+                try {
+                    const img = state.rawImage;
+                    const srcW = img.width;
+                    const srcH = img.height;
 
-            const heightA = Math.hypot(c[3].x - c[0].x, c[3].y - c[0].y);
-            const heightB = Math.hypot(c[2].x - c[1].x, c[2].y - c[1].y);
-            const targetH = Math.max(heightA, heightB);
+                    // Ensure corners are strictly ordered [TL, TR, BR, BL]
+                    const orderedNorm = orderCornersClockwise(state.corners);
+                    const c = orderedNorm.map(p => ({ x: p.x * srcW, y: p.y * srcH }));
 
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = targetW;
-            tempCanvas.height = targetH;
-            const tCtx = tempCanvas.getContext('2d');
+                    // Calculate Euclidean edge lengths to determine natural output aspect ratio
+                    const topW = Math.hypot(c[1].x - c[0].x, c[1].y - c[0].y);
+                    const botW = Math.hypot(c[2].x - c[3].x, c[2].y - c[3].y);
+                    const leftH = Math.hypot(c[3].x - c[0].x, c[3].y - c[0].y);
+                    const rightH = Math.hypot(c[2].x - c[1].x, c[2].y - c[1].y);
 
-            tCtx.drawImage(img, 0, 0, targetW, targetH);
+                    let targetW = Math.max(50, Math.round(Math.max(topW, botW)));
+                    let targetH = Math.max(50, Math.round(Math.max(leftH, rightH)));
 
-            const croppedImg = new Image();
-            croppedImg.onload = () => {
-                state.rawImage = croppedImg;
-                state.corners = [{x:0, y:0}, {x:1, y:0}, {x:1, y:1}, {x:0, y:1}];
-                switchMode('filter');
-            };
-            croppedImg.src = tempCanvas.toDataURL('image/jpeg', 0.95);
+                    // Cap max resolution to 2400px for ultra-fast mobile & desktop responsiveness
+                    const maxDim = 2400;
+                    if (targetW > maxDim || targetH > maxDim) {
+                        const scaleDown = maxDim / Math.max(targetW, targetH);
+                        targetW = Math.round(targetW * scaleDown);
+                        targetH = Math.round(targetH * scaleDown);
+                    }
+
+                    // Extract source pixel buffer
+                    const srcCanvas = document.createElement('canvas');
+                    srcCanvas.width = srcW;
+                    srcCanvas.height = srcH;
+                    const sCtx = srcCanvas.getContext('2d');
+                    sCtx.drawImage(img, 0, 0);
+                    const srcData = sCtx.getImageData(0, 0, srcW, srcH).data;
+
+                    // Prepare destination buffer
+                    const dstCanvas = document.createElement('canvas');
+                    dstCanvas.width = targetW;
+                    dstCanvas.height = targetH;
+                    const dCtx = dstCanvas.getContext('2d');
+                    const dstImgData = dCtx.createImageData(targetW, targetH);
+                    const dstData = dstImgData.data;
+
+                    // Compute Inverse Homography Matrix H (dst -> src)
+                    const H = computeInverseHomography(c, targetW, targetH);
+                    const h0 = H[0], h1 = H[1], h2 = H[2];
+                    const h3 = H[3], h4 = H[4], h5 = H[5];
+                    const h6 = H[6], h7 = H[7], h8 = H[8];
+
+                    // Inverse Bilinear Interpolation Mapping
+                    for (let v = 0; v < targetH; v++) {
+                        const rowOffset = v * targetW * 4;
+                        const h1v_h2 = h1 * v + h2;
+                        const h4v_h5 = h4 * v + h5;
+                        const h7v_h8 = h7 * v + h8;
+
+                        for (let u = 0; u < targetW; u++) {
+                            const w = h6 * u + h7v_h8;
+                            const invW = 1.0 / w;
+                            const sx = (h0 * u + h1v_h2) * invW;
+                            const sy = (h3 * u + h4v_h5) * invW;
+
+                            const dstIdx = rowOffset + u * 4;
+
+                            if (sx >= 0 && sx < srcW - 1 && sy >= 0 && sy < srcH - 1) {
+                                const x0 = sx | 0;
+                                const y0 = sy | 0;
+                                const dx = sx - x0;
+                                const dy = sy - y0;
+                                const invDx = 1.0 - dx;
+                                const invDy = 1.0 - dy;
+
+                                const w00 = invDx * invDy;
+                                const w10 = dx * invDy;
+                                const w01 = invDx * dy;
+                                const w11 = dx * dy;
+
+                                const idx00 = (y0 * srcW + x0) * 4;
+                                const idx10 = idx00 + 4;
+                                const idx01 = idx00 + srcW * 4;
+                                const idx11 = idx01 + 4;
+
+                                dstData[dstIdx]     = srcData[idx00] * w00 + srcData[idx10] * w10 + srcData[idx01] * w01 + srcData[idx11] * w11;
+                                dstData[dstIdx + 1] = srcData[idx00 + 1] * w00 + srcData[idx10 + 1] * w10 + srcData[idx01 + 1] * w01 + srcData[idx11 + 1] * w11;
+                                dstData[dstIdx + 2] = srcData[idx00 + 2] * w00 + srcData[idx10 + 2] * w10 + srcData[idx01 + 2] * w01 + srcData[idx11 + 2] * w11;
+                                dstData[dstIdx + 3] = 255;
+                            } else {
+                                // Clamp edge pixels cleanly
+                                const cx = Math.max(0, Math.min(srcW - 1, Math.round(sx)));
+                                const cy = Math.max(0, Math.min(srcH - 1, Math.round(sy)));
+                                const sIdx = (cy * srcW + cx) * 4;
+                                dstData[dstIdx]     = srcData[sIdx];
+                                dstData[dstIdx + 1] = srcData[sIdx + 1];
+                                dstData[dstIdx + 2] = srcData[sIdx + 2];
+                                dstData[dstIdx + 3] = 255;
+                            }
+                        }
+                    }
+
+                    dCtx.putImageData(dstImgData, 0, 0);
+                    const warpedDataUrl = dstCanvas.toDataURL('image/jpeg', 0.96);
+
+                    const croppedImg = new Image();
+                    croppedImg.onload = () => {
+                        state.rawImage = croppedImg;
+                        state.workingImages[state.activePageIndex] = warpedDataUrl;
+                        state.isCropped = true;
+                        updateUndoButtonState();
+                        state.corners = [{x:0, y:0}, {x:1, y:0}, {x:1, y:1}, {x:0, y:1}];
+                        setProcessing(false);
+                        switchMode('filter');
+                        showToast('Perspective flattened & cropped!', 'success');
+                    };
+                    croppedImg.src = warpedDataUrl;
+                } catch (err) {
+                    console.error('Perspective Warp Error:', err);
+                    setProcessing(false);
+                    showToast('Error applying perspective warp.', 'error');
+                }
+            }, 30);
         });
 
+        // =========================================================================
+        // DOCUMENT MAGIC FILTER & UNSHARP MASKING ENGINE
+        // =========================================================================
         function applyMagicFilter() {
             if (!state.rawImage) return;
 
-            docCanvas.width = state.rawImage.width;
-            docCanvas.height = state.rawImage.height;
+            const w = state.rawImage.width;
+            const h = state.rawImage.height;
+
+            docCanvas.width = w;
+            docCanvas.height = h;
+
+            // Ensure display CSS sizing stays responsive inside viewport
+            const holderRect = canvasHolder.getBoundingClientRect();
+            const maxW = Math.max(100, holderRect.width - 32);
+            const maxH = Math.max(100, holderRect.height - 32);
+            const ratio = Math.min(maxW / w, maxH / h);
+            docCanvas.style.width = `${w * ratio}px`;
+            docCanvas.style.height = `${h * ratio}px`;
+
             ctx.drawImage(state.rawImage, 0, 0);
 
-            const imgData = ctx.getImageData(0, 0, docCanvas.width, docCanvas.height);
+            const imgData = ctx.getImageData(0, 0, w, h);
             const data = imgData.data;
             const len = data.length;
 
             const bOffset = parseInt(state.brightness);
             const contrast = parseInt(state.contrast);
             const thresholdSensitivity = parseInt(state.threshold);
+            const sharpnessAmt = parseInt(state.sharpness) / 100;
             const cFactor = (259 * (contrast + 255)) / (255 * (259 - contrast));
+
+            // Optional fast unsharp mask pass for crisp text edges
+            let srcCopy = null;
+            if (sharpnessAmt > 0.05 && state.filter !== 'original') {
+                srcCopy = new Uint8ClampedArray(data);
+            }
 
             for (let i = 0; i < len; i += 4) {
                 let r = data[i];
                 let g = data[i + 1];
                 let b = data[i + 2];
 
-                let gray = 0.299 * r + 0.587 * g + 0.114 * b;
+                const gray = 0.299 * r + 0.587 * g + 0.114 * b;
 
                 if (state.filter === 'magic') {
-                    // Magic Color Filter - Cleans Paper Backgrounds & Enhances Text
-                    if (gray > (200 - thresholdSensitivity)) {
-                        r = Math.min(255, gray * 1.35 + 30);
-                        g = Math.min(255, gray * 1.35 + 30);
-                        b = Math.min(255, gray * 1.35 + 30);
+                    // Adaptive Paper Whitening & Ink Vibrance
+                    const cutoff = 195 - thresholdSensitivity;
+                    if (gray > cutoff) {
+                        const boost = Math.min(1, (gray - cutoff) / 45);
+                        r = r + (255 - r) * (0.65 + 0.35 * boost);
+                        g = g + (255 - g) * (0.65 + 0.35 * boost);
+                        b = b + (255 - b) * (0.65 + 0.35 * boost);
                     } else {
-                        r = Math.max(0, r * 0.65 - 20);
-                        g = Math.max(0, g * 0.65 - 20);
-                        b = Math.max(0, b * 0.65 - 20);
+                        // Deepen ink & colored stamps without crushing saturation
+                        r = Math.max(0, r * 0.78 - 12);
+                        g = Math.max(0, g * 0.78 - 12);
+                        b = Math.max(0, b * 0.78 - 12);
                     }
                 } else if (state.filter === 'crisp_bw') {
-                    const bw = gray > (140 - thresholdSensitivity * 0.8) ? 255 : 0;
+                    const bw = gray > (155 - thresholdSensitivity * 0.85) ? 255 : 0;
                     r = g = b = bw;
                 } else if (state.filter === 'gray') {
                     r = g = b = gray;
@@ -765,9 +1310,31 @@
                     b = cFactor * (b - 128) + 128 + bOffset;
                 }
 
-                data[i] = Math.min(255, Math.max(0, r));
+                data[i]     = Math.min(255, Math.max(0, r));
                 data[i + 1] = Math.min(255, Math.max(0, g));
                 data[i + 2] = Math.min(255, Math.max(0, b));
+            }
+
+            // Apply 3x3 Laplacian Sharpening Kernel when Sharpness > 0
+            if (srcCopy && state.filter !== 'crisp_bw') {
+                const postFiltered = new Uint8ClampedArray(data);
+                const k = sharpnessAmt * 0.85;
+                for (let y = 1; y < h - 1; y++) {
+                    for (let x = 1; x < w - 1; x++) {
+                        const idx = (y * w + x) * 4;
+                        const top = idx - w * 4;
+                        const bot = idx + w * 4;
+                        const left = idx - 4;
+                        const right = idx + 4;
+
+                        for (let c = 0; c < 3; c++) {
+                            const center = postFiltered[idx + c];
+                            const neighbors = (postFiltered[top + c] + postFiltered[bot + c] + postFiltered[left + c] + postFiltered[right + c]) * 0.25;
+                            const sharp = center + k * (center - neighbors);
+                            data[idx + c] = Math.min(255, Math.max(0, sharp));
+                        }
+                    }
+                }
             }
 
             ctx.putImageData(imgData, 0, 0);
@@ -814,15 +1381,18 @@
             applyMagicFilter();
         });
 
+        // =========================================================================
+        // INTERACTIVE CROP OVERLAY, EDGE HANDLES & PRECISION LOUPE MAGNIFIER
+        // =========================================================================
         function renderCanvas() {
             if (!state.rawImage) return;
 
             const holderRect = canvasHolder.getBoundingClientRect();
-            const maxW = holderRect.width - 32;
-            const maxH = holderRect.height - 32;
+            const maxW = Math.max(100, holderRect.width - 32);
+            const maxH = Math.max(100, holderRect.height - 32);
 
-            let w = state.rawImage.width;
-            let h = state.rawImage.height;
+            const w = state.rawImage.width;
+            const h = state.rawImage.height;
 
             const ratio = Math.min(maxW / w, maxH / h);
             const dispW = w * ratio;
@@ -837,7 +1407,7 @@
             ctx.drawImage(state.rawImage, 0, 0);
 
             if (state.mode === 'crop') {
-                updateCropOverlay(dispW, dispH);
+                requestAnimationFrame(() => updateCropOverlay(dispW, dispH));
             }
         }
 
@@ -850,17 +1420,62 @@
             const offsetX = rect.left - holderRect.left;
             const offsetY = rect.top - holderRect.top;
 
+            // Update dimmed mask backdrop strictly over the image
+            dimBackdrop.setAttribute('x', offsetX);
+            dimBackdrop.setAttribute('y', offsetY);
+            dimBackdrop.setAttribute('width', dispW);
+            dimBackdrop.setAttribute('height', dispH);
+
             const pts = state.corners.map(c => ({
                 x: offsetX + c.x * dispW,
                 y: offsetY + c.y * dispH
             }));
 
-            polyCrop.setAttribute('points', pts.map(p => `${p.x},${p.y}`).join(' '));
+            const ptsString = pts.map(p => `${p.x},${p.y}`).join(' ');
+            polyCrop.setAttribute('points', ptsString);
+            polyMaskHole.setAttribute('points', ptsString);
+
+            // Rule of Thirds Alignment Grid inside quadrilateral
+            const lerp = (p1, p2, t) => ({ x: p1.x + (p2.x - p1.x) * t, y: p1.y + (p2.y - p1.y) * t });
+            const t1 = lerp(pts[0], pts[1], 0.333), b1 = lerp(pts[3], pts[2], 0.333);
+            const t2 = lerp(pts[0], pts[1], 0.666), b2 = lerp(pts[3], pts[2], 0.666);
+            const l1 = lerp(pts[0], pts[3], 0.333), r1 = lerp(pts[1], pts[2], 0.333);
+            const l2 = lerp(pts[0], pts[3], 0.666), r2 = lerp(pts[1], pts[2], 0.666);
+
+            document.getElementById('gridV1').setAttribute('x1', t1.x); document.getElementById('gridV1').setAttribute('y1', t1.y);
+            document.getElementById('gridV1').setAttribute('x2', b1.x); document.getElementById('gridV1').setAttribute('y2', b1.y);
+            document.getElementById('gridV2').setAttribute('x1', t2.x); document.getElementById('gridV2').setAttribute('y1', t2.y);
+            document.getElementById('gridV2').setAttribute('x2', b2.x); document.getElementById('gridV2').setAttribute('y2', b2.y);
+            document.getElementById('gridH1').setAttribute('x1', l1.x); document.getElementById('gridH1').setAttribute('y1', l1.y);
+            document.getElementById('gridH1').setAttribute('x2', r1.x); document.getElementById('gridH1').setAttribute('y2', r1.y);
+            document.getElementById('gridH2').setAttribute('x1', l2.x); document.getElementById('gridH2').setAttribute('y1', l2.y);
+            document.getElementById('gridH2').setAttribute('x2', r2.x); document.getElementById('gridH2').setAttribute('y2', r2.y);
+
             svgOverlay.classList.remove('hidden');
 
+            // Render 4 Edge Midpoint Handles
+            for (let i = 0; i < 4; i++) {
+                const pA = pts[i];
+                const pB = pts[(i + 1) % 4];
+                const midX = (pA.x + pB.x) / 2;
+                const midY = (pA.y + pB.y) / 2;
+                const angle = Math.atan2(pB.y - pA.y, pB.x - pA.x) * (180 / Math.PI);
+
+                const edgeHandle = document.createElement('div');
+                edgeHandle.className = 'edge-handle';
+                edgeHandle.style.left = `${midX}px`;
+                edgeHandle.style.top = `${midY}px`;
+                edgeHandle.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+                edgeHandle.dataset.edge = i;
+                edgeHandle.addEventListener('pointerdown', startEdgeDrag);
+                canvasHolder.appendChild(edgeHandle);
+            }
+
+            // Render 4 Corner Handles
             pts.forEach((p, idx) => {
                 const handle = document.createElement('div');
                 handle.className = 'crop-handle';
+                if (state.activeHandle === idx) handle.classList.add('dragging');
                 handle.style.left = `${p.x}px`;
                 handle.style.top = `${p.y}px`;
                 handle.dataset.index = idx;
@@ -871,12 +1486,48 @@
         }
 
         function removeCropHandles() {
-            canvasHolder.querySelectorAll('.crop-handle').forEach(h => h.remove());
+            canvasHolder.querySelectorAll('.crop-handle, .edge-handle').forEach(h => h.remove());
+        }
+
+        function updateLoupe(normX, normY) {
+            if (!state.rawImage) return;
+            loupeContainer.classList.remove('hidden');
+
+            // Position loupe on opposite side of the corner being dragged so finger never blocks it
+            if (normX < 0.45 && normY < 0.45) {
+                loupeContainer.style.left = 'auto';
+                loupeContainer.style.right = '16px';
+            } else {
+                loupeContainer.style.right = 'auto';
+                loupeContainer.style.left = '16px';
+            }
+
+            const imgX = normX * state.rawImage.width;
+            const imgY = normY * state.rawImage.height;
+            const sampleRadius = Math.min(state.rawImage.width, state.rawImage.height) * 0.08;
+
+            loupeCtx.fillStyle = '#020617';
+            loupeCtx.fillRect(0, 0, 112, 112);
+
+            loupeCtx.drawImage(
+                state.rawImage,
+                imgX - sampleRadius,
+                imgY - sampleRadius,
+                sampleRadius * 2,
+                sampleRadius * 2,
+                0,
+                0,
+                112,
+                112
+            );
         }
 
         function startDrag(e) {
             e.preventDefault();
-            state.activeHandle = parseInt(e.target.dataset.index);
+            e.stopPropagation();
+            state.activeHandle = parseInt(e.currentTarget.dataset.index);
+            const pt = state.corners[state.activeHandle];
+            updateLoupe(pt.x, pt.y);
             window.addEventListener('pointermove', onDrag);
             window.addEventListener('pointerup', stopDrag);
         }
@@ -892,15 +1543,60 @@
             y = Math.max(0, Math.min(1, y));
 
             state.corners[state.activeHandle] = { x, y };
+            updateLoupe(x, y);
             renderCanvas();
         }
 
         function stopDrag() {
             state.activeHandle = -1;
+            loupeContainer.classList.add('hidden');
             window.removeEventListener('pointermove', onDrag);
             window.removeEventListener('pointerup', stopDrag);
+            renderCanvas();
         }
 
+        // Edge Midpoint Dragging (Moves both adjacent corners simultaneously)
+        function startEdgeDrag(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            state.activeEdge = parseInt(e.currentTarget.dataset.edge);
+            state.dragStartMouse = { x: e.clientX, y: e.clientY };
+            state.dragStartCorners = state.corners.map(c => ({ ...c }));
+            window.addEventListener('pointermove', onEdgeDrag);
+            window.addEventListener('pointerup', stopEdgeDrag);
+        }
+
+        function onEdgeDrag(e) {
+            if (state.activeEdge === -1) return;
+            const rect = docCanvas.getBoundingClientRect();
+            const dx = (e.clientX - state.dragStartMouse.x) / rect.width;
+            const dy = (e.clientY - state.dragStartMouse.y) / rect.height;
+
+            const idx1 = state.activeEdge;
+            const idx2 = (state.activeEdge + 1) % 4;
+
+            const c1 = state.dragStartCorners[idx1];
+            const c2 = state.dragStartCorners[idx2];
+
+            // Clamp delta so neither corner leaves [0, 1]
+            const clampedDx = Math.max(-Math.min(c1.x, c2.x), Math.min(1 - Math.max(c1.x, c2.x), dx));
+            const clampedDy = Math.max(-Math.min(c1.y, c2.y), Math.min(1 - Math.max(c1.y, c2.y), dy));
+
+            state.corners[idx1] = { x: c1.x + clampedDx, y: c1.y + clampedDy };
+            state.corners[idx2] = { x: c2.x + clampedDx, y: c2.y + clampedDy };
+
+            renderCanvas();
+        }
+
+        function stopEdgeDrag() {
+            state.activeEdge = -1;
+            window.removeEventListener('pointermove', onEdgeDrag);
+            window.removeEventListener('pointerup', stopEdgeDrag);
+        }
+
+        // =========================================================================
+        // MULTI-PAGE BATCH SIDEBAR & EXPORT HANDLERS
+        // =========================================================================
         function updatePagesSidebar() {
             pageCountEl.innerText = state.pages.length;
             pagesContainer.innerHTML = '';
@@ -927,14 +1623,14 @@
                         <img src="${pageData}" class="w-10 h-12 object-cover rounded border border-slate-700 bg-white">
                         <div class="truncate">
                             <div class="text-xs font-semibold text-white">Page ${idx + 1}</div>
-                            <div class="text-[10px] text-slate-400">TurboScan AI</div>
+                            <div class="text-[10px] text-slate-400">SHMscanner AI</div>
                         </div>
                     </div>
                     <div class="flex items-center space-x-1">
-                        <button onclick="movePage(${idx}, -1)" type="button" class="p-1 text-slate-400 hover:text-white" ${idx === 0 ? 'disabled class="opacity-20"' : ''}>
+                        <button onclick="movePage(${idx}, -1)" type="button" class="p-1 text-slate-400 hover:text-white ${idx === 0 ? 'opacity-20 pointer-events-none' : ''}">
                             <i data-lucide="chevron-up" class="w-3.5 h-3.5"></i>
                         </button>
-                        <button onclick="movePage(${idx}, 1)" type="button" class="p-1 text-slate-400 hover:text-white" ${idx === state.pages.length - 1 ? 'disabled class="opacity-20"' : ''}>
+                        <button onclick="movePage(${idx}, 1)" type="button" class="p-1 text-slate-400 hover:text-white ${idx === state.pages.length - 1 ? 'opacity-20 pointer-events-none' : ''}">
                             <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
                         </button>
                         <button onclick="deletePage(${idx})" type="button" class="p-1 text-slate-400 hover:text-red-400 transition">
@@ -951,14 +1647,9 @@
             const newIndex = index + direction;
             if (newIndex < 0 || newIndex >= state.pages.length) return;
 
-            const tempP = state.pages[index];
-            const tempR = state.rawPages[index];
-
-            state.pages[index] = state.pages[newIndex];
-            state.rawPages[index] = state.rawPages[newIndex];
-
-            state.pages[newIndex] = tempP;
-            state.rawPages[newIndex] = tempR;
+            [state.pages[index], state.pages[newIndex]] = [state.pages[newIndex], state.pages[index]];
+            [state.workingImages[index], state.workingImages[newIndex]] = [state.workingImages[newIndex], state.workingImages[index]];
+            [state.originalUploads[index], state.originalUploads[newIndex]] = [state.originalUploads[newIndex], state.originalUploads[index]];
 
             selectPage(newIndex);
             updatePagesSidebar();
@@ -966,7 +1657,8 @@
 
         function deletePage(index) {
             state.pages.splice(index, 1);
-            state.rawPages.splice(index, 1);
+            state.workingImages.splice(index, 1);
+            state.originalUploads.splice(index, 1);
 
             if (state.pages.length === 0) {
                 state.rawImage = null;
@@ -984,30 +1676,53 @@
 
         document.getElementById('addMoreBtn').addEventListener('click', triggerFileInput);
 
-        // PDF Export
-        document.getElementById('exportPdfBtn').addEventListener('click', () => {
+        // Aspect-Ratio Preserving Multi-Page PDF Export
+        document.getElementById('exportPdfBtn').addEventListener('click', async () => {
             if (state.pages.length === 0) return;
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF('p', 'mm', 'a4');
+            setProcessing(true, 'Building High-Res PDF...');
+            try {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pageW = 210;
+                const pageH = 297;
 
-            state.pages.forEach((pageData, idx) => {
-                if (idx > 0) pdf.addPage();
-                pdf.addImage(pageData, 'JPEG', 0, 0, 210, 297);
-            });
+                for (let idx = 0; idx < state.pages.length; idx++) {
+                    if (idx > 0) pdf.addPage();
+                    const pageData = state.pages[idx];
+                    const img = await new Promise((res) => {
+                        const i = new Image();
+                        i.onload = () => res(i);
+                        i.src = pageData;
+                    });
 
-            pdf.save(`TurboScanner_Magic_${Date.now()}.pdf`);
+                    const ratio = Math.min(pageW / img.width, pageH / img.height);
+                    const drawW = img.width * ratio;
+                    const drawH = img.height * ratio;
+                    const offsetX = (pageW - drawW) / 2;
+                    const offsetY = (pageH - drawH) / 2;
+
+                    pdf.addImage(pageData, 'JPEG', offsetX, offsetY, drawW, drawH);
+                }
+
+                pdf.save(`SHMscanner_Magic_${Date.now()}.pdf`);
+                showToast('PDF exported successfully!', 'success');
+            } finally {
+                setProcessing(false);
+            }
         });
 
         // JPG Export
         document.getElementById('exportJpgBtn').addEventListener('click', () => {
             if (state.pages.length === 0) return;
-            downloadImage(state.pages[state.activePageIndex], `TurboScanner_Page_${state.activePageIndex + 1}.jpg`);
+            downloadImage(state.pages[state.activePageIndex], `SHMscanner_Page_${state.activePageIndex + 1}.jpg`);
+            showToast('JPG saved!', 'success');
         });
 
         // PNG Export
         document.getElementById('exportPngBtn').addEventListener('click', () => {
             if (state.pages.length === 0) return;
-            downloadImage(state.pages[state.activePageIndex], `TurboScanner_Page_${state.activePageIndex + 1}.png`);
+            downloadImage(state.pages[state.activePageIndex], `SHMscanner_Page_${state.activePageIndex + 1}.png`);
+            showToast('PNG saved!', 'success');
         });
 
         // Clean Pre-rendered Native Printing
