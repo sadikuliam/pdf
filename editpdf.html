@@ -1,870 +1,2295 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en" class="dark">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#090e17">
-<title>SHM PDF Editor Pro - Professional Precision</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#090e17">
+  <title>SHM PDF Editor Pro — World-Class PDF Studio</title>
 
-<!-- Modern Fonts & Icons -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Serif+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <!-- Modern Typography & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Serif+Bengali:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 
-<!-- Core Dependencies -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'Noto Sans Bengali', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            studio: {
+              bg: '#070b14',
+              panel: '#0f172a',
+              card: '#1e293b',
+              border: 'rgba(255, 255, 255, 0.08)',
+              accent: '#2563eb',
+              brand: '#e11d48',
+            }
+          }
+        }
+      }
+    };
+  </script>
 
-<style>
-/* Modern CSS Reset & Variables */
-:root {
-  --bg-main: #090e17; --glass-bg: rgba(15, 23, 42, 0.85); --glass-border: rgba(255, 255, 255, 0.08);
-  --panel: #111827; --text-main: #f8fafc; --text-muted: #94a3b8;
-  --accent-primary: #0a59a3; 
-  --success: #10b981; --danger: #ef4444;
-}
+  <!-- Core PDF & OCR Engines -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; background: var(--bg-main); color: var(--text-main); overscroll-behavior: none; }
-button, input, select { font: inherit; outline: none; border: none; }
-.hidden { display: none !important; }
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+  <style>
+    /* Custom Studio Scrollbars & Interactive Layer Precision */
+    * { box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      background-color: #070b14;
+      color: #f8fafc;
+      overscroll-behavior: none;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-/* Layout Grid */
-.app-container { height: 100%; display: grid; grid-template-rows: 64px 56px 1fr; width: 100%; }
+    ::-webkit-scrollbar { width: 7px; height: 7px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
 
-/* Topbar & Toolbar */
-.topbar { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; background: var(--glass-bg); backdrop-filter: blur(16px); border-bottom: 1px solid var(--glass-border); z-index: 50; }
-.brand { display: flex; align-items: center; gap: 14px; font-weight: 700; font-size: 16px; }
+    /* Page Canvas & Interaction Elements */
+    .page-wrapper {
+      position: relative;
+      background: #ffffff;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.08);
+      transform-origin: top center;
+      transition: box-shadow 0.2s ease;
+    }
 
-.brand-icon { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 8px; overflow: hidden; background: transparent; }
-.brand-icon img { width: 100%; height: 100%; object-fit: contain; }
+    .interaction-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 15;
+      overflow: hidden;
+    }
 
-.brand-text small { display: block; color: var(--text-muted); font-size: 11px; font-weight: 500; margin-top: 2px; }
-.top-actions { display: flex; align-items: center; gap: 12px; }
+    .drawing-canvas {
+      position: absolute;
+      inset: 0;
+      z-index: 12;
+      pointer-events: none;
+    }
 
-.toolbar { display: flex; align-items: center; gap: 12px; padding: 0 20px; background: rgba(15, 23, 42, 0.9); border-bottom: 1px solid var(--glass-border); overflow-x: auto; z-index: 45; white-space: nowrap; }
-.tool-group { display: flex; align-items: center; gap: 6px; padding-right: 12px; border-right: 1px solid var(--glass-border); flex-shrink: 0; }
-.btn, .icon-btn { height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 16px; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; background: rgba(255,255,255,0.03); color: var(--text-main); cursor: pointer; font-size: 13px; font-weight: 500; }
-.icon-btn { width: 38px; padding: 0; font-size: 15px; }
-.btn:hover:not(:disabled), .icon-btn:hover:not(:disabled) { background: rgba(255,255,255,0.08); }
-.btn.primary { background: #d32f2f; color: #fff; }
-.btn.active, .icon-btn.active { background: rgba(10, 89, 163, 0.25); border-color: var(--accent-primary); color: #60a5fa; }
-.btn:disabled, .icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.status-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: 20px; font-size: 12px; color: var(--text-muted); border: 1px solid rgba(255,255,255,0.05); }
+    .stage-mode-draw .drawing-canvas,
+    .stage-mode-highlight .drawing-canvas,
+    .stage-mode-whiteout .drawing-canvas {
+      pointer-events: auto;
+      cursor: crosshair;
+      z-index: 40;
+    }
 
-/* Workspace */
-.workspace { display: grid; grid-template-columns: 260px 1fr 320px; min-height: 0; background: #0f172a; } 
-.sidebar, .properties-panel { background: var(--panel); border-right: 1px solid var(--glass-border); overflow-y: auto; display: flex; flex-direction: column; }
-.properties-panel { border-right: none; border-left: 1px solid var(--glass-border); }
-.panel-header { height: 50px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid var(--glass-border); font-size: 14px; font-weight: 600; flex-shrink: 0; }
+    /* Editable Text Box */
+    .editable-item {
+      position: absolute;
+      user-select: none;
+      touch-action: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
 
-.thumb-grid { padding: 16px; display: grid; gap: 16px; }
-.thumb-card { padding: 4px; border: 2px solid transparent; background: #fff; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-.thumb-card.active { border-color: var(--accent-primary); }
-.thumb-card canvas { width: 100%; display: block; }
+    .text-element {
+      padding: 1px 4px;
+      border: 1px dashed rgba(37, 99, 235, 0.28);
+      border-radius: 3px;
+      outline: none;
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.18;
+      cursor: text;
+      user-select: text;
+      min-height: 1em;
+    }
 
-.stage { position: relative; overflow: auto; padding: 40px; scroll-behavior: smooth; display: flex; flex-direction: column; align-items: center; }
-.empty-state { width: 100%; max-width: 500px; padding: 48px; text-align: center; border: 2px dashed #475569; border-radius: 12px; background: rgba(30, 41, 59, 0.5); color: #cbd5e1; }
-.empty-icon { font-size: 48px; color: #d32f2f; margin-bottom: 16px; }
-.empty-state h2 { font-size: 22px; margin-bottom: 12px; font-weight: 600; }
+    .text-element:hover {
+      border-color: rgba(37, 99, 235, 0.85);
+      background-color: rgba(255, 255, 255, 0.72);
+    }
 
-.page-container { position: relative; background: #fff; box-shadow: 0 10px 25px rgba(0,0,0,0.3); margin-bottom: 40px; transform-origin: top center; border: 1px solid #cbd5e1; }
-.page-canvas { display: block; width: 100%; height: auto; }
-.interaction-layer { position: absolute; inset: 0; z-index: 10; pointer-events: auto; }
+    .text-element.is-modified {
+      border-style: solid;
+      border-color: rgba(16, 185, 129, 0.45);
+      z-index: 22;
+    }
 
-/* Text Box Styles */
-.text-box { 
-  position: absolute; 
-  padding: 1px 3px; 
-  margin: 0; 
-  border: 1px dashed rgba(10, 89, 163, 0.4); 
-  outline: none; 
-  white-space: pre-wrap; 
-  word-break: break-word;
-  overflow: hidden;
-  line-height: 1.1; 
-  color: #000; 
-  background: rgba(255, 255, 255, 0.5); 
-  cursor: text; 
-  pointer-events: auto; 
-  transition: border-color 0.15s, background 0.15s;
-}
+    .editable-item.is-selected {
+      border: 1.5px solid #2563eb !important;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2), 0 8px 20px rgba(0, 0, 0, 0.25);
+      z-index: 35 !important;
+    }
 
-.text-box:hover {
-  border-color: rgba(10, 89, 163, 0.9);
-  background: rgba(255, 255, 255, 0.9);
-}
+    /* Floating Drag & Resize Handles */
+    .drag-handle {
+      position: absolute;
+      top: -22px;
+      left: -1px;
+      height: 20px;
+      padding: 0 6px;
+      background: #2563eb;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 600;
+      border-radius: 4px 4px 0 0;
+      display: none;
+      align-items: center;
+      gap: 4px;
+      cursor: grab;
+      white-space: nowrap;
+      user-select: none;
+      touch-action: none;
+      z-index: 45;
+    }
+    .drag-handle:active { cursor: grabbing; }
+    .editable-item.is-selected > .drag-handle { display: flex; }
 
-.text-box:focus, .text-box.is-selected { 
-  background: #ffffff !important; 
-  border: 1.5px solid var(--accent-primary) !important; 
-  box-shadow: 0 4px 12px rgba(10, 89, 163, 0.3); 
-  z-index: 30; 
-  cursor: move; 
-}
+    .resize-handle {
+      position: absolute;
+      right: -5px;
+      bottom: -5px;
+      width: 11px;
+      height: 11px;
+      background: #ffffff;
+      border: 2px solid #2563eb;
+      border-radius: 2px;
+      display: none;
+      cursor: nwse-resize;
+      touch-action: none;
+      z-index: 45;
+    }
+    .editable-item.is-selected > .resize-handle { display: block; }
 
-.text-box.is-modified { background: #ffffff !important; border-style: solid; z-index: 20; }
-.text-box.hidden { display: none !important; }
+    /* Preserved PDF Link Overlay Badge */
+    .preserved-link-zone {
+      position: absolute;
+      border: 1.5px solid rgba(16, 185, 129, 0.65);
+      background: rgba(16, 185, 129, 0.10);
+      border-radius: 3px;
+      pointer-events: auto;
+      cursor: pointer;
+      z-index: 16;
+      transition: all 0.15s ease;
+    }
+    .preserved-link-zone:hover {
+      background: rgba(16, 185, 129, 0.22);
+      border-color: #10b981;
+    }
+    .preserved-link-zone .link-pill {
+      position: absolute;
+      top: -18px;
+      right: 0;
+      background: #059669;
+      color: #fff;
+      font-size: 9px;
+      padding: 1px 5px;
+      border-radius: 9999px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s;
+    }
+    .preserved-link-zone:hover .link-pill { opacity: 1; }
+    .links-hidden .preserved-link-zone { display: none; }
 
-/* Properties */
-.prop-section { padding: 20px; border-bottom: 1px solid var(--glass-border); }
-.prop-section h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 16px; font-weight: 700; width: 100%; }
-.control-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-.control-row label { font-size: 12px; color: var(--text-muted); width: 60px; flex-shrink: 0;}
-.control-input { flex: 1; height: 36px; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; background: rgba(0,0,0,0.2); color: #fff; padding: 0 10px; font-size: 13px; width: 100%;}
-.progress-bar { height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; margin-top: 12px; position: relative; }
-.progress-fill { position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: #d32f2f; transition: width 0.3s ease; }
-.system-log { max-height: 200px; overflow-y: auto; font-family: ui-monospace, monospace; font-size: 11px; line-height: 1.6; color: #a1a1aa; padding: 12px; border-radius: 8px; background: #000; }
+    /* Highlight & Shape Elements */
+    .shape-element {
+      cursor: move;
+      border-radius: 2px;
+    }
 
-/* Modals */
-.toast { position: fixed; bottom: 24px; right: 24px; padding: 16px 20px; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; display: flex; gap: 14px; z-index: 9999; transform: translateY(100px); opacity: 0; transition: all 0.3s; }
-.toast.show { transform: translateY(0); opacity: 1; }
-.toast-icon { font-size: 20px; color: var(--success); }
+    /* Image / Signature Elements */
+    .image-element img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+      display: block;
+    }
 
-.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: grid; place-items: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
-.modal-backdrop.show { opacity: 1; pointer-events: auto; }
-.modal-content { width: 90%; max-width: 420px; background: var(--panel); border-radius: 12px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.4); border: 1px solid var(--glass-border); }
-.modal-header { padding: 20px; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; }
-.modal-body { padding: 24px; }
-.modal-footer { padding: 16px 24px; background: rgba(0,0,0,0.2); display: flex; justify-content: flex-end; gap: 12px; }
+    /* Toast Animation */
+    .toast-enter {
+      transform: translateY(0) !important;
+      opacity: 1 !important;
+    }
 
-/* Tablet & Mobile Adapters */
-@media (max-width: 1024px) {
-  .workspace { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
-  .sidebar { border-right: none; border-bottom: 1px solid var(--glass-border); flex-direction: row; align-items: center; padding: 0; }
-  .panel-header { width: auto; border-bottom: none; border-right: 1px solid var(--glass-border); }
-  .thumb-grid { display: flex; flex-direction: row; overflow-x: auto; padding: 10px; gap: 10px; flex-grow: 1; }
-  .thumb-card { flex: 0 0 70px; }
-  .stage { padding: 15px; }
-  .properties-panel { border-left: none; border-top: 1px solid var(--glass-border); max-height: 250px; }
-  .prop-section { display: flex; flex-wrap: wrap; gap: 10px; padding: 15px; }
-  .control-row { flex: 1 1 calc(50% - 10px); margin-bottom: 0; }
-  #btnDeleteElement { width: 100%; margin-top: 5px; }
-  .system-log { display: none; }
-}
-
-@media (max-width: 600px) {
-  .app-container { grid-template-rows: auto auto 1fr; }
-  .topbar { flex-direction: column; height: auto; padding: 15px 10px; gap: 12px; }
-  .brand-text small { display: none; }
-  .top-actions { justify-content: center; flex-wrap: wrap; width: 100%; }
-  .toolbar { padding: 10px; }
-  .panel-header { display: none; }
-  .control-row { flex: 1 1 100% !important; } 
-}
-</style>
+    /* Hide scrollbar on horizontal toolbar */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
 </head>
-<body>
+<body class="flex flex-col h-screen w-screen overflow-hidden select-none">
 
-<div class="app-container">
-  <header class="topbar">
-    <div class="brand">
-      <div class="brand-icon">
-       <a href="https://pdf.shmwb.in/" target="_self">
-    <img src="https://res.cloudinary.com/ewu5hckc/image/upload/v1787488201/ChatGPT_Image_Aug_23_2026_05_58_28_PM.png" alt="SHM Logo">
-</a>
+  <!-- ==================== TOP NAVIGATION BAR ==================== -->
+  <header class="h-16 shrink-0 bg-studio-panel/90 backdrop-blur-xl border-b border-white/10 px-3 md:px-5 flex items-center justify-between gap-3 z-50">
+    <!-- Brand -->
+    <div class="flex items-center gap-3 min-w-0">
+      <a href="https://pdf.shmwb.in/" target="_self" class="w-10 h-10 rounded-xl overflow-hidden bg-slate-800/80 border border-white/10 flex items-center justify-center shrink-0 shadow-inner">
+        <img
+          src="https://res.cloudinary.com/ewu5hckc/image/upload/v1787488201/ChatGPT_Image_Aug_23_2026_05_58_28_PM.png"
+          alt="SHM Logo"
+          class="w-full h-full object-contain"
+          onerror="this.onerror=null; this.src='https://placehold.co/80x80/e11d48/ffffff?text=SHM';"
+        >
+      </a>
+      <div class="truncate">
+        <div class="flex items-center gap-2">
+          <h1 class="text-sm md:text-base font-bold tracking-tight text-white truncate">SHM PDF Editor Pro</h1>
+          <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/15 text-blue-400 border border-blue-500/25">v3.0 Studio</span>
+        </div>
+        <p class="text-[11px] text-slate-400 hidden sm:block truncate">Smart Digital, OCR &amp; Link-Guardian Engine</p>
       </div>
-      <div class="brand-text">SHM PDF Editor Pro<small>Smart Digital & OCR Engine</small></div>
     </div>
-    <div class="top-actions">
-      <span id="statusIndicator" class="status-chip"><i class="fa-solid fa-check-circle" style="color:var(--success)"></i> Ready</span>
-      <button class="btn" id="btnOpen"><i class="fa-solid fa-folder-open"></i> Open PDF</button>
-      <button class="btn primary" id="btnExportTop" disabled><i class="fa-solid fa-floppy-disk"></i> Save & Export</button>
+
+    <!-- Center Status & Link Guardian Pill -->
+    <div class="hidden lg:flex items-center gap-2">
+      <div id="statusBadge" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800/80 border border-white/10 text-xs text-slate-300">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span id="statusText">Engine Ready</span>
+      </div>
+      <button id="btnToggleLinkBadges" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-xs font-medium text-emerald-300 transition" title="Toggle visual indicator for preserved PDF links">
+        <i class="fa-solid fa-link text-[11px]"></i>
+        <span id="preservedLinksCounter">Links Preserved: 0</span>
+      </button>
+    </div>
+
+    <!-- Right Actions -->
+    <div class="flex items-center gap-2 shrink-0">
+      <button id="btnMobilePages" class="lg:hidden p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-white/10 text-slate-200 text-xs" title="Pages">
+        <i class="fa-solid fa-layer-group"></i>
+      </button>
+      <button id="btnMobileProps" class="lg:hidden p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-white/10 text-slate-200 text-xs" title="Inspector">
+        <i class="fa-solid fa-sliders"></i>
+      </button>
+      <button id="btnOpen" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-white/10 text-xs md:text-sm font-medium text-white transition cursor-pointer">
+        <i class="fa-solid fa-folder-open text-blue-400"></i>
+        <span class="hidden sm:inline">Open PDF</span>
+      </button>
+      <button id="btnExportTop" disabled class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 disabled:opacity-40 disabled:cursor-not-allowed text-xs md:text-sm font-semibold text-white shadow-lg shadow-rose-900/30 transition cursor-pointer">
+        <i class="fa-solid fa-file-export"></i>
+        <span>Export</span>
+      </button>
       <input type="file" id="hiddenFileInput" accept="application/pdf" class="hidden">
+      <input type="file" id="hiddenImageInput" accept="image/png,image/jpeg,image/webp" class="hidden">
     </div>
   </header>
 
-  <div class="toolbar">
-    <div class="tool-group">
-      <button class="icon-btn" id="btnUndo" title="Undo" disabled><i class="fa-solid fa-rotate-left"></i></button>
-      <button class="icon-btn" id="btnRedo" title="Redo" disabled><i class="fa-solid fa-rotate-right"></i></button>
+  <!-- ==================== STUDIO TOOLBAR ==================== -->
+  <div class="h-14 shrink-0 bg-slate-900/95 border-b border-white/10 px-3 md:px-5 flex items-center gap-2 overflow-x-auto no-scrollbar z-40">
+    <!-- Undo / Redo -->
+    <div class="flex items-center gap-1 pr-2.5 border-r border-white/10 shrink-0">
+      <button id="btnUndo" disabled class="w-9 h-9 rounded-lg flex items-center justify-center bg-white/5 hover:bg-white/10 disabled:opacity-35 text-slate-200 transition" title="Undo (Ctrl+Z)">
+        <i class="fa-solid fa-rotate-left text-sm"></i>
+      </button>
+      <button id="btnRedo" disabled class="w-9 h-9 rounded-lg flex items-center justify-center bg-white/5 hover:bg-white/10 disabled:opacity-35 text-slate-200 transition" title="Redo (Ctrl+Y)">
+        <i class="fa-solid fa-rotate-right text-sm"></i>
+      </button>
     </div>
-    <div class="tool-group">
-      <button class="btn active" id="toolSelect"><i class="fa-solid fa-pen-to-square"></i> Edit Text</button>
-      <button class="btn" id="toolText"><i class="fa-solid fa-font"></i> Add Text</button>
+
+    <!-- Primary Editing Tools -->
+    <div class="flex items-center gap-1.5 pr-2.5 border-r border-white/10 shrink-0">
+      <button data-tool="select" class="tool-btn active inline-flex items-center gap-2 px-3 h-9 rounded-lg text-xs font-medium bg-blue-600/20 text-blue-300 border border-blue-500/40 transition">
+        <i class="fa-solid fa-arrow-pointer"></i>
+        <span>Edit / Move</span>
+      </button>
+      <button data-tool="insert" class="tool-btn inline-flex items-center gap-2 px-3 h-9 rounded-lg text-xs font-medium bg-white/5 hover:bg-white/10 text-slate-300 border border-transparent transition">
+        <i class="fa-solid fa-font"></i>
+        <span>Add Text</span>
+      </button>
+      <button data-tool="highlight" class="tool-btn inline-flex items-center gap-2 px-3 h-9 rounded-lg text-xs font-medium bg-white/5 hover:bg-white/10 text-slate-300 border border-transparent transition">
+        <i class="fa-solid fa-highlighter text-amber-400"></i>
+        <span>Highlight</span>
+      </button>
+      <button data-tool="whiteout" class="tool-btn inline-flex items-center gap-2 px-3 h-9 rounded-lg text-xs font-medium bg-white/5 hover:bg-white/10 text-slate-300 border border-transparent transition">
+        <i class="fa-solid fa-eraser text-slate-300"></i>
+        <span>Whiteout</span>
+      </button>
+      <button data-tool="draw" class="tool-btn inline-flex items-center gap-2 px-3 h-9 rounded-lg text-xs font-medium bg-white/5 hover:bg-white/10 text-slate-300 border border-transparent transition">
+        <i class="fa-solid fa-pen-nib text-cyan-400"></i>
+        <span>Draw</span>
+      </button>
     </div>
-    <div class="tool-group">
-      <button class="icon-btn" id="btnZoomOut"><i class="fa-solid fa-minus"></i></button>
-      <span style="font-size: 12px; width: 48px; text-align: center;" id="zoomLevelDisplay">100%</span>
-      <button class="icon-btn" id="btnZoomIn"><i class="fa-solid fa-plus"></i></button>
+
+    <!-- Insert Media & AI OCR -->
+    <div class="flex items-center gap-1.5 pr-2.5 border-r border-white/10 shrink-0">
+      <button id="btnOpenSignature" class="inline-flex items-center gap-2 px-3 h-9 rounded-lg text-xs font-medium bg-white/5 hover:bg-white/10 text-slate-200 border border-white/10 transition" title="Create & Insert Signature">
+        <i class="fa-solid fa-signature text-indigo-400"></i>
+        <span>Sign</span>
+      </button>
+      <button id="btnInsertImage" class="inline-flex items-center gap-2 px-3 h-9 rounded-lg text-xs font-medium bg-white/5 hover:bg-white/10 text-slate-200 border border-white/10 transition" title="Insert Image or Stamp">
+        <i class="fa-regular fa-image text-emerald-400"></i>
+        <span>Image</span>
+      </button>
+      <button id="btnForceOCR" disabled class="inline-flex items-center gap-2 px-3 h-9 rounded-lg text-xs font-medium bg-white/5 hover:bg-white/10 disabled:opacity-35 text-slate-200 border border-white/10 transition" title="Run Bengali + English OCR on Current Page">
+        <i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i>
+        <span>Smart OCR</span>
+      </button>
     </div>
-    <div class="tool-group" style="border: none; margin-left: auto;">
-      <button class="icon-btn" id="btnPrevPage"><i class="fa-solid fa-chevron-up"></i></button>
-      <span class="status-chip" id="pageCounterDisplay">Page 0 / 0</span>
-      <button class="icon-btn" id="btnNextPage"><i class="fa-solid fa-chevron-down"></i></button>
+
+    <!-- Zoom Controls -->
+    <div class="flex items-center gap-1 pr-2.5 border-r border-white/10 shrink-0">
+      <button id="btnZoomOut" class="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 hover:bg-white/10 text-slate-200 transition" title="Zoom Out">
+        <i class="fa-solid fa-minus text-xs"></i>
+      </button>
+      <button id="zoomLevelDisplay" class="px-2 h-8 rounded-lg text-xs font-mono text-slate-300 hover:bg-white/5 min-w-[54px] text-center" title="Reset to 100%">100%</button>
+      <button id="btnZoomIn" class="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 hover:bg-white/10 text-slate-200 transition" title="Zoom In">
+        <i class="fa-solid fa-plus text-xs"></i>
+      </button>
+    </div>
+
+    <!-- Page Navigation -->
+    <div class="flex items-center gap-1.5 ml-auto shrink-0">
+      <button id="btnPrevPage" class="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 hover:bg-white/10 text-slate-200 transition" title="Previous Page">
+        <i class="fa-solid fa-chevron-up text-xs"></i>
+      </button>
+      <span id="pageCounterDisplay" class="px-2.5 py-1 rounded-lg bg-slate-800/80 border border-white/10 text-xs font-medium text-slate-300">0 / 0</span>
+      <button id="btnNextPage" class="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 hover:bg-white/10 text-slate-200 transition" title="Next Page">
+        <i class="fa-solid fa-chevron-down text-xs"></i>
+      </button>
     </div>
   </div>
 
-  <div class="workspace">
-    <aside class="sidebar">
-      <div class="panel-header"><span>Pages</span><span id="totalPageCount">0</span></div>
-      <div id="thumbnailContainer" class="thumb-grid"></div>
+  <!-- ==================== MAIN 3-PANE WORKSPACE ==================== -->
+  <div class="flex-1 min-h-0 flex relative overflow-hidden">
+
+    <!-- LEFT SIDEBAR: Page Thumbnails -->
+    <aside id="leftSidebar" class="hidden lg:flex flex-col w-60 shrink-0 bg-studio-panel border-r border-white/10 z-30">
+      <div class="h-11 px-4 border-b border-white/10 flex items-center justify-between shrink-0">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Pages</span>
+        <span id="totalPageCount" class="px-2 py-0.5 rounded-md bg-slate-800 text-xs font-mono text-slate-300">0</span>
+      </div>
+      <div id="thumbnailContainer" class="flex-1 overflow-y-auto p-3.5 space-y-3">
+        <div class="text-center py-12 text-xs text-slate-500">No document loaded</div>
+      </div>
     </aside>
 
-    <main id="editorStage" class="stage empty" data-tool="select">
-      <div id="emptyStateContainer" class="empty-state">
-        <i class="fa-solid fa-file-pdf empty-icon"></i>
-        <h2>SHM PDF Engine Pro</h2>
-        <p>Drop a standard digital PDF or scanned PDF here.<br>Engine applies native text for digital PDFs and OCR only for scanned images.</p>
-        <button class="btn primary" style="padding: 0 24px; height: 44px; margin-top: 20px;" onclick="document.getElementById('hiddenFileInput').click()">Choose File</button>
-      </div>
-      <div id="documentPagesContainer" style="display: flex; flex-direction: column; align-items: center; margin: 0 auto; width: 100%;"></div>
-    </main>
-
-    <aside class="properties-panel">
-      <div class="panel-header"><span>Text Format</span></div>
-
-      <div class="prop-section">
-        <div class="control-row">
-          <label>Font</label>
-          <select id="propFontFamily" class="control-input">
-            <option value="Times New Roman">Times New Roman</option>
-            <option value="Arial">Arial</option>
-            <option value="Helvetica">Helvetica</option>
-            <option value="Calibri">Calibri</option>
-            <option value="Noto Serif Bengali">Noto Serif (Bengali)</option>
-            <option value="Noto Sans Bengali">Noto Sans (Bengali)</option>
-          </select>
+    <!-- CENTER STAGE: Interactive PDF Canvas -->
+    <main id="editorStage" class="flex-1 min-w-0 relative overflow-auto bg-[#070b14] bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:20px_20px] p-4 sm:p-8 flex flex-col items-center">
+      <!-- Empty Dropzone -->
+      <div id="emptyStateContainer" class="my-auto w-full max-w-xl p-8 sm:p-12 rounded-3xl border-2 border-dashed border-slate-700/80 bg-slate-900/70 backdrop-blur-md text-center shadow-2xl transition hover:border-blue-500/60">
+        <div class="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-rose-500/20 to-blue-500/20 border border-white/10 flex items-center justify-center">
+          <i class="fa-solid fa-file-pdf text-4xl text-rose-500"></i>
         </div>
-        <div class="control-row">
-          <label>Size</label>
-          <input id="propFontSize" type="number" lang="en" inputmode="numeric" class="control-input" min="6" max="140" value="14">
+        <h2 class="text-2xl font-bold text-white mb-2">SHM PDF Editor Pro</h2>
+        <p class="text-sm text-slate-400 leading-relaxed mb-6">
+          Drag &amp; drop any digital or scanned PDF here.<br>
+          <span class="text-emerald-400 font-medium"><i class="fa-solid fa-shield-halved mr-1"></i>Link Guardian Active:</span> All existing embedded PDF hyperlinks are strictly detected and preserved during editing &amp; export.
+        </p>
+        <div class="flex flex-wrap justify-center gap-2 mb-7 text-[11px] text-slate-300">
+          <span class="px-2.5 py-1 rounded-full bg-white/5 border border-white/10"><i class="fa-solid fa-link text-emerald-400 mr-1"></i>Preserves Embedded Links</span>
+          <span class="px-2.5 py-1 rounded-full bg-white/5 border border-white/10"><i class="fa-solid fa-fill-drip text-blue-400 mr-1"></i>Auto Background Match</span>
+          <span class="px-2.5 py-1 rounded-full bg-white/5 border border-white/10"><i class="fa-solid fa-language text-purple-400 mr-1"></i>English + Bengali OCR</span>
+          <span class="px-2.5 py-1 rounded-full bg-white/5 border border-white/10"><i class="fa-solid fa-signature text-indigo-400 mr-1"></i>Signature &amp; Stamps</span>
         </div>
-        <div class="control-row">
-          <label>Weight</label>
-          <select id="propFontWeight" class="control-input">
-            <option value="400">Regular</option>
-            <option value="700">Bold</option>
-          </select>
-        </div>
-        <div class="control-row">
-          <label>Style</label>
-          <select id="propFontStyle" class="control-input">
-            <option value="normal">Normal</option>
-            <option value="italic">Italic</option>
-          </select>
-        </div>
-        <div class="control-row">
-          <label>Color</label>
-          <input id="propColor" type="color" class="control-input" value="#000000">
-        </div>
-        <div class="control-row">
-          <label>Link</label>
-          <input id="propLink" type="url" class="control-input" placeholder="https://...">
-        </div>
-        <button class="btn" id="btnDeleteElement" style="background: rgba(239, 68, 68, 0.15); color: var(--danger); width: 100%; margin-top: 10px;">
-          <i class="fa-solid fa-trash-can"></i> Delete Element
+        <button onclick="document.getElementById('hiddenFileInput').click()" class="inline-flex items-center gap-2 px-7 py-3 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-sm font-semibold text-white shadow-xl shadow-rose-900/30 transition cursor-pointer">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+          <span>Choose PDF Document</span>
         </button>
       </div>
-     
-      <div class="prop-section" style="flex-grow: 1; display: flex; flex-direction: column;">
-        <h3>System Logs</h3>
-        <div id="systemLogBox" class="system-log" style="flex-grow: 1;">Engine Initialized.</div>
+
+      <!-- Rendered Pages Container -->
+      <div id="documentPagesContainer" class="flex flex-col items-center w-full gap-8 pb-20"></div>
+    </main>
+
+    <!-- RIGHT SIDEBAR: Properties & Link Guardian Inspector -->
+    <aside id="rightSidebar" class="hidden lg:flex flex-col w-80 shrink-0 bg-studio-panel border-l border-white/10 z-30">
+      <!-- Tabs -->
+      <div class="h-11 grid grid-cols-3 border-b border-white/10 shrink-0 text-xs font-semibold">
+        <button data-tab="format" class="inspector-tab active text-blue-400 border-b-2 border-blue-500 bg-blue-500/5 transition">Format</button>
+        <button data-tab="links" class="inspector-tab text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1">
+          <span>Links</span>
+          <span id="tabLinkCount" class="px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px]">0</span>
+        </button>
+        <button data-tab="logs" class="inspector-tab text-slate-400 hover:text-slate-200 transition">Logs</button>
+      </div>
+
+      <!-- TAB 1: FORMAT & ELEMENT PROPERTIES -->
+      <div id="tabFormat" class="inspector-pane flex-1 overflow-y-auto p-4 space-y-5">
+        <!-- Typography Section -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Typography</h3>
+            <span id="selectedTypeBadge" class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400">None Selected</span>
+          </div>
+
+          <div class="space-y-2.5">
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Font Family</label>
+              <select id="propFontFamily" class="w-full h-9 px-2.5 rounded-lg bg-slate-900 border border-white/10 text-xs text-white focus:border-blue-500 outline-none">
+                <option value="Arial">Arial</option>
+                <option value="Helvetica">Helvetica</option>
+                <option value="Times New Roman">Times New Roman</option>
+                <option value="Georgia">Georgia</option>
+                <option value="Calibri">Calibri</option>
+                <option value="Inter">Inter (Modern)</option>
+                <option value="Noto Sans Bengali">Noto Sans Bengali (বাংলা)</option>
+                <option value="Noto Serif Bengali">Noto Serif Bengali (বাংলা)</option>
+                <option value="Courier New">Courier New (Mono)</option>
+              </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-[11px] text-slate-400 mb-1">Size (px)</label>
+                <input id="propFontSize" type="number" lang="en" inputmode="numeric" min="6" max="180" value="16" class="w-full h-9 px-2.5 rounded-lg bg-slate-900 border border-white/10 text-xs text-white focus:border-blue-500 outline-none">
+              </div>
+              <div>
+                <label class="block text-[11px] text-slate-400 mb-1">Opacity (%)</label>
+                <input id="propOpacity" type="number" min="10" max="100" value="100" class="w-full h-9 px-2.5 rounded-lg bg-slate-900 border border-white/10 text-xs text-white focus:border-blue-500 outline-none">
+              </div>
+            </div>
+
+            <!-- Style Toggles -->
+            <div class="grid grid-cols-4 gap-1.5 pt-1">
+              <button id="btnToggleBold" class="h-9 rounded-lg bg-slate-900 hover:bg-slate-800 border border-white/10 text-xs font-bold text-slate-300 transition" title="Bold">B</button>
+              <button id="btnToggleItalic" class="h-9 rounded-lg bg-slate-900 hover:bg-slate-800 border border-white/10 text-xs italic font-serif text-slate-300 transition" title="Italic">I</button>
+              <button id="btnToggleUnderline" class="h-9 rounded-lg bg-slate-900 hover:bg-slate-800 border border-white/10 text-xs underline text-slate-300 transition" title="Underline">U</button>
+              <button id="btnResetBg" class="h-9 rounded-lg bg-slate-900 hover:bg-slate-800 border border-white/10 text-xs text-slate-300 transition" title="Auto-Match PDF Background"><i class="fa-solid fa-eye-dropper"></i></button>
+            </div>
+
+            <!-- Colors -->
+            <div class="grid grid-cols-2 gap-2.5 pt-1">
+              <div>
+                <label class="block text-[11px] text-slate-400 mb-1">Text / Stroke</label>
+                <div class="flex items-center gap-2 h-9 px-2 rounded-lg bg-slate-900 border border-white/10">
+                  <input id="propColor" type="color" value="#000000" class="w-6 h-6 rounded cursor-pointer bg-transparent border-0">
+                  <span id="propColorHex" class="text-[11px] font-mono text-slate-300">#000000</span>
+                </div>
+              </div>
+              <div>
+                <label class="block text-[11px] text-slate-400 mb-1">Mask / Fill</label>
+                <div class="flex items-center gap-2 h-9 px-2 rounded-lg bg-slate-900 border border-white/10">
+                  <input id="propBgColor" type="color" value="#ffffff" class="w-6 h-6 rounded cursor-pointer bg-transparent border-0">
+                  <label class="flex items-center gap-1 text-[10px] text-slate-400 cursor-pointer ml-auto">
+                    <input id="propBgTransparent" type="checkbox" class="accent-blue-500">
+                    <span>None</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hyperlink Section -->
+        <div class="pt-4 border-t border-white/10 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <h3 class="text-[11px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+              <i class="fa-solid fa-link"></i> Embedded Hyperlink
+            </h3>
+            <a id="propLinkTest" href="#" target="_blank" rel="noopener noreferrer" class="hidden text-[10px] text-blue-400 hover:underline">Test <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+          </div>
+          <input id="propLink" type="url" placeholder="https://example.com" class="w-full h-9 px-2.5 rounded-lg bg-slate-900 border border-white/10 text-xs text-emerald-300 placeholder-slate-600 focus:border-emerald-500 outline-none">
+          <p class="text-[10px] text-slate-500 leading-snug">Links attached to text or preserved from the original PDF remain clickable after export.</p>
+        </div>
+
+        <!-- Drawing & Highlight Settings -->
+        <div class="pt-4 border-t border-white/10 space-y-2.5">
+          <h3 class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Draw / Highlight Brush</h3>
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Brush Color</label>
+              <input id="propBrushColor" type="color" value="#facc15" class="w-full h-9 p-1 rounded-lg bg-slate-900 border border-white/10 cursor-pointer">
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Stroke Width</label>
+              <input id="propBrushSize" type="number" min="1" max="40" value="4" class="w-full h-9 px-2.5 rounded-lg bg-slate-900 border border-white/10 text-xs text-white outline-none">
+            </div>
+          </div>
+        </div>
+
+        <!-- Element Actions -->
+        <div class="pt-4 border-t border-white/10 grid grid-cols-2 gap-2">
+          <button id="btnDuplicateElement" class="h-9 rounded-lg bg-slate-800 hover:bg-slate-700 border border-white/10 text-xs font-medium text-slate-200 transition flex items-center justify-center gap-1.5">
+            <i class="fa-regular fa-copy"></i> Duplicate
+          </button>
+          <button id="btnDeleteElement" class="h-9 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-xs font-medium text-rose-400 transition flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-trash-can"></i> Delete
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB 2: LINK GUARDIAN INSPECTOR -->
+      <div id="tabLinks" class="inspector-pane hidden flex-1 overflow-y-auto p-4 space-y-3">
+        <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-xs text-emerald-300 leading-relaxed">
+          <div class="font-semibold mb-1 flex items-center gap-1.5"><i class="fa-solid fa-shield-check"></i> Strict Link Preservation</div>
+          Every embedded hyperlink detected in the uploaded PDF is locked into the export pipeline. Editing surrounding text will never erase these links.
+        </div>
+        <div id="linksInspectorList" class="space-y-2">
+          <div class="text-center py-8 text-xs text-slate-500">Upload a PDF to inspect embedded links.</div>
+        </div>
+      </div>
+
+      <!-- TAB 3: SYSTEM LOGS -->
+      <div id="tabLogs" class="inspector-pane hidden flex-1 overflow-y-auto p-4 flex flex-col">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Engine Telemetry</span>
+          <button id="btnClearLogs" class="text-[10px] text-slate-400 hover:text-white">Clear</button>
+        </div>
+        <div id="systemLogBox" class="flex-1 font-mono text-[11px] leading-relaxed text-slate-400 bg-black/60 border border-white/10 rounded-xl p-3 overflow-y-auto select-text">
+          [System] SHM PDF Studio v3.0 initialized.<br>
+        </div>
       </div>
     </aside>
   </div>
-</div>
 
-<div id="toastNotification" class="toast">
-  <div class="toast-icon"><i class="fa-solid fa-check"></i></div>
-  <div><div id="toastTitle" style="font-weight: 600; font-size: 14px; color:#fff;"></div><div id="toastDesc" style="font-size: 12px; color:#aaa;"></div></div>
-</div>
-
-<div id="modalExport" class="modal-backdrop">
-  <div class="modal-content">
-    <div class="modal-header"><h2 style="font-size: 18px; font-weight: 600;">Export PDF</h2><button class="icon-btn" onclick="UI.hideModal('modalExport')"><i class="fa-solid fa-xmark"></i></button></div>
-    <div class="modal-body">
-      <div class="control-row">
-        <label style="width: 100px;">Resolution</label>
-        <select id="exportScale" class="control-input"><option value="1.5">Standard (1.5x)</option><option value="2" selected>High Print (2x)</option><option value="3">Ultra HD (3x)</option></select>
-      </div>
-      <div id="exportStatusText" style="margin-top: 24px; font-size: 12px; color: #60a5fa;">Ready to compile layers...</div>
-      <div class="progress-bar"><div class="progress-fill" id="exportProgressBar"></div></div>
+  <!-- ==================== TOAST NOTIFICATION ==================== -->
+  <div id="toastNotification" class="fixed bottom-5 right-5 z-[100] max-w-sm bg-slate-900/95 backdrop-blur-xl border border-white/15 rounded-2xl px-4 py-3.5 shadow-2xl flex items-start gap-3 translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+    <div id="toastIconWrap" class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0">
+      <i id="toastIcon" class="fa-solid fa-check"></i>
     </div>
-    <div class="modal-footer"><button class="btn" onclick="UI.hideModal('modalExport')">Cancel</button><button class="btn primary" id="btnConfirmExport">Export & Download</button></div>
+    <div class="min-w-0">
+      <div id="toastTitle" class="text-sm font-semibold text-white"></div>
+      <div id="toastDesc" class="text-xs text-slate-400 mt-0.5"></div>
+    </div>
   </div>
-</div>
 
-<script>
-'use strict';
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  <!-- ==================== EXPORT MODAL ==================== -->
+  <div id="modalExport" class="fixed inset-0 z-[90] bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="w-full max-w-md bg-studio-panel border border-white/15 rounded-2xl shadow-2xl overflow-hidden">
+      <div class="px-5 py-4 border-b border-white/10 flex items-center justify-between">
+        <h2 class="text-base font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-file-pdf text-rose-500"></i> Export High-Precision PDF
+        </h2>
+        <button onclick="UI.hideModal('modalExport')" class="w-8 h-8 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="p-5 space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1.5">File Name</label>
+          <input id="exportFileName" type="text" value="SHM_Edited_Document.pdf" class="w-full h-10 px-3 rounded-xl bg-slate-900 border border-white/10 text-sm text-white focus:border-blue-500 outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1.5">Render Resolution</label>
+          <select id="exportScale" class="w-full h-10 px-3 rounded-xl bg-slate-900 border border-white/10 text-sm text-white outline-none">
+            <option value="1.5">Standard Web (1.5x — Smaller File)</option>
+            <option value="2" selected>High Print Quality (2x — Recommended)</option>
+            <option value="3">Ultra HD Archive (3x — Crispest)</option>
+          </select>
+        </div>
+        <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center gap-3 text-xs text-emerald-300">
+          <i class="fa-solid fa-link text-base shrink-0"></i>
+          <div>
+            <span class="font-semibold">Link Preservation Active:</span>
+            <span id="exportLinksSummary">0 embedded links will be preserved in the output PDF.</span>
+          </div>
+        </div>
+        <div>
+          <div class="flex justify-between text-xs mb-1.5">
+            <span id="exportStatusText" class="text-blue-400">Ready to compile...</span>
+            <span id="exportPercentText" class="font-mono text-slate-400">0%</span>
+          </div>
+          <div class="h-2 bg-slate-800 rounded-full overflow-hidden">
+            <div id="exportProgressBar" class="h-full w-0 bg-gradient-to-r from-blue-500 to-rose-500 transition-all duration-200"></div>
+          </div>
+        </div>
+      </div>
+      <div class="px-5 py-4 bg-black/25 border-t border-white/10 flex justify-end gap-2.5">
+        <button onclick="UI.hideModal('modalExport')" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-medium text-slate-300 transition">Cancel</button>
+        <button id="btnConfirmExport" class="px-5 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-xs font-semibold text-white shadow-lg transition">Export &amp; Download</button>
+      </div>
+    </div>
+  </div>
 
-const AppState = { 
-  document: null, 
-  pages: [], 
-  currentPageIndex: 0, 
-  zoomLevel: 1.0, 
-  activeTool: 'select', 
-  selectedElement: null, 
-  history: { past: [], future: [] }, 
-  flags: { isExporting: false },
-  dragState: { isDragging: false, startX: 0, startY: 0 },
-  lastFormat: {
-    fontSize: 14,
-    fontFamily: 'Arial',
-    fontWeight: 400,
-    fontStyle: 'normal',
-    color: '#000000'
-  }
-};
+  <!-- ==================== SIGNATURE PAD MODAL ==================== -->
+  <div id="modalSignature" class="fixed inset-0 z-[90] bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="w-full max-w-lg bg-studio-panel border border-white/15 rounded-2xl shadow-2xl overflow-hidden">
+      <div class="px-5 py-4 border-b border-white/10 flex items-center justify-between">
+        <h2 class="text-base font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-signature text-indigo-400"></i> Draw Vector Signature
+        </h2>
+        <button onclick="UI.hideModal('modalSignature')" class="w-8 h-8 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="p-5 space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-400">Ink:</span>
+            <button data-sig-color="#0f172a" class="sig-color-btn w-6 h-6 rounded-full bg-slate-900 border-2 border-blue-500"></button>
+            <button data-sig-color="#1d4ed8" class="sig-color-btn w-6 h-6 rounded-full bg-blue-700 border-2 border-transparent"></button>
+            <button data-sig-color="#b91c1c" class="sig-color-btn w-6 h-6 rounded-full bg-red-700 border-2 border-transparent"></button>
+          </div>
+          <button id="btnClearSignature" class="text-xs text-slate-400 hover:text-white flex items-center gap-1">
+            <i class="fa-solid fa-eraser"></i> Clear
+          </button>
+        </div>
+        <div class="rounded-xl bg-white border-2 border-dashed border-slate-300 overflow-hidden">
+          <canvas id="signatureCanvas" class="w-full h-48 block cursor-crosshair touch-none"></canvas>
+        </div>
+      </div>
+      <div class="px-5 py-4 bg-black/25 border-t border-white/10 flex justify-end gap-2.5">
+        <button onclick="UI.hideModal('modalSignature')" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-medium text-slate-300">Cancel</button>
+        <button id="btnInsertSignature" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white shadow-lg">Place on Page</button>
+      </div>
+    </div>
+  </div>
 
-const UI = {
-  get: (id) => document.getElementById(id),
-  log: (msg) => { const b = UI.get('systemLogBox'); if(b) b.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}<br>${b.innerHTML}`.slice(0, 3000); },
-  toast: (title, desc = '') => { UI.get('toastTitle').textContent = title; UI.get('toastDesc').textContent = desc; const el = UI.get('toastNotification'); el.classList.add('show'); clearTimeout(window.__t); window.__t = setTimeout(() => el.classList.remove('show'), 3500); },
-  hideModal: (id) => { if(!AppState.flags.isExporting) UI.get(id).classList.remove('show'); }
-};
+  <!-- ==================== CORE ENGINE SCRIPT ==================== -->
+  <script>
+    'use strict';
 
-const toEnglishDigits = (str) => {
-  const bengaliDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
-  return String(str).replace(/[০-৯]/g, (d) => bengaliDigits.indexOf(d));
-};
+    // Configure PDF.js Worker
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-const History = {
-  save: () => { 
-    AppState.history.past.push(JSON.stringify(AppState.pages.map(p => ({ boxes: p.elements.map(b => ({...b})) })))); 
-    if(AppState.history.past.length > 30) AppState.history.past.shift(); 
-    AppState.history.future = []; 
-    History.updateUI(); 
-  },
-  restore: (stateString) => { 
-    try { 
-      JSON.parse(stateString).forEach((s, i) => { 
-        if(AppState.pages[i]) { 
-          AppState.pages[i].elements = s.boxes; 
-          Renderer.drawLayer(AppState.pages[i]); 
-        } 
-      }); 
-      Editor.selectElement(null); 
-    } catch(e) {} 
-  },
-  undo: () => { if(!AppState.history.past.length) return; AppState.history.future.push(JSON.stringify(AppState.pages.map(p => ({ boxes: p.elements.map(b => ({...b})) })))); History.restore(AppState.history.past.pop()); History.updateUI(); },
-  redo: () => { if(!AppState.history.future.length) return; AppState.history.past.push(JSON.stringify(AppState.pages.map(p => ({ boxes: p.elements.map(b => ({...b})) })))); History.restore(AppState.history.future.pop()); History.updateUI(); },
-  updateUI: () => { UI.get('btnUndo').disabled = !AppState.history.past.length; UI.get('btnRedo').disabled = !AppState.history.future.length; }
-};
+    /* ------------------------------------------------------------
+       1. CENTRAL APPLICATION STATE
+       ------------------------------------------------------------ */
+    const AppState = {
+      pdfDoc: null,
+      fileName: 'SHM_Edited_Document.pdf',
+      pages: [], // { id, canvas, width, height, elements: [], preservedLinks: [], strokes: [], domNode, interactNode, drawCanvas }
+      currentPageIndex: 0,
+      zoomLevel: 1.0,
+      activeTool: 'select', // select | insert | highlight | whiteout | draw
+      selected: null,       // { pageIndex, uuid }
+      showLinkBadges: true,
+      history: { past: [], future: [] },
+      flags: { isExporting: false, isProcessing: false },
+      lastFormat: {
+        fontSize: 16,
+        fontFamily: 'Arial',
+        fontWeight: 400,
+        fontStyle: 'normal',
+        textDecoration: 'none',
+        color: '#000000',
+        bgColor: '#ffffff',
+        bgTransparent: false,
+        opacity: 100
+      }
+    };
 
-let debounceTimer; 
-const debounceHistory = () => { clearTimeout(debounceTimer); debounceTimer = setTimeout(History.save, 500); };
+    /* ------------------------------------------------------------
+       2. UI UTILITIES & NOTIFICATIONS
+       ------------------------------------------------------------ */
+    const UI = {
+      get: (id) => document.getElementById(id),
 
-const DocumentManager = {
-  handleFile: async (file) => {
-    if(!file) return; 
-    UI.get('editorStage').classList.remove('empty'); 
-    UI.get('emptyStateContainer').classList.add('hidden');
-    UI.get('documentPagesContainer').innerHTML = ''; 
-    UI.get('thumbnailContainer').innerHTML = '';
-    AppState.pages = []; 
-    AppState.currentPageIndex = 0; 
-    UI.log('Analyzing Document Structure...');
+      setStatus: (text, busy = false) => {
+        const el = UI.get('statusText');
+        if (el) el.textContent = text;
+        const badge = UI.get('statusBadge');
+        if (badge) {
+          const dot = badge.querySelector('span');
+          if (dot) {
+            dot.className = busy
+              ? 'w-2 h-2 rounded-full bg-amber-400 animate-ping'
+              : 'w-2 h-2 rounded-full bg-emerald-400';
+          }
+        }
+      },
 
-    try {
-      const buffer = await file.arrayBuffer(); 
-      AppState.document = await pdfjsLib.getDocument({ data: buffer }).promise;
-      const totalPages = AppState.document.numPages;
-      UI.log(`Total Pages: ${totalPages}. Processing...`);
+      log: (msg, type = 'info') => {
+        const box = UI.get('systemLogBox');
+        if (!box) return;
+        const color = type === 'success' ? 'text-emerald-400' : type === 'warn' ? 'text-amber-400' : type === 'error' ? 'text-rose-400' : 'text-slate-400';
+        const time = new Date().toLocaleTimeString();
+        const line = `<div class="${color}">[${time}] ${msg}</div>`;
+        box.innerHTML = line + box.innerHTML;
+        if (box.children.length > 80) box.lastChild.remove();
+      },
 
-      for(let n = 1; n <= totalPages; n++) {
+      toast: (title, desc = '', type = 'success') => {
+        const el = UI.get('toastNotification');
+        const iconWrap = UI.get('toastIconWrap');
+        const icon = UI.get('toastIcon');
+        UI.get('toastTitle').textContent = title;
+        UI.get('toastDesc').textContent = desc;
+
+        if (type === 'error') {
+          iconWrap.className = 'w-8 h-8 rounded-xl bg-rose-500/15 text-rose-400 flex items-center justify-center shrink-0';
+          icon.className = 'fa-solid fa-triangle-exclamation';
+        } else if (type === 'info') {
+          iconWrap.className = 'w-8 h-8 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center shrink-0';
+          icon.className = 'fa-solid fa-circle-info';
+        } else {
+          iconWrap.className = 'w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0';
+          icon.className = 'fa-solid fa-check';
+        }
+
+        el.classList.add('toast-enter');
+        clearTimeout(window.__toastTimer);
+        window.__toastTimer = setTimeout(() => el.classList.remove('toast-enter'), 3800);
+      },
+
+      showModal: (id) => {
+        const m = UI.get(id);
+        if (m) { m.classList.remove('hidden'); m.classList.add('flex'); }
+      },
+
+      hideModal: (id) => {
+        if (id === 'modalExport' && AppState.flags.isExporting) return;
+        const m = UI.get(id);
+        if (m) { m.classList.add('hidden'); m.classList.remove('flex'); }
+      }
+    };
+
+    const toEnglishDigits = (str) => {
+      const bn = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+      return String(str).replace(/[০-৯]/g, d => bn.indexOf(d));
+    };
+
+    const rgbToHex = (r, g, b) => '#' + [r, g, b].map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('');
+
+    /* ------------------------------------------------------------
+       3. SMART BACKGROUND SAMPLER (SEAMLESS PDF COVER)
+       Samples edge pixels around text so edits match paper/header color
+       ------------------------------------------------------------ */
+    const CanvasSampler = {
+      sampleBackground: (canvas, x, y, w, h) => {
         try {
-          const page = await AppState.document.getPage(n);
-          const viewport = page.getViewport({ scale: 2.0 }); 
-          const canvas = document.createElement('canvas'); 
-          canvas.width = Math.ceil(viewport.width); 
-          canvas.height = Math.ceil(viewport.height);
-          
-          await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+          const ctx = canvas.getContext('2d', { willReadFrequently: true });
+          const cw = canvas.width, ch = canvas.height;
+          const pts = [
+            [x - 3, y - 3],
+            [x + w / 2, y - 3],
+            [x + w + 3, y - 3],
+            [x - 3, y + h + 3],
+            [x + w + 3, y + h + 3],
+            [x - 3, y + h / 2]
+          ];
+          const samples = [];
+          for (const [px, py] of pts) {
+            const sx = Math.max(0, Math.min(cw - 1, Math.round(px)));
+            const sy = Math.max(0, Math.min(ch - 1, Math.round(py)));
+            const d = ctx.getImageData(sx, sy, 1, 1).data;
+            samples.push([d[0], d[1], d[2]]);
+          }
+          // Pick median brightness sample to ignore stray dark lines
+          samples.sort((a, b) => (a[0] + a[1] + a[2]) - (b[0] + b[1] + b[2]));
+          const mid = samples[Math.floor(samples.length * 0.65)] || [255, 255, 255];
+          return rgbToHex(mid[0], mid[1], mid[2]);
+        } catch (e) {
+          return '#ffffff';
+        }
+      }
+    };
 
-          const pDef = { 
-            id: n, 
-            canvas, 
-            width: canvas.width, 
-            height: canvas.height, 
-            elements: [], 
-            domNode: null, 
-            interactNode: null 
+    /* ------------------------------------------------------------
+       4. LINK GUARDIAN ENGINE (STRICT LINK PRESERVATION)
+       Extracts, tracks, displays, and guarantees export of all PDF links
+       ------------------------------------------------------------ */
+    const LinkGuardian = {
+      // Check if two rectangles overlap significantly
+      rectsOverlap: (a, b) => {
+        const ix = Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x));
+        const iy = Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
+        const inter = ix * iy;
+        const minArea = Math.min(a.w * a.h, b.w * b.h);
+        return minArea > 0 && (inter / minArea) > 0.25;
+      },
+
+      // Count all active links (preserved + user-added)
+      getAllActiveLinks: () => {
+        const list = [];
+        AppState.pages.forEach((p, pageIdx) => {
+          // 1. Preserved original links
+          p.preservedLinks.forEach(lnk => {
+            if (!lnk.url) return;
+            // If linked to a text element that was moved/modified, use updated bounds & URL
+            const boundEl = lnk.linkedElementUuid
+              ? p.elements.find(e => e.uuid === lnk.linkedElementUuid && !e.isHidden)
+              : null;
+
+            list.push({
+              pageIdx,
+              id: lnk.id,
+              source: 'Original PDF',
+              url: boundEl && boundEl.link ? boundEl.link : lnk.url,
+              x: boundEl ? boundEl.x : lnk.x,
+              y: boundEl ? boundEl.y : lnk.y,
+              w: boundEl ? Math.max(boundEl.w, lnk.w) : lnk.w,
+              h: boundEl ? Math.max(boundEl.h, lnk.h) : lnk.h,
+              linkedElementUuid: boundEl ? boundEl.uuid : null
+            });
+          });
+
+          // 2. User-added links on elements not already bound to an original link
+          p.elements.forEach(el => {
+            if (el.isHidden || !el.link || !el.link.trim()) return;
+            const alreadyTracked = p.preservedLinks.some(l => l.linkedElementUuid === el.uuid);
+            if (!alreadyTracked) {
+              list.push({
+                pageIdx,
+                id: el.uuid,
+                source: 'User Added',
+                url: el.link.trim(),
+                x: el.x,
+                y: el.y,
+                w: el.w,
+                h: el.h,
+                linkedElementUuid: el.uuid
+              });
+            }
+          });
+        });
+        return list;
+      },
+
+      refreshUI: () => {
+        const allLinks = LinkGuardian.getAllActiveLinks();
+        const count = allLinks.length;
+        UI.get('preservedLinksCounter').textContent = `Links Preserved: ${count}`;
+        UI.get('tabLinkCount').textContent = count;
+        UI.get('exportLinksSummary').textContent = `${count} embedded hyperlink${count === 1 ? '' : 's'} will be strictly preserved in the output PDF.`;
+
+        const container = UI.get('linksInspectorList');
+        if (!count) {
+          container.innerHTML = `<div class="text-center py-8 text-xs text-slate-500">No embedded links found in this document yet.</div>`;
+          return;
+        }
+
+        container.innerHTML = '';
+        allLinks.forEach(lnk => {
+          const card = document.createElement('div');
+          card.className = 'p-3 rounded-xl bg-slate-900/90 border border-white/10 hover:border-emerald-500/40 transition space-y-1.5';
+          card.innerHTML = `
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full ${lnk.source === 'Original PDF' ? 'bg-emerald-500/15 text-emerald-400' : 'bg-blue-500/15 text-blue-400'}">
+                Page ${lnk.pageIdx + 1} · ${lnk.source}
+              </span>
+              <a href="${lnk.url}" target="_blank" rel="noopener noreferrer" class="text-[10px] text-slate-400 hover:text-white" title="Open URL">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+              </a>
+            </div>
+            <div class="text-xs font-mono text-slate-200 truncate" title="${lnk.url}">${lnk.url}</div>
+            <div class="flex items-center gap-2 pt-1">
+              <button class="btn-jump-link text-[11px] text-blue-400 hover:text-blue-300 font-medium">Locate on Page</button>
+            </div>
+          `;
+          card.querySelector('.btn-jump-link').onclick = () => {
+            Navigation.goToPage(lnk.pageIdx);
+            if (lnk.linkedElementUuid) {
+              const p = AppState.pages[lnk.pageIdx];
+              const node = p?.interactNode?.querySelector(`[data-uuid="${lnk.linkedElementUuid}"]`);
+              if (node) Editor.selectElement(lnk.pageIdx, lnk.linkedElementUuid);
+            }
           };
+          container.appendChild(card);
+        });
+      }
+    };
 
-          // Step 1: Extract Native Digital Text Layer
-          let validNativeItems = 0;
-          try {
-            const textContent = await page.getTextContent();
-            if(textContent?.items?.length) {
-              for(const item of textContent.items) {
-                if(!item.str?.trim()) continue;
-                validNativeItems++;
-                const tx = pdfjsLib.Util.transform(viewport.transform, item.transform);
-                const fontSize = Math.abs(tx[3]) || 14; 
+    /* ------------------------------------------------------------
+       5. UNDO / REDO HISTORY ENGINE
+       ------------------------------------------------------------ */
+    const History = {
+      snapshot: () => JSON.stringify(AppState.pages.map(p => ({
+        elements: p.elements,
+        strokes: p.strokes
+      }))),
 
-                let finalFont = 'Arial';
-                let finalWeight = 400;
-                let finalFontStyle = 'normal';
+      save: () => {
+        AppState.history.past.push(History.snapshot());
+        if (AppState.history.past.length > 35) AppState.history.past.shift();
+        AppState.history.future = [];
+        History.updateUI();
+      },
 
-                if (textContent.styles && item.fontName) {
-                    const styleData = textContent.styles[item.fontName];
-                    if (styleData) {
-                        const familyStr = (styleData.fontFamily || styleData.name || '').toLowerCase();
-                        if (familyStr.includes('serif') || familyStr.includes('times')) finalFont = 'Times New Roman';
-                        else if (familyStr.includes('calibri')) finalFont = 'Calibri';
-                        else if (familyStr.includes('arial') || familyStr.includes('helvetica') || familyStr.includes('sans')) finalFont = 'Arial';
-                        if (familyStr.includes('bold')) finalWeight = 700;
-                        if (familyStr.includes('italic') || familyStr.includes('oblique')) finalFontStyle = 'italic';
-                    }
+      restore: (snap) => {
+        try {
+          const parsed = JSON.parse(snap);
+          parsed.forEach((data, idx) => {
+            if (AppState.pages[idx]) {
+              AppState.pages[idx].elements = data.elements;
+              AppState.pages[idx].strokes = data.strokes || [];
+              Renderer.drawLayer(idx);
+              Renderer.redrawStrokes(idx);
+            }
+          });
+          Editor.deselectAll();
+          LinkGuardian.refreshUI();
+        } catch (e) {
+          UI.log('History restore failed.', 'error');
+        }
+      },
+
+      undo: () => {
+        if (!AppState.history.past.length) return;
+        AppState.history.future.push(History.snapshot());
+        History.restore(AppState.history.past.pop());
+        History.updateUI();
+      },
+
+      redo: () => {
+        if (!AppState.history.future.length) return;
+        AppState.history.past.push(History.snapshot());
+        History.restore(AppState.history.future.pop());
+        History.updateUI();
+      },
+
+      updateUI: () => {
+        UI.get('btnUndo').disabled = !AppState.history.past.length;
+        UI.get('btnRedo').disabled = !AppState.history.future.length;
+      }
+    };
+
+    let historyDebounce;
+    const saveHistoryDebounced = () => {
+      clearTimeout(historyDebounce);
+      historyDebounce = setTimeout(History.save, 450);
+    };
+
+    /* ------------------------------------------------------------
+       6. DOCUMENT MANAGER (PDF.JS + SMART GROUPING + LINK EXTRACTION + OCR)
+       ------------------------------------------------------------ */
+    const DocumentManager = {
+      handleFile: async (file) => {
+        if (!file || AppState.flags.isProcessing) return;
+        AppState.flags.isProcessing = true;
+        AppState.fileName = file.name.replace(/\.pdf$/i, '') + '_Edited.pdf';
+        UI.get('exportFileName').value = AppState.fileName;
+
+        UI.get('emptyStateContainer').classList.add('hidden');
+        UI.get('documentPagesContainer').innerHTML = '';
+        UI.get('thumbnailContainer').innerHTML = '';
+        AppState.pages = [];
+        AppState.history = { past: [], future: [] };
+        History.updateUI();
+        Editor.deselectAll();
+
+        UI.setStatus('Analyzing PDF...', true);
+        UI.log(`Loading "${file.name}"...`, 'info');
+
+        try {
+          const buffer = await file.arrayBuffer();
+          AppState.pdfDoc = await pdfjsLib.getDocument({ data: buffer }).promise;
+          const total = AppState.pdfDoc.numPages;
+          UI.log(`Detected ${total} page(s). Extracting layout, text & embedded links...`, 'info');
+
+          let totalExtractedLinks = 0;
+
+          for (let n = 1; n <= total; n++) {
+            UI.setStatus(`Processing Page ${n}/${total}...`, true);
+            const page = await AppState.pdfDoc.getPage(n);
+            const viewport = page.getViewport({ scale: 2.0 });
+
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.ceil(viewport.width);
+            canvas.height = Math.ceil(viewport.height);
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            await page.render({ canvasContext: ctx, viewport }).promise;
+
+            const pDef = {
+              id: n,
+              canvas,
+              width: canvas.width,
+              height: canvas.height,
+              elements: [],
+              preservedLinks: [],
+              strokes: [],
+              domNode: null,
+              interactNode: null,
+              drawCanvas: null
+            };
+
+            // STEP A: Extract ALL Existing Embedded Links via getAnnotations()
+            try {
+              const annotations = await page.getAnnotations();
+              for (const ann of annotations) {
+                if (ann.subtype === 'Link' && (ann.url || ann.unsafeUrl)) {
+                  const url = ann.url || ann.unsafeUrl;
+                  const rect = viewport.convertToViewportRectangle(ann.rect);
+                  const lx = Math.min(rect[0], rect[2]);
+                  const ly = Math.min(rect[1], rect[3]);
+                  const lw = Math.abs(rect[2] - rect[0]);
+                  const lh = Math.abs(rect[3] - rect[1]);
+                  if (lw > 2 && lh > 2) {
+                    pDef.preservedLinks.push({
+                      id: crypto.randomUUID(),
+                      x: lx, y: ly, w: lw, h: lh,
+                      url,
+                      linkedElementUuid: null
+                    });
+                    totalExtractedLinks++;
+                  }
+                }
+              }
+              if (pDef.preservedLinks.length) {
+                UI.log(`Page ${n}: Protected ${pDef.preservedLinks.length} embedded link(s).`, 'success');
+              }
+            } catch (annErr) {
+              UI.log(`Page ${n}: Annotation scan warning.`, 'warn');
+            }
+
+            // STEP B: Extract Native Digital Text & Intelligently Group Lines
+            let rawItems = [];
+            try {
+              const textContent = await page.getTextContent();
+              if (textContent?.items?.length) {
+                for (const item of textContent.items) {
+                  if (!item.str || !item.str.trim()) continue;
+                  const tx = pdfjsLib.Util.transform(viewport.transform, item.transform);
+                  const fontSize = Math.max(8, Math.hypot(tx[2], tx[3]) || Math.abs(tx[3]) || 14);
+                  const x = tx[4];
+                  const y = tx[5] - (fontSize * 0.85);
+                  const w = Math.max(item.width * viewport.scale, fontSize * 0.6);
+                  const h = fontSize * 1.25;
+
+                  let fontFamily = 'Arial';
+                  let fontWeight = 400;
+                  let fontStyle = 'normal';
+
+                  if (textContent.styles && item.fontName && textContent.styles[item.fontName]) {
+                    const st = textContent.styles[item.fontName];
+                    const fam = (st.fontFamily || st.name || '').toLowerCase();
+                    if (fam.includes('serif') || fam.includes('times')) fontFamily = 'Times New Roman';
+                    else if (fam.includes('calibri')) fontFamily = 'Calibri';
+                    else if (fam.includes('courier') || fam.includes('mono')) fontFamily = 'Courier New';
+                    else if (fam.includes('georgia')) fontFamily = 'Georgia';
+                    if (fam.includes('bold') || fam.includes('black') || fam.includes('heavy')) fontWeight = 700;
+                    if (fam.includes('italic') || fam.includes('oblique')) fontStyle = 'italic';
+                  }
+
+                  rawItems.push({ x, y, w, h, str: item.str, fontSize, fontFamily, fontWeight, fontStyle });
+                }
+              }
+            } catch (e) {
+              UI.log(`Page ${n}: Native text parse warning.`, 'warn');
+            }
+
+            // Group adjacent spans on same baseline into clean editable phrases
+            if (rawItems.length >= 4) {
+              const grouped = DocumentManager.groupTextSpans(rawItems);
+              grouped.forEach(g => {
+                const uuid = crypto.randomUUID();
+                const bgColor = CanvasSampler.sampleBackground(canvas, g.x, g.y, g.w, g.h);
+
+                // Match with preserved link if overlapping
+                let matchedUrl = '';
+                for (const lnk of pDef.preservedLinks) {
+                  if (LinkGuardian.rectsOverlap(g, lnk)) {
+                    matchedUrl = lnk.url;
+                    if (!lnk.linkedElementUuid) lnk.linkedElementUuid = uuid;
+                    break;
+                  }
                 }
 
                 pDef.elements.push({
-                  uuid: crypto.randomUUID(), 
-                  x: tx[4], 
-                  y: tx[5] - (fontSize * 0.8),
-                  w: Math.max((item.width * viewport.scale), 20), 
-                  h: fontSize * 1.3, 
-                  text: item.str, 
-                  originalText: item.str,
-                  fontSize: fontSize, 
-                  fontFamily: finalFont, 
-                  fontWeight: finalWeight, 
-                  fontStyle: finalFontStyle, 
+                  uuid,
+                  type: 'text',
+                  x: g.x, y: g.y, w: g.w, h: g.h,
+                  origX: g.x, origY: g.y, origW: g.w, origH: g.h,
+                  text: g.str,
+                  originalText: g.str,
+                  fontSize: g.fontSize,
+                  fontFamily: g.fontFamily,
+                  fontWeight: g.fontWeight,
+                  fontStyle: g.fontStyle,
+                  textDecoration: 'none',
                   color: '#000000',
-                  link: '', 
-                  isModified: false, 
+                  bgColor,
+                  bgTransparent: false,
+                  opacity: 100,
+                  link: matchedUrl,
+                  isNative: true,
+                  isModified: false,
                   isHidden: false
                 });
-              }
+              });
+              UI.log(`Page ${n}: Digital PDF (${pDef.elements.length} editable text blocks).`, 'info');
+            } else {
+              // Scanned / Image PDF -> Auto OCR Fallback
+              UI.log(`Page ${n}: Scanned page detected. Running Smart OCR (Eng + Ben)...`, 'warn');
+              await DocumentManager.runOCROnPage(pDef);
             }
-          } catch(errLayer) {
-             UI.log(`Native text extraction warning on page ${n}`);
+
+            AppState.pages.push(pDef);
+            Renderer.buildPageDOM(AppState.pages.length - 1);
           }
 
-          // Step 2: Strict check - ONLY run OCR if valid native items are less than 10 (True Scanned PDF)
-          if(validNativeItems < 10) {
-            UI.log(`Page ${n} is scanned/image-based. Running Tesseract OCR...`);
-            pDef.elements = []; // Clear weak native items if any
-            try {
-              const ocrWorker = await Tesseract.createWorker(['eng', 'ben']);
-              const ocrResult = await ocrWorker.recognize(canvas.toDataURL());
-              await ocrWorker.terminate();
+          Renderer.buildThumbs();
+          Navigation.goToPage(0);
+          LinkGuardian.refreshUI();
+          UI.get('btnExportTop').disabled = false;
+          UI.get('btnForceOCR').disabled = false;
+          UI.setStatus('Ready', false);
+          UI.toast(
+            'PDF Ready for Editing',
+            totalExtractedLinks > 0
+              ? `${total} page(s) loaded · ${totalExtractedLinks} embedded link(s) strictly preserved.`
+              : `${total} page(s) loaded with smart precision.`,
+            'success'
+          );
+        } catch (err) {
+          console.error(err);
+          UI.log(`Error loading PDF: ${err.message}`, 'error');
+          UI.setStatus('Error', false);
+          UI.toast('Failed to Load PDF', 'Please ensure the file is a valid, unencrypted PDF.', 'error');
+        } finally {
+          AppState.flags.isProcessing = false;
+        }
+      },
 
-              if(ocrResult?.data?.words) {
-                for(const w of ocrResult.data.words) {
-                  if(!w.text?.trim() || w.confidence < 50) continue;
-                  pDef.elements.push({
-                    uuid: crypto.randomUUID(),
-                    x: w.bbox.x0,
-                    y: w.bbox.y0,
-                    w: Math.max((w.bbox.x1 - w.bbox.x0), 20),
-                    h: Math.max((w.bbox.y1 - w.bbox.y0), 16),
-                    text: w.text,
-                    originalText: w.text,
-                    fontSize: Math.max((w.bbox.y1 - w.bbox.y0) * 0.8, 12),
-                    fontFamily: 'Arial',
-                    fontWeight: 400,
-                    fontStyle: 'normal',
-                    color: '#000000',
-                    link: '',
-                    isModified: false,
-                    isHidden: false
-                  });
-                }
-              }
-              UI.log(`OCR completed successfully on page ${n}`);
-            } catch(ocrErr) {
-              UI.log(`OCR processing error on page ${n}`);
-            }
+      // Groups adjacent PDF text runs into natural editable phrases
+      groupTextSpans: (items) => {
+        const sorted = [...items].sort((a, b) => Math.abs(a.y - b.y) < 4 ? a.x - b.x : a.y - b.y);
+        const groups = [];
+        for (const item of sorted) {
+          const prev = groups[groups.length - 1];
+          if (
+            prev &&
+            Math.abs(prev.y - item.y) < Math.min(prev.fontSize, item.fontSize) * 0.45 &&
+            Math.abs(prev.fontSize - item.fontSize) < 3 &&
+            prev.fontWeight === item.fontWeight &&
+            (item.x - (prev.x + prev.w)) > -8 &&
+            (item.x - (prev.x + prev.w)) < prev.fontSize * 1.15
+          ) {
+            const gap = item.x - (prev.x + prev.w);
+            const needsSpace = gap > prev.fontSize * 0.18 && !prev.str.endsWith(' ') && !item.str.startsWith(' ');
+            prev.str += (needsSpace ? ' ' : '') + item.str;
+            prev.w = Math.max(prev.w, (item.x + item.w) - prev.x);
+            prev.h = Math.max(prev.h, item.h);
           } else {
-            UI.log(`Page ${n} identified as Digital PDF. OCR skipped.`);
+            groups.push({ ...item });
+          }
+        }
+        return groups;
+      },
+
+      // Run Tesseract.js OCR (English + Bengali) on a specific page
+      runOCROnPage: async (pDef) => {
+        try {
+          UI.setStatus(`Running OCR on Page ${pDef.id}...`, true);
+          const worker = await Tesseract.createWorker(['eng', 'ben']);
+          const result = await worker.recognize(pDef.canvas.toDataURL('image/png'));
+          await worker.terminate();
+
+          let added = 0;
+          if (result?.data?.lines?.length) {
+            for (const line of result.data.lines) {
+              const txt = line.text?.trim();
+              if (!txt || line.confidence < 45) continue;
+              const x = line.bbox.x0;
+              const y = line.bbox.y0;
+              const w = Math.max(line.bbox.x1 - line.bbox.x0, 24);
+              const h = Math.max(line.bbox.y1 - line.bbox.y0, 16);
+              const bgColor = CanvasSampler.sampleBackground(pDef.canvas, x, y, w, h);
+
+              // Detect Bengali characters to auto-select Noto Sans Bengali
+              const hasBengali = /[\u0980-\u09FF]/.test(txt);
+
+              pDef.elements.push({
+                uuid: crypto.randomUUID(),
+                type: 'text',
+                x, y, w, h,
+                origX: x, origY: y, origW: w, origH: h,
+                text: txt,
+                originalText: txt,
+                fontSize: Math.max(12, Math.round(h * 0.78)),
+                fontFamily: hasBengali ? 'Noto Sans Bengali' : 'Arial',
+                fontWeight: 400,
+                fontStyle: 'normal',
+                textDecoration: 'none',
+                color: '#000000',
+                bgColor,
+                bgTransparent: false,
+                opacity: 100,
+                link: '',
+                isNative: true,
+                isModified: false,
+                isHidden: false
+              });
+              added++;
+            }
+          }
+          UI.log(`Page ${pDef.id}: OCR extracted ${added} text line(s).`, 'success');
+        } catch (err) {
+          UI.log(`Page ${pDef.id}: OCR error (${err.message}).`, 'error');
+        } finally {
+          UI.setStatus('Ready', false);
+        }
+      }
+    };
+
+    /* ------------------------------------------------------------
+       7. RENDERER & INTERACTIVE LAYER ENGINE
+       ------------------------------------------------------------ */
+    const Renderer = {
+      buildPageDOM: (pageIdx) => {
+        const pDef = AppState.pages[pageIdx];
+        const wrap = document.createElement('div');
+        wrap.className = 'page-wrapper rounded-sm';
+        wrap.style.width = `${pDef.width}px`;
+        wrap.style.height = `${pDef.height}px`;
+
+        // Base PDF Canvas
+        const baseCvs = document.createElement('canvas');
+        baseCvs.width = pDef.width;
+        baseCvs.height = pDef.height;
+        baseCvs.className = 'block w-full h-full pointer-events-none';
+        baseCvs.getContext('2d').drawImage(pDef.canvas, 0, 0);
+
+        // Freehand / Highlight / Whiteout Drawing Canvas
+        const drawCvs = document.createElement('canvas');
+        drawCvs.width = pDef.width;
+        drawCvs.height = pDef.height;
+        drawCvs.className = 'drawing-canvas';
+
+        // Interactive DOM Elements Layer
+        const layer = document.createElement('div');
+        layer.className = 'interaction-layer';
+
+        wrap.appendChild(baseCvs);
+        wrap.appendChild(drawCvs);
+        wrap.appendChild(layer);
+        UI.get('documentPagesContainer').appendChild(wrap);
+
+        pDef.domNode = wrap;
+        pDef.drawCanvas = drawCvs;
+        pDef.interactNode = layer;
+
+        // Bind Page Click for Inserting Text
+        wrap.addEventListener('pointerdown', (e) => {
+          if (e.target !== layer && e.target !== wrap) return;
+          if (AppState.activeTool === 'insert') {
+            const rect = wrap.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / AppState.zoomLevel;
+            const y = (e.clientY - rect.top) / AppState.zoomLevel;
+            Editor.createTextBox(pageIdx, x, y);
+          } else if (AppState.activeTool === 'select') {
+            Editor.deselectAll();
+          }
+        });
+
+        // Bind Freehand / Highlight / Whiteout Drawing
+        Renderer.bindDrawingEvents(pageIdx, drawCvs);
+
+        Renderer.drawLayer(pageIdx);
+        Navigation.applyZoom();
+      },
+
+      bindDrawingEvents: (pageIdx, drawCvs) => {
+        let isDrawing = false;
+        let activeStroke = null;
+
+        const getPt = (e) => {
+          const rect = drawCvs.getBoundingClientRect();
+          return {
+            x: (e.clientX - rect.left) / AppState.zoomLevel,
+            y: (e.clientY - rect.top) / AppState.zoomLevel
+          };
+        };
+
+        drawCvs.addEventListener('pointerdown', (e) => {
+          const tool = AppState.activeTool;
+          if (tool !== 'draw' && tool !== 'highlight' && tool !== 'whiteout') return;
+          e.preventDefault();
+          drawCvs.setPointerCapture(e.pointerId);
+          isDrawing = true;
+          const pt = getPt(e);
+
+          if (tool === 'draw') {
+            activeStroke = {
+              type: 'freehand',
+              color: UI.get('propBrushColor').value,
+              size: Number(UI.get('propBrushSize').value) || 4,
+              points: [pt]
+            };
+          } else if (tool === 'highlight') {
+            activeStroke = {
+              type: 'rect',
+              mode: 'highlight',
+              color: UI.get('propBrushColor').value,
+              x: pt.x, y: pt.y, w: 0, h: 0
+            };
+          } else if (tool === 'whiteout') {
+            const sampled = CanvasSampler.sampleBackground(AppState.pages[pageIdx].canvas, pt.x, pt.y, 10, 10);
+            activeStroke = {
+              type: 'rect',
+              mode: 'whiteout',
+              color: sampled,
+              x: pt.x, y: pt.y, w: 0, h: 0
+            };
+          }
+          History.save();
+          AppState.pages[pageIdx].strokes.push(activeStroke);
+        });
+
+        drawCvs.addEventListener('pointermove', (e) => {
+          if (!isDrawing || !activeStroke) return;
+          const pt = getPt(e);
+          if (activeStroke.type === 'freehand') {
+            activeStroke.points.push(pt);
+          } else {
+            activeStroke.w = pt.x - activeStroke.x;
+            activeStroke.h = pt.y - activeStroke.y;
+          }
+          Renderer.redrawStrokes(pageIdx);
+        });
+
+        const endDraw = () => {
+          if (!isDrawing) return;
+          isDrawing = false;
+          activeStroke = null;
+        };
+        drawCvs.addEventListener('pointerup', endDraw);
+        drawCvs.addEventListener('pointercancel', endDraw);
+      },
+
+      redrawStrokes: (pageIdx) => {
+        const pDef = AppState.pages[pageIdx];
+        if (!pDef?.drawCanvas) return;
+        const ctx = pDef.drawCanvas.getContext('2d');
+        ctx.clearRect(0, 0, pDef.width, pDef.height);
+
+        for (const st of pDef.strokes) {
+          ctx.save();
+          if (st.type === 'freehand' && st.points.length > 1) {
+            ctx.beginPath();
+            ctx.strokeStyle = st.color;
+            ctx.lineWidth = st.size;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.moveTo(st.points[0].x, st.points[0].y);
+            for (let i = 1; i < st.points.length; i++) {
+              ctx.lineTo(st.points[i].x, st.points[i].y);
+            }
+            ctx.stroke();
+          } else if (st.type === 'rect') {
+            ctx.fillStyle = st.color;
+            ctx.globalAlpha = st.mode === 'highlight' ? 0.35 : 1.0;
+            ctx.fillRect(st.x, st.y, st.w, st.h);
+          }
+          ctx.restore();
+        }
+      },
+
+      drawLayer: (pageIdx) => {
+        const pDef = AppState.pages[pageIdx];
+        if (!pDef?.interactNode) return;
+        pDef.interactNode.innerHTML = '';
+
+        // 1. Render Visual Indicators for Preserved Original PDF Links
+        pDef.preservedLinks.forEach(lnk => {
+          const zone = document.createElement('div');
+          zone.className = 'preserved-link-zone';
+          Object.assign(zone.style, {
+            left: `${lnk.x}px`,
+            top: `${lnk.y}px`,
+            width: `${lnk.w}px`,
+            height: `${lnk.h}px`
+          });
+          zone.innerHTML = `<span class="link-pill"><i class="fa-solid fa-link mr-1"></i>${lnk.url.slice(0, 32)}${lnk.url.length > 32 ? '…' : ''}</span>`;
+          zone.title = `Preserved Embedded Link: ${lnk.url}`;
+          zone.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (lnk.linkedElementUuid) {
+              Editor.selectElement(pageIdx, lnk.linkedElementUuid);
+            } else {
+              UI.toast('Preserved Link Protected', lnk.url, 'info');
+            }
+          });
+          pDef.interactNode.appendChild(zone);
+        });
+
+        // 2. Render Editable Elements (Text & Images/Signatures)
+        pDef.elements.filter(el => !el.isHidden).forEach(el => {
+          const isSelected = AppState.selected && AppState.selected.pageIndex === pageIdx && AppState.selected.uuid === el.uuid;
+
+          if (el.type === 'image') {
+            const box = document.createElement('div');
+            box.className = `editable-item image-element ${isSelected ? 'is-selected' : ''}`;
+            box.dataset.uuid = el.uuid;
+            Object.assign(box.style, {
+              left: `${el.x}px`,
+              top: `${el.y}px`,
+              width: `${el.w}px`,
+              height: `${el.h}px`,
+              opacity: (el.opacity ?? 100) / 100
+            });
+            box.innerHTML = `
+              <div class="drag-handle"><i class="fa-solid fa-up-down-left-right"></i> Move</div>
+              <img src="${el.src}" alt="Placed Graphic">
+              <div class="resize-handle"></div>
+            `;
+            Renderer.attachInteractiveHandlers(box, pageIdx, el);
+            pDef.interactNode.appendChild(box);
+            return;
           }
 
-          AppState.pages.push(pDef); 
-          Renderer.buildPageDOM(pDef);
-        } catch(errPage) {
-           UI.log(`Error parsing page ${n}`);
+          // Text Element
+          const box = document.createElement('div');
+          box.className = `editable-item text-element ${el.isModified ? 'is-modified' : ''} ${isSelected ? 'is-selected' : ''}`;
+          box.dataset.uuid = el.uuid;
+
+          const bgStyle = el.isModified
+            ? (el.bgTransparent ? 'transparent' : (el.bgColor || '#ffffff'))
+            : 'transparent';
+
+          Object.assign(box.style, {
+            left: `${el.x}px`,
+            top: `${el.y}px`,
+            minWidth: `${el.w}px`,
+            fontSize: `${el.fontSize}px`,
+            fontFamily: `"${el.fontFamily}", sans-serif`,
+            fontWeight: el.fontWeight,
+            fontStyle: el.fontStyle || 'normal',
+            textDecoration: el.textDecoration || 'none',
+            color: el.isModified ? el.color : 'transparent',
+            backgroundColor: bgStyle,
+            opacity: (el.opacity ?? 100) / 100
+          });
+
+          // Floating Handle + Editable Inner Span
+          const handle = document.createElement('div');
+          handle.className = 'drag-handle';
+          handle.innerHTML = `<i class="fa-solid fa-grip-vertical"></i> ${el.link ? '<i class="fa-solid fa-link text-emerald-300"></i>' : 'Move'}`;
+
+          const content = document.createElement('div');
+          content.className = 'outline-none min-w-[20px]';
+          content.contentEditable = 'true';
+          content.spellcheck = false;
+          content.textContent = el.text;
+
+          const resizer = document.createElement('div');
+          resizer.className = 'resize-handle';
+
+          box.appendChild(handle);
+          box.appendChild(content);
+          box.appendChild(resizer);
+
+          // When user starts editing text, reveal live text & background mask seamlessly
+          content.addEventListener('focus', () => {
+            Editor.selectElement(pageIdx, el.uuid);
+            if (!el.isModified) {
+              box.style.color = el.color;
+              box.style.backgroundColor = el.bgTransparent ? 'transparent' : (el.bgColor || '#ffffff');
+            }
+          });
+
+          content.addEventListener('blur', () => {
+            if (!el.isModified) {
+              box.style.color = 'transparent';
+              box.style.backgroundColor = 'transparent';
+            }
+          });
+
+          content.addEventListener('input', () => {
+            el.text = content.innerText;
+            el.isModified = true;
+            el.w = Math.max(el.w, box.offsetWidth);
+            el.h = Math.max(el.h, box.offsetHeight);
+            box.classList.add('is-modified');
+            box.style.color = el.color;
+            box.style.backgroundColor = el.bgTransparent ? 'transparent' : (el.bgColor || '#ffffff');
+            saveHistoryDebounced();
+          });
+
+          Renderer.attachInteractiveHandlers(box, pageIdx, el);
+          pDef.interactNode.appendChild(box);
+        });
+      },
+
+      // Unified Pointer-Event Drag & Resize (Works on Desktop Mouse + Mobile Touch)
+      attachInteractiveHandlers: (box, pageIdx, el) => {
+        const handle = box.querySelector('.drag-handle');
+        const resizer = box.querySelector('.resize-handle');
+
+        box.addEventListener('pointerdown', (e) => {
+          e.stopPropagation();
+          Editor.selectElement(pageIdx, el.uuid);
+        });
+
+        // Dragging via handle (or anywhere on image)
+        const dragTrigger = el.type === 'image' ? box : handle;
+        if (dragTrigger) {
+          dragTrigger.addEventListener('pointerdown', (e) => {
+            if (e.target === resizer) return;
+            e.stopPropagation();
+            e.preventDefault();
+            Editor.selectElement(pageIdx, el.uuid);
+            dragTrigger.setPointerCapture(e.pointerId);
+
+            const startX = e.clientX;
+            const startY = e.clientY;
+            const origX = el.x;
+            const origY = el.y;
+
+            const onMove = (ev) => {
+              const dx = (ev.clientX - startX) / AppState.zoomLevel;
+              const dy = (ev.clientY - startY) / AppState.zoomLevel;
+              el.x = origX + dx;
+              el.y = origY + dy;
+              if (el.type === 'text') {
+                el.isModified = true;
+                box.classList.add('is-modified');
+                box.style.color = el.color;
+                box.style.backgroundColor = el.bgTransparent ? 'transparent' : (el.bgColor || '#ffffff');
+              }
+              box.style.left = `${el.x}px`;
+              box.style.top = `${el.y}px`;
+            };
+
+            const onUp = () => {
+              dragTrigger.removeEventListener('pointermove', onMove);
+              dragTrigger.removeEventListener('pointerup', onUp);
+              saveHistoryDebounced();
+              LinkGuardian.refreshUI();
+            };
+
+            dragTrigger.addEventListener('pointermove', onMove);
+            dragTrigger.addEventListener('pointerup', onUp);
+          });
         }
-      }
 
-      Renderer.buildThumbs(); 
-      Navigation.goToPage(0);
-      UI.get('btnExportTop').disabled = false; 
-      UI.toast('Success', 'PDF Loaded & Processed.');
-    } catch(err) { 
-      UI.log(`CRITICAL ERROR`);
-      UI.toast('Error', 'Failed to read PDF document'); 
-    }
-  }
-};
+        // Resizing via bottom-right handle
+        if (resizer) {
+          resizer.addEventListener('pointerdown', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            resizer.setPointerCapture(e.pointerId);
 
-const Renderer = {
-  buildPageDOM: (pDef) => {
-    const wrap = document.createElement('div'); 
-    wrap.className = 'page-container';
-    
-    const cvs = document.createElement('canvas'); 
-    cvs.className = 'page-canvas'; 
-    cvs.width = pDef.width; 
-    cvs.height = pDef.height;
-    cvs.getContext('2d').drawImage(pDef.canvas, 0, 0);
+            const startX = e.clientX;
+            const startY = e.clientY;
+            const origW = el.w;
+            const origH = el.h;
 
-    const layer = document.createElement('div'); 
-    layer.className = 'interaction-layer';
-    
-    wrap.appendChild(cvs); 
-    wrap.appendChild(layer); 
-    UI.get('documentPagesContainer').appendChild(wrap);
-    
-    pDef.domNode = wrap; 
-    pDef.interactNode = layer;
-    
-    Renderer.drawLayer(pDef); 
-    Navigation.applyZoom();
+            const onMove = (ev) => {
+              const dx = (ev.clientX - startX) / AppState.zoomLevel;
+              const dy = (ev.clientY - startY) / AppState.zoomLevel;
+              el.w = Math.max(24, origW + dx);
+              el.h = Math.max(18, origH + dy);
+              if (el.type === 'image') {
+                box.style.width = `${el.w}px`;
+                box.style.height = `${el.h}px`;
+              } else {
+                box.style.minWidth = `${el.w}px`;
+                el.isModified = true;
+                box.classList.add('is-modified');
+              }
+            };
 
-    wrap.addEventListener('click', (e) => {
-      if(AppState.activeTool === 'insert') {
-        const r = wrap.getBoundingClientRect(); 
-        const clickX = (e.clientX - r.left) / AppState.zoomLevel;
-        const clickY = (e.clientY - r.top) / AppState.zoomLevel;
-        Editor.createTextBox(pDef, clickX, clickY);
-      }
-    });
-  },
+            const onUp = () => {
+              resizer.removeEventListener('pointermove', onMove);
+              resizer.removeEventListener('pointerup', onUp);
+              saveHistoryDebounced();
+            };
 
-  drawLayer: (pDef) => {
-    if(!pDef.interactNode) return;
-    pDef.interactNode.innerHTML = '';
-
-    pDef.elements.filter(el => !el.isHidden).forEach(el => {
-      const box = document.createElement('div'); 
-      box.className = 'text-box'; 
-      box.contentEditable = 'true'; 
-      box.spellcheck = false;
-      box.textContent = el.text; 
-      box.dataset.uuid = el.uuid;
-
-      if(el.isModified) box.classList.add('is-modified');
-
-      Object.assign(box.style, {
-        left: `${el.x}px`, 
-        top: `${el.y}px`, 
-        minWidth: `${el.w}px`, 
-        fontSize: `${el.fontSize}px`, 
-        fontFamily: el.fontFamily, 
-        fontWeight: el.fontWeight, 
-        fontStyle: el.fontStyle || 'normal',
-        color: el.isModified ? el.color : '#000000'
-      });
-
-      box.addEventListener('mousedown', (e) => {
-        e.stopPropagation(); 
-        Editor.selectElement(box);
-        if (AppState.activeTool === 'select') {
-          AppState.dragState.isDragging = true;
-          AppState.dragState.startX = e.clientX;
-          AppState.dragState.startY = e.clientY;
+            resizer.addEventListener('pointermove', onMove);
+            resizer.addEventListener('pointerup', onUp);
+          });
         }
-      });
+      },
 
-      box.addEventListener('focus', (e) => { 
-        e.stopPropagation();
-        Editor.selectElement(box); 
-      });
-      
-      box.addEventListener('click', (e) => { 
-        e.stopPropagation(); 
-        Editor.selectElement(box); 
-      });
+      buildThumbs: () => {
+        const cont = UI.get('thumbnailContainer');
+        cont.innerHTML = '';
+        AppState.pages.forEach((p, i) => {
+          const card = document.createElement('button');
+          card.className = 'thumb-card w-full p-2 rounded-xl bg-slate-900/90 border-2 border-transparent hover:border-slate-600 transition text-left group';
+          const cvs = document.createElement('canvas');
+          const sc = 180 / p.width;
+          cvs.width = 180;
+          cvs.height = Math.round(p.height * sc);
+          cvs.className = 'w-full rounded-md bg-white shadow';
+          cvs.getContext('2d').drawImage(p.canvas, 0, 0, cvs.width, cvs.height);
 
-      box.addEventListener('input', () => {
-        el.text = box.innerText; 
-        el.isModified = true;
-        box.classList.add('is-modified'); 
-        debounceHistory();
-      });
+          const meta = document.createElement('div');
+          meta.className = 'mt-2 flex items-center justify-between text-[11px] text-slate-400';
+          meta.innerHTML = `
+            <span class="font-medium">Page ${i + 1}</span>
+            ${p.preservedLinks.length ? `<span class="text-emerald-400 text-[10px]"><i class="fa-solid fa-link"></i> ${p.preservedLinks.length}</span>` : ''}
+          `;
 
-      box.addEventListener('keydown', (e) => { 
-        if(e.key === 'Escape') box.blur(); 
-        if(e.key === 'Delete' && e.ctrlKey) { 
-          e.preventDefault(); 
-          Editor.deleteElement(pDef, el.uuid); 
-        } 
-      });
-
-      pDef.interactNode.appendChild(box);
-    });
-  },
-
-  buildThumbs: () => {
-    const cont = UI.get('thumbnailContainer'); 
-    cont.innerHTML = '';
-    AppState.pages.forEach((p, i) => {
-      const card = document.createElement('div'); 
-      card.className = 'thumb-card';
-      const c = document.createElement('canvas'); 
-      const sc = 200 / p.width; 
-      c.width = 200; 
-      c.height = p.height * sc;
-      c.getContext('2d').drawImage(p.canvas, 0, 0, c.width, c.height);
-      card.appendChild(c);
-      card.addEventListener('click', () => Navigation.goToPage(i)); 
-      cont.appendChild(card);
-    });
-    UI.get('totalPageCount').textContent = AppState.pages.length;
-  }
-};
-
-const Editor = {
-  selectElement: (node) => {
-    document.querySelectorAll('.text-box.is-selected').forEach(n => n.classList.remove('is-selected'));
-    AppState.selectedElement = node || null;
-    if(node) {
-      node.classList.add('is-selected');
-      const page = AppState.pages.find(p => p.interactNode?.contains(node));
-      const data = page?.elements.find(e => e.uuid === node.dataset.uuid);
-      if(data) { 
-        UI.get('propFontSize').value = Math.round(data.fontSize); 
-        UI.get('propFontFamily').value = data.fontFamily; 
-        UI.get('propFontWeight').value = data.fontWeight; 
-        if(UI.get('propFontStyle')) UI.get('propFontStyle').value = data.fontStyle || 'normal';
-        if(UI.get('propColor')) UI.get('propColor').value = data.color || '#000000'; 
-        if(UI.get('propLink')) UI.get('propLink').value = data.link || ''; 
+          card.appendChild(cvs);
+          card.appendChild(meta);
+          card.onclick = () => Navigation.goToPage(i);
+          cont.appendChild(card);
+        });
+        UI.get('totalPageCount').textContent = AppState.pages.length;
       }
-    }
-  },
-
-  createTextBox: (pDef, x, y) => {
-    History.save(); 
-    const id = crypto.randomUUID();
-    const newEl = { 
-      uuid: id, 
-      x, 
-      y, 
-      w: 120, 
-      h: 30, 
-      text: 'New Text', 
-      originalText: '', 
-      fontSize: AppState.lastFormat.fontSize, 
-      fontFamily: AppState.lastFormat.fontFamily, 
-      fontWeight: AppState.lastFormat.fontWeight, 
-      fontStyle: AppState.lastFormat.fontStyle, 
-      color: AppState.lastFormat.color, 
-      link: '', 
-      isModified: true, 
-      isHidden: false 
     };
-    pDef.elements.push(newEl);
-    Renderer.drawLayer(pDef); 
-    const node = pDef.interactNode.querySelector(`[data-uuid="${id}"]`);
-    Editor.selectElement(node); 
-    if(node) { 
-      node.focus(); 
-      document.execCommand('selectAll', false, null); 
-    }
-    Navigation.setTool('select');
-  },
 
-  deleteElement: (pDef, uuid) => { 
-    History.save(); 
-    const el = pDef.elements.find(e => e.uuid === uuid); 
-    if(el) { 
-      el.isHidden = true; 
-      Renderer.drawLayer(pDef); 
-      Editor.selectElement(null); 
-    } 
-  },
+    /* ------------------------------------------------------------
+       8. ELEMENT EDITOR & PROPERTY SYNCHRONIZER
+       ------------------------------------------------------------ */
+    const Editor = {
+      getSelectedData: () => {
+        if (!AppState.selected) return null;
+        const p = AppState.pages[AppState.selected.pageIndex];
+        const el = p?.elements.find(e => e.uuid === AppState.selected.uuid);
+        const node = p?.interactNode?.querySelector(`[data-uuid="${AppState.selected.uuid}"]`);
+        return el ? { page: p, pageIndex: AppState.selected.pageIndex, el, node } : null;
+      },
 
-  updateProperty: (prop, val) => {
-    if(!AppState.selectedElement) return;
-    const p = AppState.pages.find(p => p.interactNode.contains(AppState.selectedElement));
-    const el = p.elements.find(e => e.uuid === AppState.selectedElement.dataset.uuid);
-    if(!el) return;
+      selectElement: (pageIndex, uuid) => {
+        document.querySelectorAll('.editable-item.is-selected').forEach(n => n.classList.remove('is-selected'));
+        AppState.selected = { pageIndex, uuid };
+        const sel = Editor.getSelectedData();
+        if (!sel) return;
 
-    debounceHistory();
+        sel.node?.classList.add('is-selected');
+        const { el } = sel;
 
-    if(prop === 'fontSize' || prop === 'fontWeight') {
-      val = Number(toEnglishDigits(val));
-    }
-    
-    el[prop] = val;
-    el.isModified = true;
+        UI.get('selectedTypeBadge').textContent = el.type === 'image' ? 'Image / Sign' : (el.isNative ? 'PDF Text' : 'New Text');
+        UI.get('propOpacity').value = el.opacity ?? 100;
 
-    if (AppState.lastFormat.hasOwnProperty(prop)) {
-      AppState.lastFormat[prop] = val;
-    }
+        if (el.type === 'text') {
+          UI.get('propFontFamily').value = el.fontFamily || 'Arial';
+          UI.get('propFontSize').value = Math.round(el.fontSize || 16);
+          UI.get('propColor').value = el.color || '#000000';
+          UI.get('propColorHex').textContent = el.color || '#000000';
+          UI.get('propBgColor').value = el.bgColor || '#ffffff';
+          UI.get('propBgTransparent').checked = !!el.bgTransparent;
+          UI.get('propLink').value = el.link || '';
 
-    if(prop === 'fontSize') AppState.selectedElement.style.fontSize = `${val}px`;
-    if(prop === 'fontFamily') AppState.selectedElement.style.fontFamily = val;
-    if(prop === 'fontWeight') AppState.selectedElement.style.fontWeight = val;
-    if(prop === 'fontStyle') AppState.selectedElement.style.fontStyle = val;
-    if(prop === 'color') {
-      AppState.selectedElement.style.color = val;
-    }
+          const testLink = UI.get('propLinkTest');
+          if (el.link) {
+            testLink.href = el.link;
+            testLink.classList.remove('hidden');
+          } else {
+            testLink.classList.add('hidden');
+          }
 
-    AppState.selectedElement.classList.add('is-modified');
-  }
-};
+          Editor.syncStyleButtons(el);
+        }
+      },
 
-const Navigation = {
-  goToPage: (i) => {
-    const s = Math.max(0, Math.min(i, AppState.pages.length - 1)); 
-    AppState.currentPageIndex = s;
-    document.querySelectorAll('.thumb-card').forEach((el, idx) => el.classList.toggle('active', idx === s));
-    UI.get('pageCounterDisplay').textContent = AppState.pages.length ? `Page ${s + 1} / ${AppState.pages.length}` : 'Page 0 / 0';
-    AppState.pages[s]?.domNode?.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
-    Editor.selectElement(null);
-  },
+      syncStyleButtons: (el) => {
+        const setActive = (id, active) => {
+          const btn = UI.get(id);
+          btn.classList.toggle('bg-blue-600/30', active);
+          btn.classList.toggle('border-blue-500', active);
+          btn.classList.toggle('text-blue-300', active);
+        };
+        setActive('btnToggleBold', Number(el.fontWeight) >= 700);
+        setActive('btnToggleItalic', el.fontStyle === 'italic');
+        setActive('btnToggleUnderline', el.textDecoration === 'underline');
+      },
 
-  applyZoom: () => { 
-    AppState.pages.forEach(p => { 
-      if(p.domNode) {
-        p.domNode.style.transform = `scale(${AppState.zoomLevel})`;
-        p.domNode.style.marginBottom = `${(AppState.zoomLevel - 1) * p.height + 40}px`;
-      } 
-    }); 
-    UI.get('zoomLevelDisplay').textContent = `${Math.round(AppState.zoomLevel * 100)}%`; 
-  },
+      deselectAll: () => {
+        document.querySelectorAll('.editable-item.is-selected').forEach(n => n.classList.remove('is-selected'));
+        AppState.selected = null;
+        UI.get('selectedTypeBadge').textContent = 'None Selected';
+        UI.get('propLinkTest').classList.add('hidden');
+      },
 
-  setZoom: (v) => { 
-    AppState.zoomLevel = Math.max(0.4, Math.min(2.5, v)); 
-    Navigation.applyZoom(); 
-  },
+      createTextBox: (pageIdx, x, y) => {
+        const pDef = AppState.pages[pageIdx];
+        if (!pDef) return;
+        History.save();
 
-  setTool: (t) => {
-    AppState.activeTool = t; 
-    ['toolSelect', 'toolText'].forEach(id => UI.get(id).classList.remove('active'));
-    if(t === 'select') UI.get('toolSelect').classList.add('active'); 
-    if(t === 'insert') UI.get('toolText').classList.add('active');
-    UI.get('editorStage').dataset.tool = t;
-  }
-};
+        const uuid = crypto.randomUUID();
+        const bgColor = CanvasSampler.sampleBackground(pDef.canvas, x, y, 100, 24);
+        const newEl = {
+          uuid,
+          type: 'text',
+          x, y, w: 140, h: 28,
+          text: 'Type here...',
+          originalText: '',
+          fontSize: AppState.lastFormat.fontSize,
+          fontFamily: AppState.lastFormat.fontFamily,
+          fontWeight: AppState.lastFormat.fontWeight,
+          fontStyle: AppState.lastFormat.fontStyle,
+          textDecoration: AppState.lastFormat.textDecoration,
+          color: AppState.lastFormat.color,
+          bgColor,
+          bgTransparent: true,
+          opacity: 100,
+          link: '',
+          isNative: false,
+          isModified: true,
+          isHidden: false
+        };
 
-const ExportEngine = {
-  compile: async () => {
-    if(!AppState.pages.length || AppState.flags.isExporting) return;
-    AppState.flags.isExporting = true; 
-    UI.get('exportProgressBar').style.width = '0%';
-    try {
-      const { jsPDF } = window.jspdf; 
-      const sc = parseFloat(UI.get('exportScale').value);
-      const pdf = new jsPDF({ 
-        orientation: 'portrait', 
-        unit: 'px', 
-        format: [AppState.pages[0].width * sc, AppState.pages[0].height * sc], 
-        compress: true 
+        pDef.elements.push(newEl);
+        Renderer.drawLayer(pageIdx);
+        Editor.selectElement(pageIdx, uuid);
+
+        const editable = pDef.interactNode.querySelector(`[data-uuid="${uuid}"] [contenteditable="true"]`);
+        if (editable) {
+          editable.focus();
+          document.execCommand('selectAll', false, null);
+        }
+        Navigation.setTool('select');
+      },
+
+      insertImageOnCurrentPage: (dataUrl, width = 200, height = 90) => {
+        const pIdx = AppState.currentPageIndex;
+        const pDef = AppState.pages[pIdx];
+        if (!pDef) {
+          UI.toast('No PDF Open', 'Please open a PDF document first.', 'info');
+          return;
+        }
+        History.save();
+        const uuid = crypto.randomUUID();
+        pDef.elements.push({
+          uuid,
+          type: 'image',
+          x: Math.max(40, (pDef.width - width) / 2),
+          y: Math.max(40, (pDef.height - height) / 2),
+          w: width,
+          h: height,
+          src: dataUrl,
+          opacity: 100,
+          isModified: true,
+          isHidden: false
+        });
+        Renderer.drawLayer(pIdx);
+        Editor.selectElement(pIdx, uuid);
+        Navigation.setTool('select');
+        UI.toast('Graphic Added', 'Drag to reposition or use corner handle to resize.', 'success');
+      },
+
+      updateProperty: (prop, val) => {
+        const sel = Editor.getSelectedData();
+        if (!sel) return;
+        const { el, node } = sel;
+
+        if (prop === 'fontSize' || prop === 'fontWeight' || prop === 'opacity') {
+          val = Number(toEnglishDigits(val));
+        }
+
+        el[prop] = val;
+        if (el.type === 'text') el.isModified = true;
+        if (AppState.lastFormat.hasOwnProperty(prop)) AppState.lastFormat[prop] = val;
+
+        if (node) {
+          if (el.type === 'text') node.classList.add('is-modified');
+          if (prop === 'fontSize') node.style.fontSize = `${val}px`;
+          if (prop === 'fontFamily') node.style.fontFamily = `"${val}", sans-serif`;
+          if (prop === 'fontWeight') node.style.fontWeight = val;
+          if (prop === 'fontStyle') node.style.fontStyle = val;
+          if (prop === 'textDecoration') node.style.textDecoration = val;
+          if (prop === 'color') {
+            node.style.color = val;
+            UI.get('propColorHex').textContent = val;
+          }
+          if (prop === 'bgColor' || prop === 'bgTransparent') {
+            node.style.backgroundColor = el.bgTransparent ? 'transparent' : el.bgColor;
+          }
+          if (prop === 'opacity') node.style.opacity = val / 100;
+        }
+
+        if (prop === 'link') {
+          const testLink = UI.get('propLinkTest');
+          if (val) {
+            testLink.href = val;
+            testLink.classList.remove('hidden');
+          } else {
+            testLink.classList.add('hidden');
+          }
+          LinkGuardian.refreshUI();
+        }
+
+        if (el.type === 'text') Editor.syncStyleButtons(el);
+        saveHistoryDebounced();
+      },
+
+      duplicateSelected: () => {
+        const sel = Editor.getSelectedData();
+        if (!sel) return;
+        History.save();
+        const copy = { ...sel.el, uuid: crypto.randomUUID(), x: sel.el.x + 20, y: sel.el.y + 20, isNative: false, isModified: true };
+        sel.page.elements.push(copy);
+        Renderer.drawLayer(sel.pageIndex);
+        Editor.selectElement(sel.pageIndex, copy.uuid);
+        LinkGuardian.refreshUI();
+      },
+
+      deleteSelected: () => {
+        const sel = Editor.getSelectedData();
+        if (!sel) return;
+        History.save();
+        sel.el.isHidden = true;
+        // If native PDF text is deleted, mark it modified so exporter covers original text cleanly
+        if (sel.el.isNative) sel.el.isModified = true;
+        Renderer.drawLayer(sel.pageIndex);
+        Editor.deselectAll();
+        LinkGuardian.refreshUI();
+      }
+    };
+
+    /* ------------------------------------------------------------
+       9. VECTOR SIGNATURE PAD
+       ------------------------------------------------------------ */
+    const SignaturePad = {
+      inkColor: '#0f172a',
+      isDrawing: false,
+      hasInk: false,
+
+      init: () => {
+        const cvs = UI.get('signatureCanvas');
+        const ctx = cvs.getContext('2d');
+
+        const resize = () => {
+          const rect = cvs.getBoundingClientRect();
+          if (rect.width > 0) {
+            cvs.width = rect.width * 2;
+            cvs.height = rect.height * 2;
+            ctx.scale(2, 2);
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.lineWidth = 2.6;
+          }
+        };
+
+        const getPt = (e) => {
+          const r = cvs.getBoundingClientRect();
+          return { x: e.clientX - r.left, y: e.clientY - r.top };
+        };
+
+        cvs.addEventListener('pointerdown', (e) => {
+          cvs.setPointerCapture(e.pointerId);
+          SignaturePad.isDrawing = true;
+          SignaturePad.hasInk = true;
+          const pt = getPt(e);
+          ctx.beginPath();
+          ctx.strokeStyle = SignaturePad.inkColor;
+          ctx.moveTo(pt.x, pt.y);
+        });
+
+        cvs.addEventListener('pointermove', (e) => {
+          if (!SignaturePad.isDrawing) return;
+          const pt = getPt(e);
+          ctx.lineTo(pt.x, pt.y);
+          ctx.stroke();
+        });
+
+        const stop = () => { SignaturePad.isDrawing = false; };
+        cvs.addEventListener('pointerup', stop);
+        cvs.addEventListener('pointercancel', stop);
+
+        document.querySelectorAll('.sig-color-btn').forEach(btn => {
+          btn.onclick = () => {
+            SignaturePad.inkColor = btn.dataset.sigColor;
+            document.querySelectorAll('.sig-color-btn').forEach(b => b.classList.replace('border-blue-500', 'border-transparent'));
+            btn.classList.replace('border-transparent', 'border-blue-500');
+          };
+        });
+
+        UI.get('btnClearSignature').onclick = () => {
+          ctx.clearRect(0, 0, cvs.width, cvs.height);
+          SignaturePad.hasInk = false;
+        };
+
+        UI.get('btnOpenSignature').onclick = () => {
+          UI.showModal('modalSignature');
+          setTimeout(resize, 30);
+        };
+
+        UI.get('btnInsertSignature').onclick = () => {
+          if (!SignaturePad.hasInk) {
+            UI.toast('Signature Empty', 'Draw your signature inside the box first.', 'info');
+            return;
+          }
+          const dataUrl = cvs.toDataURL('image/png');
+          UI.hideModal('modalSignature');
+          Editor.insertImageOnCurrentPage(dataUrl, 220, 95);
+        };
+      }
+    };
+
+    /* ------------------------------------------------------------
+       10. NAVIGATION & TOOLS
+       ------------------------------------------------------------ */
+    const Navigation = {
+      goToPage: (idx) => {
+        if (!AppState.pages.length) return;
+        const safe = Math.max(0, Math.min(idx, AppState.pages.length - 1));
+        AppState.currentPageIndex = safe;
+
+        document.querySelectorAll('.thumb-card').forEach((card, i) => {
+          card.classList.toggle('border-blue-500', i === safe);
+          card.classList.toggle('border-transparent', i !== safe);
+        });
+
+        UI.get('pageCounterDisplay').textContent = `${safe + 1} / ${AppState.pages.length}`;
+        AppState.pages[safe]?.domNode?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      },
+
+      applyZoom: () => {
+        AppState.pages.forEach(p => {
+          if (p.domNode) {
+            p.domNode.style.transform = `scale(${AppState.zoomLevel})`;
+            p.domNode.style.marginBottom = `${Math.max(24, (AppState.zoomLevel - 1) * p.height + 32)}px`;
+          }
+        });
+        UI.get('zoomLevelDisplay').textContent = `${Math.round(AppState.zoomLevel * 100)}%`;
+      },
+
+      setZoom: (val) => {
+        AppState.zoomLevel = Math.max(0.35, Math.min(2.5, val));
+        Navigation.applyZoom();
+      },
+
+      setTool: (tool) => {
+        AppState.activeTool = tool;
+        const stage = UI.get('editorStage');
+        stage.classList.remove('stage-mode-draw', 'stage-mode-highlight', 'stage-mode-whiteout');
+        if (tool === 'draw') stage.classList.add('stage-mode-draw');
+        if (tool === 'highlight') stage.classList.add('stage-mode-highlight');
+        if (tool === 'whiteout') stage.classList.add('stage-mode-whiteout');
+
+        document.querySelectorAll('.tool-btn').forEach(btn => {
+          const active = btn.dataset.tool === tool;
+          btn.classList.toggle('bg-blue-600/20', active);
+          btn.classList.toggle('text-blue-300', active);
+          btn.classList.toggle('border-blue-500/40', active);
+          btn.classList.toggle('bg-white/5', !active);
+          btn.classList.toggle('text-slate-300', !active);
+          btn.classList.toggle('border-transparent', !active);
+        });
+      }
+    };
+
+    /* ------------------------------------------------------------
+       11. HIGH-PRECISION EXPORT ENGINE (WITH STRICT LINK PRESERVATION)
+       ------------------------------------------------------------ */
+    const ExportEngine = {
+      loadImage: (src) => new Promise((res, rej) => {
+        const img = new Image();
+        img.onload = () => res(img);
+        img.onerror = rej;
+        img.src = src;
+      }),
+
+      compile: async () => {
+        if (!AppState.pages.length || AppState.flags.isExporting) return;
+        AppState.flags.isExporting = true;
+        const confirmBtn = UI.get('btnConfirmExport');
+        confirmBtn.disabled = true;
+
+        try {
+          const { jsPDF } = window.jspdf;
+          const sc = parseFloat(UI.get('exportScale').value) || 2;
+          const fileName = (UI.get('exportFileName').value.trim() || 'SHM_Edited_Document').replace(/\.pdf$/i, '') + '.pdf';
+
+          const first = AppState.pages[0];
+          const orientation = first.width > first.height ? 'landscape' : 'portrait';
+          const pdf = new jsPDF({
+            orientation,
+            unit: 'px',
+            format: [first.width * sc, first.height * sc],
+            hotfixes: ['px_scaling'],
+            compress: true
+          });
+
+          const allActiveLinks = LinkGuardian.getAllActiveLinks();
+          let embeddedLinkCount = 0;
+
+          for (let i = 0; i < AppState.pages.length; i++) {
+            const pDef = AppState.pages[i];
+            UI.get('exportStatusText').textContent = `Rendering page ${i + 1} of ${AppState.pages.length}...`;
+
+            const cvs = document.createElement('canvas');
+            cvs.width = Math.round(pDef.width * sc);
+            cvs.height = Math.round(pDef.height * sc);
+            const ctx = cvs.getContext('2d');
+
+            // 1. Base Page Layer
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, cvs.width, cvs.height);
+            ctx.drawImage(pDef.canvas, 0, 0, cvs.width, cvs.height);
+
+            // 2. Strokes Layer (Highlights, Whiteouts, Freehand Drawings)
+            for (const st of pDef.strokes) {
+              ctx.save();
+              if (st.type === 'freehand' && st.points.length > 1) {
+                ctx.beginPath();
+                ctx.strokeStyle = st.color;
+                ctx.lineWidth = st.size * sc;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.moveTo(st.points[0].x * sc, st.points[0].y * sc);
+                for (let k = 1; k < st.points.length; k++) {
+                  ctx.lineTo(st.points[k].x * sc, st.points[k].y * sc);
+                }
+                ctx.stroke();
+              } else if (st.type === 'rect') {
+                ctx.fillStyle = st.color;
+                ctx.globalAlpha = st.mode === 'highlight' ? 0.35 : 1.0;
+                ctx.fillRect(st.x * sc, st.y * sc, st.w * sc, st.h * sc);
+              }
+              ctx.restore();
+            }
+
+            // 3. Cover Original Bounding Boxes for Modified or Deleted Native Text
+            for (const el of pDef.elements) {
+              if (el.type === 'text' && el.isNative && (el.isModified || el.isHidden)) {
+                ctx.save();
+                ctx.fillStyle = el.bgColor || '#ffffff';
+                ctx.fillRect(
+                  (el.origX - 2) * sc,
+                  (el.origY - 1) * sc,
+                  (el.origW + 6) * sc,
+                  (el.origH + 3) * sc
+                );
+                ctx.restore();
+              }
+            }
+
+            // 4. Render Modified/Added Text & Images
+            for (const el of pDef.elements) {
+              if (el.isHidden) continue;
+
+              if (el.type === 'image') {
+                try {
+                  const img = await ExportEngine.loadImage(el.src);
+                  ctx.save();
+                  ctx.globalAlpha = (el.opacity ?? 100) / 100;
+                  ctx.drawImage(img, el.x * sc, el.y * sc, el.w * sc, el.h * sc);
+                  ctx.restore();
+                } catch (imgErr) { /* skip broken image */ }
+                continue;
+              }
+
+              if (el.type === 'text' && el.isModified) {
+                ctx.save();
+                ctx.globalAlpha = (el.opacity ?? 100) / 100;
+
+                if (!el.bgTransparent && el.bgColor) {
+                  ctx.fillStyle = el.bgColor;
+                  ctx.fillRect(el.x * sc, el.y * sc, el.w * sc, el.h * sc);
+                }
+
+                ctx.fillStyle = el.color || '#000000';
+                ctx.font = `${el.fontStyle || 'normal'} ${el.fontWeight || 400} ${el.fontSize * sc}px "${el.fontFamily}", sans-serif`;
+                ctx.textBaseline = 'top';
+
+                const lines = String(el.text || '').split('\n');
+                const lineH = el.fontSize * 1.18 * sc;
+                lines.forEach((line, lineIdx) => {
+                  const ly = (el.y * sc) + (lineIdx * lineH);
+                  ctx.fillText(line, (el.x + 3) * sc, ly);
+                  if (el.textDecoration === 'underline') {
+                    const m = ctx.measureText(line);
+                    ctx.fillRect((el.x + 3) * sc, ly + (el.fontSize * sc * 0.98), m.width, Math.max(1, sc));
+                  }
+                });
+                ctx.restore();
+              }
+            }
+
+            // 5. Add Page to jsPDF
+            if (i > 0) {
+              const pOrient = cvs.width > cvs.height ? 'landscape' : 'portrait';
+              pdf.addPage([cvs.width, cvs.height], pOrient);
+            }
+            pdf.addImage(cvs.toDataURL('image/jpeg', 0.96), 'JPEG', 0, 0, cvs.width, cvs.height, undefined, 'FAST');
+
+            // 6. STRICTLY RE-EMBED ALL PRESERVED & USER LINKS ON THIS PAGE
+            const pageLinks = allActiveLinks.filter(l => l.pageIdx === i);
+            for (const lnk of pageLinks) {
+              pdf.link(lnk.x * sc, lnk.y * sc, lnk.w * sc, lnk.h * sc, { url: lnk.url });
+              embeddedLinkCount++;
+            }
+
+            const pct = Math.round(((i + 1) / AppState.pages.length) * 100);
+            UI.get('exportProgressBar').style.width = `${pct}%`;
+            UI.get('exportPercentText').textContent = `${pct}%`;
+            await new Promise(r => setTimeout(r, 20));
+          }
+
+          pdf.save(fileName);
+          UI.get('exportStatusText').textContent = `Exported with ${embeddedLinkCount} preserved link(s)!`;
+          UI.log(`Exported "${fileName}" (${embeddedLinkCount} clickable links preserved).`, 'success');
+          setTimeout(() => {
+            AppState.flags.isExporting = false;
+            UI.hideModal('modalExport');
+          }, 800);
+          UI.toast('Export Complete', `${fileName} saved with ${embeddedLinkCount} clickable link(s).`, 'success');
+        } catch (err) {
+          console.error(err);
+          UI.log(`Export failed: ${err.message}`, 'error');
+          UI.toast('Export Failed', 'An error occurred while compiling the PDF.', 'error');
+        } finally {
+          AppState.flags.isExporting = false;
+          confirmBtn.disabled = false;
+        }
+      }
+    };
+
+    /* ------------------------------------------------------------
+       12. BOOTSTRAP & EVENT WIRING
+       ------------------------------------------------------------ */
+    window.addEventListener('DOMContentLoaded', () => {
+      SignaturePad.init();
+
+      // File Open & Drag-Drop
+      UI.get('btnOpen').onclick = () => UI.get('hiddenFileInput').click();
+      UI.get('hiddenFileInput').onchange = (e) => {
+        if (e.target.files[0]) DocumentManager.handleFile(e.target.files[0]);
+        e.target.value = '';
+      };
+
+      const stage = UI.get('editorStage');
+      stage.addEventListener('dragover', (e) => e.preventDefault());
+      stage.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const file = e.dataTransfer.files[0];
+        if (file && file.type === 'application/pdf') DocumentManager.handleFile(file);
       });
 
-      for(let i = 0; i < AppState.pages.length; i++) {
-        const pDef = AppState.pages[i];
-        const cvs = document.createElement('canvas'); 
-        cvs.width = pDef.width * sc; 
-        cvs.height = pDef.height * sc;
-        const ctx = cvs.getContext('2d'); 
-        ctx.fillStyle = '#fff'; 
-        ctx.fillRect(0, 0, cvs.width, cvs.height);
-        ctx.drawImage(pDef.canvas, 0, 0, cvs.width, cvs.height);
+      // Image / Stamp Insertion
+      UI.get('btnInsertImage').onclick = () => UI.get('hiddenImageInput').click();
+      UI.get('hiddenImageInput').onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const img = new Image();
+          img.onload = () => {
+            const ratio = Math.min(260 / img.width, 260 / img.height, 1);
+            Editor.insertImageOnCurrentPage(ev.target.result, Math.round(img.width * ratio), Math.round(img.height * ratio));
+          };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+        e.target.value = '';
+      };
 
-        for(const el of pDef.elements) {
-          if(el.isHidden || !el.isModified) continue;
-          ctx.fillStyle = '#ffffff'; 
-          ctx.fillRect(el.x * sc, el.y * sc, el.w * sc, el.h * sc);
-          ctx.fillStyle = el.color || '#000000'; 
-          ctx.font = `${el.fontStyle || 'normal'} ${el.fontWeight} ${el.fontSize * sc}px "${el.fontFamily}"`;
-          ctx.textBaseline = 'top'; 
-          ctx.fillText(el.text, el.x * sc, el.y * sc);
+      // Force OCR Button on Current Page
+      UI.get('btnForceOCR').onclick = async () => {
+        const pDef = AppState.pages[AppState.currentPageIndex];
+        if (!pDef) return;
+        History.save();
+        UI.toast('Running Smart OCR', `Scanning Page ${pDef.id} for English & Bengali text...`, 'info');
+        await DocumentManager.runOCROnPage(pDef);
+        Renderer.drawLayer(AppState.currentPageIndex);
+        UI.toast('OCR Complete', `Editable text extracted on Page ${pDef.id}.`, 'success');
+      };
+
+      // Tool Buttons
+      document.querySelectorAll('.tool-btn').forEach(btn => {
+        btn.onclick = () => Navigation.setTool(btn.dataset.tool);
+      });
+
+      // Toggle Link Badges Visibility
+      UI.get('btnToggleLinkBadges').onclick = () => {
+        AppState.showLinkBadges = !AppState.showLinkBadges;
+        UI.get('documentPagesContainer').classList.toggle('links-hidden', !AppState.showLinkBadges);
+        UI.toast(
+          AppState.showLinkBadges ? 'Link Overlay Visible' : 'Link Overlay Hidden',
+          'Note: Embedded links are ALWAYS preserved on export regardless of overlay visibility.',
+          'info'
+        );
+      };
+
+      // History, Zoom, Page Nav
+      UI.get('btnUndo').onclick = History.undo;
+      UI.get('btnRedo').onclick = History.redo;
+      UI.get('btnZoomIn').onclick = () => Navigation.setZoom(AppState.zoomLevel + 0.15);
+      UI.get('btnZoomOut').onclick = () => Navigation.setZoom(AppState.zoomLevel - 0.15);
+      UI.get('zoomLevelDisplay').onclick = () => Navigation.setZoom(1.0);
+      UI.get('btnPrevPage').onclick = () => Navigation.goToPage(AppState.currentPageIndex - 1);
+      UI.get('btnNextPage').onclick = () => Navigation.goToPage(AppState.currentPageIndex + 1);
+
+      // Property Inputs
+      UI.get('propFontFamily').oninput = (e) => Editor.updateProperty('fontFamily', e.target.value);
+      UI.get('propFontSize').oninput = (e) => Editor.updateProperty('fontSize', e.target.value);
+      UI.get('propOpacity').oninput = (e) => Editor.updateProperty('opacity', e.target.value);
+      UI.get('propColor').oninput = (e) => Editor.updateProperty('color', e.target.value);
+      UI.get('propBgColor').oninput = (e) => {
+        UI.get('propBgTransparent').checked = false;
+        Editor.updateProperty('bgTransparent', false);
+        Editor.updateProperty('bgColor', e.target.value);
+      };
+      UI.get('propBgTransparent').onchange = (e) => Editor.updateProperty('bgTransparent', e.target.checked);
+      UI.get('propLink').oninput = (e) => Editor.updateProperty('link', e.target.value.trim());
+
+      UI.get('btnToggleBold').onclick = () => {
+        const sel = Editor.getSelectedData();
+        if (sel) Editor.updateProperty('fontWeight', Number(sel.el.fontWeight) >= 700 ? 400 : 700);
+      };
+      UI.get('btnToggleItalic').onclick = () => {
+        const sel = Editor.getSelectedData();
+        if (sel) Editor.updateProperty('fontStyle', sel.el.fontStyle === 'italic' ? 'normal' : 'italic');
+      };
+      UI.get('btnToggleUnderline').onclick = () => {
+        const sel = Editor.getSelectedData();
+        if (sel) Editor.updateProperty('textDecoration', sel.el.textDecoration === 'underline' ? 'none' : 'underline');
+      };
+      UI.get('btnResetBg').onclick = () => {
+        const sel = Editor.getSelectedData();
+        if (!sel) return;
+        const sampled = CanvasSampler.sampleBackground(sel.page.canvas, sel.el.x, sel.el.y, sel.el.w, sel.el.h);
+        UI.get('propBgColor').value = sampled;
+        UI.get('propBgTransparent').checked = false;
+        Editor.updateProperty('bgTransparent', false);
+        Editor.updateProperty('bgColor', sampled);
+        UI.toast('Background Matched', `Sampled color ${sampled} from PDF.`, 'info');
+      };
+
+      UI.get('btnDuplicateElement').onclick = Editor.duplicateSelected;
+      UI.get('btnDeleteElement').onclick = Editor.deleteSelected;
+
+      // Right Inspector Tabs
+      document.querySelectorAll('.inspector-tab').forEach(tab => {
+        tab.onclick = () => {
+          const target = tab.dataset.tab;
+          document.querySelectorAll('.inspector-tab').forEach(t => {
+            const active = t.dataset.tab === target;
+            t.classList.toggle('text-blue-400', active);
+            t.classList.toggle('border-b-2', active);
+            t.classList.toggle('border-blue-500', active);
+            t.classList.toggle('bg-blue-500/5', active);
+            t.classList.toggle('text-slate-400', !active);
+          });
+          UI.get('tabFormat').classList.toggle('hidden', target !== 'format');
+          UI.get('tabLinks').classList.toggle('hidden', target !== 'links');
+          UI.get('tabLogs').classList.toggle('hidden', target !== 'logs');
+        };
+      });
+
+      UI.get('btnClearLogs').onclick = () => { UI.get('systemLogBox').innerHTML = ''; };
+
+      // Mobile Drawer Toggles
+      UI.get('btnMobilePages').onclick = () => {
+        const sb = UI.get('leftSidebar');
+        sb.classList.toggle('hidden');
+        sb.classList.toggle('fixed');
+        sb.classList.toggle('inset-y-16');
+        sb.classList.toggle('left-0');
+        sb.classList.toggle('shadow-2xl');
+      };
+      UI.get('btnMobileProps').onclick = () => {
+        const sb = UI.get('rightSidebar');
+        sb.classList.toggle('hidden');
+        sb.classList.toggle('fixed');
+        sb.classList.toggle('inset-y-16');
+        sb.classList.toggle('right-0');
+        sb.classList.toggle('shadow-2xl');
+      };
+
+      // Export Modal
+      UI.get('btnExportTop').onclick = () => {
+        LinkGuardian.refreshUI();
+        UI.get('exportProgressBar').style.width = '0%';
+        UI.get('exportPercentText').textContent = '0%';
+        UI.get('exportStatusText').textContent = 'Ready to compile layers & preserve links...';
+        UI.showModal('modalExport');
+      };
+      UI.get('btnConfirmExport').onclick = ExportEngine.compile;
+
+      // Global Keyboard Shortcuts
+      document.addEventListener('keydown', (e) => {
+        const isTyping = document.activeElement?.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName);
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !isTyping) {
+          e.preventDefault();
+          History.undo();
+        } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y' && !isTyping) {
+          e.preventDefault();
+          History.redo();
+        } else if (e.key === 'Delete' && !isTyping && AppState.selected) {
+          e.preventDefault();
+          Editor.deleteSelected();
+        } else if (e.key === 'Escape') {
+          Editor.deselectAll();
         }
-        
-        if(i > 0) pdf.addPage([cvs.width, cvs.height]);
-        pdf.addImage(cvs.toDataURL('image/jpeg', 0.98), 'JPEG', 0, 0, cvs.width, cvs.height, undefined, 'FAST');
-        
-        for(const el of pDef.elements) {
-          if(el.isHidden || !el.isModified || !el.link) continue;
-          pdf.link(el.x * sc, el.y * sc, el.w * sc, el.h * sc, { url: el.link });
-        }
-        
-        UI.get('exportProgressBar').style.width = `${Math.round(((i + 1) / AppState.pages.length) * 100)}%`;
-      }
-      pdf.save('SHM_Edited_Document.pdf'); 
-      UI.get('exportStatusText').textContent = 'Saved!'; 
-      setTimeout(() => UI.get('modalExport').classList.remove('show'), 800);
-      UI.toast('Success', 'PDF exported successfully!');
-    } catch(err) { 
-      UI.toast('Error', 'Export Failed.'); 
-    } finally { 
-      AppState.flags.isExporting = false; 
-    }
-  }
-};
-
-document.addEventListener('mousemove', (e) => {
-  if(AppState.dragState.isDragging && AppState.selectedElement) {
-    const ds = AppState.dragState;
-    const dx = (e.clientX - ds.startX) / AppState.zoomLevel;
-    const dy = (e.clientY - ds.startY) / AppState.zoomLevel;
-    
-    if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
-      const p = AppState.pages.find(pg => pg.interactNode.contains(AppState.selectedElement));
-      const el = p.elements.find(ev => ev.uuid === AppState.selectedElement.dataset.uuid);
-      if(el) {
-        el.x += dx;
-        el.y += dy;
-        el.isModified = true;
-        AppState.selectedElement.style.left = `${el.x}px`;
-        AppState.selectedElement.style.top = `${el.y}px`;
-        AppState.selectedElement.classList.add('is-modified');
-      }
-      ds.startX = e.clientX;
-      ds.startY = e.clientY;
-    }
-  }
-});
-
-document.addEventListener('mouseup', () => {
-  if(AppState.dragState.isDragging) {
-    AppState.dragState.isDragging = false;
-    debounceHistory();
-  }
-});
-
-window.onload = () => {
-  UI.get('btnOpen').onclick = () => UI.get('hiddenFileInput').click();
-  UI.get('hiddenFileInput').onchange = (e) => DocumentManager.handleFile(e.target.files[0]);
-  
-  const stage = UI.get('editorStage');
-  stage.ondragover = (e) => e.preventDefault(); 
-  stage.ondrop = (e) => { 
-    e.preventDefault(); 
-    if(e.dataTransfer.files[0]) DocumentManager.handleFile(e.dataTransfer.files[0]); 
-  };
-
-  UI.get('btnUndo').onclick = History.undo; 
-  UI.get('btnRedo').onclick = History.redo;
-  UI.get('toolSelect').onclick = () => Navigation.setTool('select'); 
-  UI.get('toolText').onclick = () => Navigation.setTool('insert');
-  
-  UI.get('btnZoomIn').onclick = () => Navigation.setZoom(AppState.zoomLevel + 0.15); 
-  UI.get('btnZoomOut').onclick = () => Navigation.setZoom(AppState.zoomLevel - 0.15);
-  
-  UI.get('btnPrevPage').onclick = () => Navigation.goToPage(AppState.currentPageIndex - 1); 
-  UI.get('btnNextPage').onclick = () => Navigation.goToPage(AppState.currentPageIndex + 1);
-
-  ['propFontSize', 'propFontFamily', 'propFontWeight', 'propFontStyle', 'propColor'].forEach(id => {
-    UI.get(id).addEventListener('input', (e) => {
-        Editor.updateProperty(id.replace('prop', '').charAt(0).toLowerCase() + id.replace('prop', '').slice(1), e.target.value);
+      });
     });
-  });
-
-  UI.get('propLink').addEventListener('input', (e) => {
-    Editor.updateProperty('link', e.target.value);
-  });
-
-  UI.get('btnDeleteElement').onclick = () => { 
-    if(AppState.selectedElement) {
-      const p = AppState.pages.find(pg => pg.interactNode.contains(AppState.selectedElement));
-      Editor.deleteElement(p, AppState.selectedElement.dataset.uuid);
-    } 
-  };
-
-  UI.get('btnExportTop').onclick = () => UI.get('modalExport').classList.add('show'); 
-  UI.get('btnConfirmExport').onclick = ExportEngine.compile;
-};
-</script>
+  </script>
 </body>
 </html>
